@@ -23,6 +23,13 @@ function showSection(sectionId) {
     }
 }
 
+function navigateToTracker() {
+    if (!currentMatch.player1 || currentMatch.player1 === 'Player 1') {
+        startMatch(); // This will also call showSection('match-tracker')
+    } else {
+        showSection('match-tracker');
+    }
+}
 // Initialize the app
 function initTennisTracker() {
     // Show the first section by default
