@@ -1,5 +1,5 @@
 /* Main Wescoup.com Styles */
-body {
+.body {
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -48,6 +48,7 @@ a {
 a:hover {
     text-decoration: underline;
 }
+/*
 /* Home page body styling */
 .body {
     font-family: Arial, sans-serif;
@@ -100,7 +101,7 @@ a:hover {
     opacity: 0.7;
     margin-top: 1rem;
 }
-
+*/
 /* General link styling for home page */
 .container a {
     color: #ffeb3b;
