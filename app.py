@@ -9,7 +9,7 @@ def home():
 
 @app.route('/tonys-tennis-page')
 def tonys_tennis_page():
-    return render_template('tonys_tennis_page.html')
+    return render_template('tonys-tennis-page.html')
 
 @app.route('/tonys-tennis-tracker')
 def tonys_tennis_tracker():
