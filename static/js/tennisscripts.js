@@ -111,14 +111,35 @@ function updateSetScores() {
 
 // Set score functions
 function addGame(playerIndex) {
+    // Initialize sets array if it doesn't exist
+    if (!currentMatch.sets || currentMatch.sets.length === 0) {
+        currentMatch.sets = [0, 0];
+    }
+    
     currentMatch.sets[playerIndex]++;
     updateSetScores();
 }
 
 function subtractGame(playerIndex) {
+    // Initialize sets array if it doesn't exist
+    if (!currentMatch.sets || currentMatch.sets.length === 0) {
+        currentMatch.sets = [0, 0];
+    }
+    
     if (currentMatch.sets[playerIndex] > 0) {
         currentMatch.sets[playerIndex]--;
         updateSetScores();
+    }
+}
+
+function updateSetScores() {
+    const p1Score = document.getElementById('player1Score');
+    const p2Score = document.getElementById('player2Score');
+    
+    // Make sure DOM elements exist and sets array is initialized
+    if (p1Score && p2Score && currentMatch.sets) {
+        p1Score.textContent = currentMatch.sets[0] || 0;
+        p2Score.textContent = currentMatch.sets[1] || 0;
     }
 }
 
