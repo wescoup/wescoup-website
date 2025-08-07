@@ -10,18 +10,12 @@ function showSection(sectionId) {
     const navButtons = document.querySelectorAll('.tennis-nav-btn');
     navButtons.forEach(btn => btn.classList.remove('active'));
 
-    // In the existing showSection function, add this before showing the section:
-    if (sectionId === 'match-tracker') {
-        // Get currently active section
-        const currentSection = document.querySelector('.tennis-section.active');
-        const isOnMatchInfo = currentSection && currentSection.id === 'match-info';
-        
-        // Check if we're on match-info and have no real player data
-        if (isOnMatchInfo && (!currentMatch.player1 || currentMatch.player1 === 'Player 1')) {
-            startMatch(); // This will initialize data AND show match-tracker
-            return; // Exit early since startMatch() already calls showSection
-        }
+    // Check if we're on match-info and have no real player data
+    if (isOnMatchInfo && (!currentMatch.player1 || currentMatch.player1 === 'Player 1')) {
+        startMatch(); // This will initialize data AND show match-tracker
+        return; // Exit early since startMatch() already calls showSection
     }
+    
     // Show selected section
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
