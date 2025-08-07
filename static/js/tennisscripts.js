@@ -11,7 +11,7 @@ function showSection(sectionId) {
     navButtons.forEach(btn => btn.classList.remove('active'));
 
     // Check if we're on match-info and have no real player data
-    if (isOnMatchInfo && (!currentMatch.player1 || currentMatch.player1 === 'Player 1')) {
+    if (sectionId === 'match-info' && (!currentMatch.player1 || currentMatch.player1 === 'Player 1')) {
         startMatch(); // This will initialize data AND show match-tracker
         return; // Exit early since startMatch() already calls showSection
     }
