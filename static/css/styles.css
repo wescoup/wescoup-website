@@ -1,7 +1,7 @@
 /* Main Wescoup.com Styles */
 
 /* Home page body styling */
-.home-body {
+.body {
     font-family: Arial, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -15,7 +15,7 @@
 }
 
 /* Home page container */
-.home-container {
+.container {
     max-width: 600px;
     padding: 2rem;
     background: rgba(255, 255, 255, 0.1);
@@ -25,14 +25,14 @@
 }
 
 /* Home page heading */
-.home-container h1 {
+.container h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
 /* Home page paragraphs */
-.home-container p {
+.container p {
     font-size: 1.2rem;
     margin-bottom: 2rem;
     opacity: 0.9;
@@ -81,12 +81,12 @@
 }
 
 /* General link styling for home page */
-.home-container a {
+.container a {
     color: #ffeb3b;
     text-decoration: none;
     font-weight: bold;
 }
 
-.home-container a:hover {
+.container a:hover {
     text-decoration: underline;
 }
