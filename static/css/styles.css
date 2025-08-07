@@ -1,1 +1,92 @@
+/* Main Wescoup.com Styles */
 
+/* Home page body styling */
+.home-body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    text-align: center;
+}
+
+/* Home page container */
+.home-container {
+    max-width: 600px;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(4px);
+}
+
+/* Home page heading */
+.home-container h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Home page paragraphs */
+.home-container p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+/* Status box */
+.status {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    border-radius: 5px;
+    margin-top: 2rem;
+}
+
+/* Tennis link on home page */
+.tennis-link {
+    background: rgba(76, 175, 80, 0.8);
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    margin: 2rem 0;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(76, 175, 80, 0.5);
+}
+
+.tennis-link:hover {
+    background: rgba(76, 175, 80, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.tennis-link a {
+    color: white;
+    font-size: 1.3rem;
+    display: block;
+    text-decoration: none;
+}
+
+.tennis-link a:hover {
+    text-decoration: none;
+}
+
+/* Date styling */
+.date {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-top: 1rem;
+}
+
+/* General link styling for home page */
+.home-container a {
+    color: #ffeb3b;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.home-container a:hover {
+    text-decoration: underline;
+}
