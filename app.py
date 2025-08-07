@@ -11,7 +11,7 @@ def home():
 def tonys_tennis_page():
     return render_template('tonys-tennis-page.html')
 
-@app.route('/tonys-tennis-tracker.html')
+@app.route('/tonys-tennis-tracker')
 def tonys_tennis_tracker():
     return render_template('tonys-tennis-tracker.html')
 
