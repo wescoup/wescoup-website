@@ -21,6 +21,11 @@ function showSection(sectionId) {
     if (activeButton) {
         activeButton.classList.add('active');
     }
+
+    // Special handling for results section
+    if (sectionId === 'results') {
+        updateStatsDisplay();
+    }
 }
 
 // Initialize the app
@@ -265,7 +270,7 @@ function completeGame() {
 
 // Statistics functions
 function updateStatsDisplay() {
-    showSection('results');
+    //showSection('results');
     
     // Calculate and display final statistics
     const resultsContainer = document.getElementById('finalResults');
