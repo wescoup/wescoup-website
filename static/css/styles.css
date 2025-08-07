@@ -94,33 +94,6 @@ a:hover {
     margin-top: 2rem;
 }
 
-/* Tennis link on home page */
-.tennis-link {
-    background: rgba(76, 175, 80, 0.8);
-    padding: 1rem 2rem;
-    border-radius: 25px;
-    margin: 2rem 0;
-    transition: all 0.3s ease;
-    border: 2px solid rgba(76, 175, 80, 0.5);
-}
-
-.tennis-link:hover {
-    background: rgba(76, 175, 80, 1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-}
-
-.tennis-link a {
-    color: white;
-    font-size: 1.3rem;
-    display: block;
-    text-decoration: none;
-}
-
-.tennis-link a:hover {
-    text-decoration: none;
-}
-
 /* Date styling */
 .date {
     font-size: 0.9rem;
