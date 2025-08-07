@@ -16,7 +16,7 @@ def tonys_tennis_tracker():
     return render_template('tonys-tennis-tracker.html')
 
 @app.route('/second-shot')
-def tonys_tennis_tracker():
+def second_shot():
     return render_template('second-shot.html')
 
 if __name__ == '__main__':
