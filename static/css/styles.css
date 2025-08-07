@@ -74,12 +74,12 @@ a:hover {
     backdrop-filter: blur(4px);
 } 
 
-/* Home page heading */
+/* Home page heading
 .container h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-} */
+}
 
 /* Home page paragraphs */
 .container p {
