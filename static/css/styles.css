@@ -72,14 +72,14 @@ a:hover {
     border-radius: 10px;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     backdrop-filter: blur(4px);
-} */
+} 
 
 /* Home page heading */
 .container h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-}
+} */
 
 /* Home page paragraphs */
 .container p {
