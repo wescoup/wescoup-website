@@ -15,5 +15,9 @@ def tonys_tennis_page():
 def tonys_tennis_tracker():
     return render_template('tonys-tennis-tracker.html')
 
+@app.route('/second-shot')
+def tonys_tennis_tracker():
+    return render_template('second-shot.html')
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
