@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tony's Tennis Tracker 2.0</title>
+    <link rel="stylesheet" href="/static/css/tennisstyles.css">
+</head>
+<body class="tennis-body">
+    <!-- Match Setup Section -->
+    <div class="tennis-section" id="setup-section">
+        <div class="tennis-header">
+            <h1>🎾 Tony's Tennis Tracker 2.0</h1>
+            <p>Track your tennis match with second shot analysis</p>
+        </div>
+        <div class="tennis-container">
+            <div class="setup-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="player1-name">Player 1:</label>
+                        <input type="text" id="player1-name" value="Player 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="player2-name">Player 2:</label>
+                        <input type="text" id="player2-name" value="Player 2">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="match-date">Date:</label>
+                        <input type="date" id="match-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="match-location">Location:</label>
+                        <input type="text" id="match-location" value="Local Court">
+                    </div>
+                    <div class="form-group">
+                        <label for="match-surface">Surface:</label>
+                        <select id="match-surface">
+                            <option value="Hard">Hard</option>
+                            <option value="Clay">Clay</option>
+                            <option value="Grass">Grass</option>
+                            <option value="Indoor">Indoor</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="startMatch()" class="btn-primary">Start Match</button>
+                <a href="/tonys-tennis-page" class="btn-secondary">Back to Tennis Page</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Match Tracking Section -->
+    <div class="tennis-section hidden" id="tracking-section">
+        <div class="tennis-header">
+            <h1 id="match-title">🎾 Tony's Tennis Tracker 2.0</h1>
+            <p id="match-info">Match in progress</p>
+        </div>
+        <div class="tennis-container">
+            <!-- Current Score Display -->
+            <div class="score-section">
+                <div class="score-display">
+                    <div class="player-score">
+                        <h3 id="tracking-p1-name">Player 1</h3>
+                        <div class="score-number" id="p1-games">0</div>
+                    </div>
+                    <div class="score-divider">-</div>
+                    <div class="player-score">
+                        <h3 id="tracking-p2-name">Player 2</h3>
+                        <div class="score-number" id="p2-games">0</div>
+                    </div>
+                </div>
+                <div class="score-controls">
+                    <button onclick="adjustGames('p1', 1)" class="btn-small">+1 Game (P1)</button>
+                    <button onclick="adjustGames('p2', 1)" class="btn-small">+1 Game (P2)</button>
+                </div>
+            </div>
+
+            <!-- Server Selection -->
+            <div class="server-section">
+                <h3>Current Server</h3>
+                <div class="server-display">
+                    <span id="current-server-name">Player 1</span>
+                    <button onclick="changeServer()" class="btn-secondary">Change Server</button>
+                </div>
+            </div>
+
+            <!-- Serve Tracking -->
+            <div class="serve-section">
+                <div class="serve-stats">
+                    <div class="serve-stat">
+                        <label>First Serve</label>
+                        <div class="serve-display" id="first-serve-display"></div>
+                        <div class="serve-percentage" id="first-serve-pct">0% Win</div>
+                    </div>
+                    <div class="serve-stat">
+                        <label>Second Serve</label>
+                        <div class="serve-display" id="second-serve-display"></div>
+                        <div class="serve-percentage" id="second-serve-pct">0% Win</div>
+                    </div>
+                </div>
+                <div class="serve-buttons">
+                    <button onclick="recordServe('first', 'win')" class="btn-success">1st Serve Win</button>
+                    <button onclick="recordServe('first', 'lose')" class="btn-danger">1st Serve Miss</button>
+                    <button onclick="recordServe('second', 'win')" class="btn-success">2nd Serve Win</button>
+                    <button onclick="recordServe('second', 'lose')" class="btn-danger">2nd Serve Miss</button>
+                </div>
+                <div class="serve-controls">
+                    <button onclick="undoServe()" class="btn-secondary">Undo Last</button>
+                    <button onclick="gameComplete()" class="btn-primary">Game Complete</button>
+                </div>
+            </div>
+
+            <!-- NEW: Second Shot Tracking -->
+            <div class="second-shot-section">
+                <h3>🎯 Second Shot Tracking</h3>
+                <p class="second-shot-info">Only press if someone misses their second ball</p>
+                <div class="second-shot-buttons">
+                    <button onclick="recordSecondShotMiss('server')" class="btn-warning">Server Missed 2nd Shot</button>
+                    <button onclick="recordSecondShotMiss('returner')" class="btn-warning">Returner Missed 2nd Shot</button>
+                </div>
+                <div class="second-shot-stats">
+                    <div>
+                        <span id="current-server-name-2">Player 1</span> (Server) Misses: 
+                        <strong id="server-second-misses">0</strong>
+                    </div>
+                    <div>
+                        <span id="current-returner-name">Player 2</span> (Returner) Misses: 
+                        <strong id="returner-second-misses">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="tennis-section hidden" id="results-section">
+        <div class="tennis-header">
+            <h1>🎾 Match Results</h1>
+            <p id="results-match-info">Match completed</p>
+        </div>
+        <div class="tennis-container">
+            <!-- Final Score -->
+            <div class="final-score">
+                <h2>Final Score</h2>
+                <div class="score-display large">
+                    <div class="player-score">
+                        <h3 id="results-p1-name">Player 1</h3>
+                        <div class="score-number" id="results-p1-games">0</div>
+                    </div>
+                    <div class="score-divider">-</div>
+                    <div class="player-score">
+                        <h3 id="results-p2-name">Player 2</h3>
+                        <div class="score-number" id="results-p2-games">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-tables">
+                <div class="stats-table">
+                    <h3>Serve Statistics</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>1st Serve %</th>
+                                <th>1st Win %</th>
+                                <th>2nd Win %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="serve-stats-p1-name">Player 1</td>
+                                <td id="p1-first-serve-percent">0%</td>
+                                <td id="p1-first-win-percent">0%</td>
+                                <td id="p1-second-win-percent">0%</td>
+                            </tr>
+                            <tr>
+                                <td id="serve-stats-p2-name">Player 2</td>
+                                <td id="p2-first-serve-percent">0%</td>
+                                <td id="p2-first-win-percent">0%</td>
+                                <td id="p2-second-win-percent">0%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- NEW: Second Shot Results -->
+                <div class="stats-table second-shot-results">
+                    <h3>🎯 Second Shot Analysis</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Total 2nd Shot Misses</th>
+                                <th>Analysis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="second-shot-stats-p1-name">Player 1</td>
+                                <td id="p1-total-second-misses">0</td>
+                                <td id="p1-second-analysis">Good consistency</td>
+                            </tr>
+                            <tr>
+                                <td id="second-shot-stats-p2-name">Player 2</td>
+                                <td id="p2-total-second-misses">0</td>
+                                <td id="p2-second-analysis">Good consistency</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="match-insight">
+                        <h4>💡 Match Insight</h4>
+                        <p id="overall-second-shot-insight">Analysis will appear here</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="results-actions">
+                <button onclick="newMatch()" class="btn-primary">New Match</button>
+                <button onclick="takeScreenshot()" class="btn-secondary">Save Screenshot</button>
+                <a href="/tonys-tennis-page" class="btn-secondary">Tennis Page</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/tennisscripts.js"></script>
+    <script>
+        // Match data
+        let matchData = {
+            player1: { name: '', games: 0, firstServe: '', secondServe: '', secondShotMisses: 0 },
+            player2: { name: '', games: 0, firstServe: '', secondServe: '', secondShotMisses: 0 },
+            currentServer: 0, // 0 = player1, 1 = player2
+            matchInfo: { date: '', location: '', surface: '' }
+        };
+
+        // Initialize
+        function init() {
+            document.getElementById('match-date').value = new Date().toISOString().split('T')[0];
+            showSection('setup-section');
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.tennis-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
+
+        function startMatch() {
+            // Get match info
+            matchData.player1.name = document.getElementById('player1-name').value || 'Player 1';
+            matchData.player2.name = document.getElementById('player2-name').value || 'Player 2';
+            matchData.matchInfo.date = document.getElementById('match-date').value;
+            matchData.matchInfo.location = document.getElementById('match-location').value;
+            matchData.matchInfo.surface = document.getElementById('match-surface').value;
+
+            // Update tracking section
+            document.getElementById('tracking-p1-name').textContent = matchData.player1.name;
+            document.getElementById('tracking-p2-name').textContent = matchData.player2.name;
+            document.getElementById('current-server-name').textContent = matchData.player1.name;
+            document.getElementById('current-server-name-2').textContent = matchData.player1.name;
+            document.getElementById('current-returner-name').textContent = matchData.player2.name;
+            document.getElementById('match-info').textContent = 
+                `${matchData.matchInfo.date} • ${matchData.matchInfo.location} • ${matchData.matchInfo.surface}`;
+
+            showSection('tracking-section');
+            updateDisplays();
+        }
+
+        function changeServer() {
+            matchData.currentServer = matchData.currentServer === 0 ? 1 : 0;
+            const serverName = matchData.currentServer === 0 ? matchData.player1.name : matchData.player2.name;
+            const returnerName = matchData.currentServer === 0 ? matchData.player2.name : matchData.player1.name;
+            
+            document.getElementById('current-server-name').textContent = serverName;
+            document.getElementById('current-server-name-2').textContent = serverName;
+            document.getElementById('current-returner-name').textContent = returnerName;
+            updateDisplays();
+        }
+
+        function adjustGames(player, change) {
+            matchData[player].games = Math.max(0, matchData[player].games + change);
+            updateDisplays();
+        }
+
+        function recordServe(serveType, result) {
+            const server = matchData.currentServer === 0 ? matchData.player1 : matchData.player2;
+            const value = result === 'win' ? '1' : '0';
+            
+            if (serveType === 'first') {
+                server.firstServe += value;
+            } else {
+                server.secondServe += value;
+            }
+            updateDisplays();
+        }
+
+        function recordSecondShotMiss(shotType) {
+            if (shotType === 'server') {
+                const server = matchData.currentServer === 0 ? matchData.player1 : matchData.player2;
+                server.secondShotMisses++;
+            } else {
+                const returner = matchData.currentServer === 0 ? matchData.player2 : matchData.player1;
+                returner.secondShotMisses++;
+            }
+            updateSecondShotDisplay();
+        }
+
+        function undoServe() {
+            const server = matchData.currentServer === 0 ? matchData.player1 : matchData.player2;
+            if (server.secondServe.length > 0) {
+                server.secondServe = server.secondServe.slice(0, -1);
+            } else if (server.firstServe.length > 0) {
+                server.firstServe = server.firstServe.slice(0, -1);
+            }
+            updateDisplays();
+        }
+
+        function gameComplete() {
+            const server = matchData.currentServer === 0 ? matchData.player1 : matchData.player2;
+            server.firstServe += ',';
+            server.secondServe += ',';
+            updateDisplays();
+        }
+
+        function updateDisplays() {
+            // Update scores
+            document.getElementById('p1-games').textContent = matchData.player1.games;
+            document.getElementById('p2-games').textContent = matchData.player2.games;
+
+            // Update serve displays for current server
+            const server = matchData.currentServer === 0 ? matchData.player1 : matchData.player2;
+            document.getElementById('first-serve-display').textContent = server.firstServe;
+            document.getElementById('second-serve-display').textContent = server.secondServe;
+
+            // Calculate and update percentages
+            const firstData = server.firstServe.replace(/,/g, '');
+            const secondData = server.secondServe.replace(/,/g, '');
+            
+            const firstWins = (firstData.match(/1/g) || []).length;
+            const firstTotal = firstData.length;
+            const secondWins = (secondData.match(/1/g) || []).length;
+            const secondTotal = secondData.length;
+
+            document.getElementById('first-serve-pct').textContent = 
+                firstTotal > 0 ? `${Math.round(firstWins / firstTotal * 100)}% Win` : '0% Win';
+            document.getElementById('second-serve-pct').textContent = 
+                secondTotal > 0 ? `${Math.round(secondWins / secondTotal * 100)}% Win` : '0% Win';
+
+            updateSecondShotDisplay();
+        }
+
+        function updateSecondShotDisplay() {
+            const serverMisses = matchData.currentServer === 0 ? matchData.player1.secondShotMisses : matchData.player2.secondShotMisses;
+            const returnerMisses = matchData.currentServer === 0 ? matchData.player2.secondShotMisses : matchData.player1.secondShotMisses;
+            
+            document.getElementById('server-second-misses').textContent = serverMisses;
+            document.getElementById('returner-second-misses').textContent = returnerMisses;
+        }
+
+        function showResults() {
+            // Update results display
+            document.getElementById('results-p1-name').textContent = matchData.player1.name;
+            document.getElementById('results-p2-name').textContent = matchData.player2.name;
+            document.getElementById('results-p1-games').textContent = matchData.player1.games;
+            document.getElementById('results-p2-games').textContent = matchData.player2.games;
+            document.getElementById('results-match-info').textContent = 
+                `${matchData.matchInfo.date} • ${matchData.matchInfo.location} • ${matchData.matchInfo.surface}`;
+
+            // Calculate and display all statistics
+            calculateAllStats();
+            showSection('results-section');
+        }
+
+        function calculateAllStats() {
+            // Update all player name fields in results
+            const nameFields = [
+                'serve-stats-p1-name', 'serve-stats-p2-name',
+                'second-shot-stats-p1-name', 'second-shot-stats-p2-name'
+            ];
+            nameFields.forEach(fieldId => {
+                const isPlayer1 = fieldId.includes('p1');
+                document.getElementById(fieldId).textContent = isPlayer1 ? matchData.player1.name : matchData.player2.name;
+            });
+
+            // Calculate serve stats for both players
+            [matchData.player1, matchData.player2].forEach((player, index) => {
+                const playerId = index === 0 ? 'p1' : 'p2';
+                
+                const firstData = player.firstServe.replace(/,/g, '');
+                const secondData = player.secondServe.replace(/,/g, '');
+                const totalServes = firstData.length + secondData.length;
+                
+                const firstServePercent = totalServes > 0 ? Math.round(firstData.length / totalServes * 100) : 0;
+                const firstWinPercent = firstData.length > 0 ? Math.round((firstData.match(/1/g) || []).length / firstData.length * 100) : 0;
+                const secondWinPercent = secondData.length > 0 ? Math.round((secondData.match(/1/g) || []).length / secondData.length * 100) : 0;
+
+                document.getElementById(`${playerId}-first-serve-percent`).textContent = `${firstServePercent}%`;
+                document.getElementById(`${playerId}-first-win-percent`).textContent = `${firstWinPercent}%`;
+                document.getElementById(`${playerId}-second-win-percent`).textContent = `${secondWinPercent}%`;
+
+                // Second shot analysis
+                document.getElementById(`${playerId}-total-second-misses`).textContent = player.secondShotMisses;
+                
+                let analysis = '';
+                if (player.secondShotMisses === 0) analysis = 'Excellent consistency';
+                else if (player.secondShotMisses <= 2) analysis = 'Good consistency';
+                else if (player.secondShotMisses <= 4) analysis = 'Room for improvement';
+                else analysis = 'Focus on second shots';
+                
+                document.getElementById(`${playerId}-second-analysis`).textContent = analysis;
+            });
+
+            // Overall second shot insight
+            const totalMisses = matchData.player1.secondShotMisses + matchData.player2.secondShotMisses;
+            let insight = '';
+            
+            if (totalMisses === 0) {
+                insight = 'Outstanding! No second shot errors from either player. Excellent rally consistency.';
+            } else if (totalMisses <= 3) {
+                insight = `Good match with only ${totalMisses} second shot errors total. Both players showed solid consistency after serve and return.`;
+            } else if (totalMisses <= 6) {
+                insight = `${totalMisses} second shot errors in the match. Focus on getting that crucial second ball in play.`;
+            } else {
+                insight = `${totalMisses} second shot errors is high. This is where points are being given away - work on second shot consistency!`;
+            }
+
+            if (matchData.player1.secondShotMisses !== matchData.player2.secondShotMisses) {
+                const betterPlayer = matchData.player1.secondShotMisses < matchData.player2.secondShotMisses ? matchData.player1.name : matchData.player2.name;
+                const difference = Math.abs(matchData.player1.secondShotMisses - matchData.player2.secondShotMisses);
+                insight += ` ${betterPlayer} had ${difference} fewer second shot errors.`;
+            }
+
+            document.getElementById('overall-second-shot-insight').textContent = insight;
+        }
+
+        function newMatch() {
+            // Reset match data
+            matchData = {
+                player1: { name: '', games: 0, firstServe: '', secondServe: '', secondShotMisses: 0 },
+                player2: { name: '', games: 0, firstServe: '', secondServe: '', secondShotMisses: 0 },
+                currentServer: 0,
+                matchInfo: { date: '', location: '', surface: '' }
+            };
+            
+            // Reset form
+            document.getElementById('player1-name').value = 'Player 1';
+            document.getElementById('player2-name').value = 'Player 2';
+            document.getElementById('match-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('match-location').value = 'Local Court';
+            document.getElementById('match-surface').value = 'Hard';
+            
+            showSection('setup-section');
+        }
+
+        function takeScreenshot() {
+            // Simple screenshot functionality - you can enhance this
+            window.print();
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (document.getElementById('tracking-section').classList.contains('hidden')) return;
+            
+            switch(event.key) {
+                case '1': recordServe('first', 'win'); break;
+                case '2': recordServe('first', 'lose'); break;
+                case '3': recordServe('second', 'win'); break;
+                case '4': recordServe('second', 'lose'); break;
+                case 's': changeServer(); break;
+                case 'g': gameComplete(); break;
+                case 'u': undoServe(); break;
+                case 'r': showResults(); break;
+            }
+        });
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
