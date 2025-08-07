@@ -21,6 +21,11 @@ function showSection(sectionId) {
     if (activeButton) {
         activeButton.classList.add('active');
     }
+
+    // Special handling for results section
+    if (sectionId === 'results') {
+        updateStatsDisplay();
+    }
 }
 
 // Initialize the app
