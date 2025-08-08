@@ -150,20 +150,18 @@ function updateSetScores() {
 
 // Server functions
 function changeServer() {
-    // Toggle between Player 1 and Player 2
-    if (currentServer === 'Player 1') {
-        currentServer = 'Player 2';
-        currentPlayer = 1; // Switch to Player 2's stats (index 1)
+    // Toggle the current server
+    if (currentMatch.currentServer === currentMatch.player1) {
+        currentMatch.currentServer = currentMatch.player2;
     } else {
-        currentServer = 'Player 1';
-        currentPlayer = 0; // Switch to Player 1's stats (index 0)
+        currentMatch.currentServer = currentMatch.player1;
     }
     
     // Update the display
-    document.getElementById('currentServer').textContent = currentServer;
+    document.getElementById('currentServer').textContent = currentMatch.currentServer;
     
-    // Update all the stats to show the new current player's data
-    updateStats();
+    // Update the serve statistics display to show the new server's data
+    updateServeStats();
 }
 
 // Serve tracking functions
