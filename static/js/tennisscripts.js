@@ -153,15 +153,17 @@ function changeServer() {
     // Toggle between Player 1 and Player 2
     if (currentServer === 'Player 1') {
         currentServer = 'Player 2';
+        currentPlayer = 1; // Switch to Player 2's stats (index 1)
     } else {
         currentServer = 'Player 1';
+        currentPlayer = 0; // Switch to Player 1's stats (index 0)
     }
     
     // Update the display
     document.getElementById('currentServer').textContent = currentServer;
     
-    // Any other logic you need when server changes
-    updateServeStats();
+    // Update all the stats to show the new current player's data
+    updateStats();
 }
 
 // Serve tracking functions
