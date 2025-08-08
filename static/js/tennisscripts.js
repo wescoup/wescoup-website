@@ -150,12 +150,18 @@ function updateSetScores() {
 
 // Server functions
 function changeServer() {
-    const serverSelect = document.getElementById('currentServer');
-    //currentMatch.currentServer = serverSelect.value;
-    alert(currentMatch.currentServer);
-    currentMatch.currentServer = currentMatch.currentServer === 0 ? 1 : 0;
-    alert(currentMatch.currentServer);
-    updateServeStats();
+    // Toggle between Player 1 and Player 2
+    if (currentServer === 'Player 1') {
+        currentServer = 'Player 2';
+    } else {
+        currentServer = 'Player 1';
+    }
+    
+    // Update the display
+    document.getElementById('currentServer').textContent = currentServer;
+    
+    // Any other logic you need when server changes
+    updateStats();
 }
 
 // Serve tracking functions
