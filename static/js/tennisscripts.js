@@ -161,7 +161,7 @@ function changeServer() {
     document.getElementById('currentServer').textContent = currentServer;
     
     // Any other logic you need when server changes
-    updateStats();
+    updateServeStats();
 }
 
 // Serve tracking functions
