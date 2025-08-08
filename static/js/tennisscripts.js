@@ -152,7 +152,9 @@ function updateSetScores() {
 function changeServer() {
     const serverSelect = document.getElementById('currentServer');
     //currentMatch.currentServer = serverSelect.value;
+    msgBox = currentMatch.currentServer;
     currentMatch.currentServer = currentMatch.currentServer === 0 ? 1 : 0;
+    msgBox = currentMatch.currentServer;
     updateServeStats();
 }
 
