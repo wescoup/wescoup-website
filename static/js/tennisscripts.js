@@ -150,17 +150,21 @@ function updateSetScores() {
 
 // Server functions
 function changeServer() {
-    // Toggle the current server
-    if (currentMatch.currentServer === currentMatch.player1) {
-        currentMatch.currentServer = currentMatch.player2;
+    // Get the current server text
+    const currentServerElement = document.getElementById('currentServer');
+    const currentServerText = currentServerElement.textContent;
+    
+    // Toggle between Player 1 and Player 2 (or whatever names are set)
+    if (currentServerText === 'Player 1' || currentServerText === currentMatch.player1) {
+        currentMatch.currentServer = currentMatch.player2 || 'Player 2';
     } else {
-        currentMatch.currentServer = currentMatch.player1;
+        currentMatch.currentServer = currentMatch.player1 || 'Player 1';
     }
     
     // Update the display
-    document.getElementById('currentServer').textContent = currentMatch.currentServer;
+    currentServerElement.textContent = currentMatch.currentServer;
     
-    // Update the serve statistics display to show the new server's data
+    // Update the serve statistics display
     updateServeStats();
 }
 
