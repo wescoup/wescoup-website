@@ -151,7 +151,8 @@ function updateSetScores() {
 // Server functions
 function changeServer() {
     const serverSelect = document.getElementById('currentServer');
-    currentMatch.currentServer = serverSelect.value;
+    //currentMatch.currentServer = serverSelect.value;
+    currentMatch.currentServer = currentMatch.currentServer === 0 ? 1 : 0;
     updateServeStats();
 }
 
