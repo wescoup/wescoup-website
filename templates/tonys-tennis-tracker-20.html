@@ -1,1 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tony's Tennis Tracker - Wescoup.com</title>
+    <link rel="stylesheet" href="/static/css/tennisstyles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body class="tennis-tracker-body">
+    <div class="tennis-tracker-container">
+        <div class="tennis-tracker-header">
+            <h1>🎾 Tony's Tennis Tracker</h1>
+        </div>
 
+        <!-- Navigation -->
+        <div class="tennis-nav">
+            <button class="tennis-nav-btn" onclick="showSection('match-info')">Match Info</button>
+            <button class="tennis-nav-btn" onclick="showSection('match-tracker')">Track Match</button>
+            <button class="tennis-nav-btn" onclick="showSection('results')">Results</button>
+            <button class="tennis-nav-btn" onclick="window.location.href='/tonys-tennis-page'">Tony's Tennis Page</button>
+        </div>
+
+        <!-- Match Info Section -->
+        <div id="match-info" class="tennis-section active">
+            <h2 style="text-align: center; color: #FFE135; margin-bottom: 2rem;">Enter Match Information</h2>
+            
+            <div class="tennis-form-group">
+                <label for="player1">Player 1:</label>
+                <input type="text" id="player1" placeholder="Enter your name" value="Player 1">
+            </div>
+            
+            <div class="tennis-form-group">
+                <label for="player2">Player 2:</label>
+                <input type="text" id="player2" placeholder="Enter opponent's name" value="Player 2">
+            </div>
+            
+            <div class="tennis-form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" placeholder="Court location" value="Local Court">
+            </div>
+            
+            <div class="tennis-form-group">
+                <label for="surface">Surface:</label>
+                <select id="surface">
+                    <option value="Hard">Hard</option>
+                    <option value="Clay">Clay</option>
+                    <option value="Grass">Grass</option>
+                    <option value="Indoor">Indoor</option>
+                </select>
+            </div>
+            
+            <div class="tennis-form-group">
+                <label for="matchDate">Date:</label>
+                <input type="date" id="matchDate">
+            </div>
+            <!--
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="tennis-btn" onclick="startMatch()">Start Match</button>
+            </div>
+            -->
+        </div>
+
+        <!-- Match Tracker Section -->
+        <div id="match-tracker" class="tennis-section">
+            <h2 style="text-align: center; color: #FFE135; margin-bottom: 2rem;">Track Your Match</h2>
+            
+            <!-- Set Score -->
+            <div class="stats-grid" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <div class="stat-label">Player 1 Games</div>
+                    <div class="stat-value" id="player1Score">0</div>
+                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                        <button class="tennis-btn" onclick="addGame(0)">+</button>
+                        <button class="tennis-btn" onclick="subtractGame(0)">-</button>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Player 2 Games</div>
+                    <div class="stat-value" id="player2Score">0</div>
+                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                        <button class="tennis-btn" onclick="addGame(1)">+</button>
+                        <button class="tennis-btn" onclick="subtractGame(1)">-</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Server
+            <div class="tennis-form-group">
+                <label for="currentServer">Current Server:</label>
+                <select id="currentServer" onchange="changeServer()">
+                    <option value="Player 1">Player 1</option>
+                    <option value="Player 2">Player 2</option>
+                </select>
+            </div>  -->
+
+            <!-- Server Selection -->
+            <div class="stat-card">
+                <div for="currentServer" class="stat-label">Current Server</div>
+                <div class="stat-value" id="currentServer">Player 1</div>
+                <button onclick="changeServer()" class="tennis-btn">Change Server</button>
+            </div>
+
+            <!-- Serve Tracking -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                <div class="stat-card">
+                    <div class="stat-label">First Serve</div>
+                    <div class="stat-value" id="firstServeDisplay" style="font-size: 1rem; word-break: break-all; min-height: 2rem;"></div>
+                    <div class="stat-label">Win Percentage: <span id="firstServePercentage">0%</span></div>
+                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                        <button class="tennis-btn" onclick="recordFirstServe(true)">Win</button>
+                        <button class="tennis-btn" onclick="recordFirstServe(false)">Loss</button>
+                        <button class="tennis-btn" onclick="undoLastServe('first')">Undo</button>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Second Serve</div>
+                    <div class="stat-value" id="secondServeDisplay" style="font-size: 1rem; word-break: break-all; min-height: 2rem;"></div>
+                    <div class="stat-label">Win Percentage: <span id="secondServePercentage">0%</span></div>
+                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                        <button class="tennis-btn" onclick="recordSecondServe(true)">Win</button>
+                        <button class="tennis-btn" onclick="recordSecondServe(false)">Loss</button>
+                        <button class="tennis-btn" onclick="undoLastServe('second')">Undo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 2rem 0;">
+                <button class="tennis-btn" onclick="completeGame()">Game Complete</button>
+            </div>
+
+            <!-- Notes -->
+            <div class="tennis-form-group">
+                <label for="matchNotes">Match Notes:</label>
+                <textarea id="matchNotes" rows="4" placeholder="Add any notes about the match..."></textarea>
+            </div>
+            <!--
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="tennis-btn" onclick="updateStatsDisplay()">View Results</button>
+            </div>
+            -->
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="tennis-section">
+            <h2 style="text-align: center; color: #FFE135; margin-bottom: 2rem;">Match Results</h2>
+            
+            <div id="finalResults">
+                <!-- Results will be populated by JavaScript -->
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="tennis-btn" onclick="takeScreenshot()">📸 Save Screenshot</button>
+                <button class="tennis-btn" onclick="showSection('match-info')">🔄 New Match</button>
+                <button class="tennis-btn" onclick="showSection('match-tracker')">← Back to Tracking</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/tennisscripts.js"></script>
+</body>
+</html>
