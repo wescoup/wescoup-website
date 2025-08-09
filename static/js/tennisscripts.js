@@ -409,6 +409,8 @@ function updateStatsDisplay() {
                     <div class="stat-value">${p1ReturningSecondShotPerc.toFixed(1)}%</div>
                     <div style="font-size: 0.8rem; opacity: 0.7;">${p1Stats.secondShotMissesReturning} misses</div>
                 </div>
+            </div>
+            <div class="stats-grid">
                 <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3);">
                     <div class="stat-label">${currentMatch.player2} - Serving 2nd Shot Miss %</div>
                     <div class="stat-value">${p2ServingSecondShotPerc.toFixed(1)}%</div>
