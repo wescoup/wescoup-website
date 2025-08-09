@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tony's Tennis Tracker - Wescoup.com</title>
+    <title>Tony's Tennis Tracker 2.0 - Wescoup.com</title>
     <link rel="stylesheet" href="/static/css/tennisstyles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body class="tennis-tracker-body">
     <div class="tennis-tracker-container">
         <div class="tennis-tracker-header">
-            <h1>🎾 Tony's Tennis Tracker</h1>
+            <h1>🎾 Tony's Tennis Tracker 2.0</h1>
+            <p style="color: #FFE135; font-style: italic;">Now with Second Shot Tracking</p>
         </div>
 
         <!-- Navigation -->
@@ -54,11 +55,6 @@
                 <label for="matchDate">Date:</label>
                 <input type="date" id="matchDate">
             </div>
-            <!--
-            <div style="text-align: center; margin-top: 2rem;">
-                <button class="tennis-btn" onclick="startMatch()">Start Match</button>
-            </div>
-            -->
         </div>
 
         <!-- Match Tracker Section -->
@@ -84,15 +80,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Current Server
-            <div class="tennis-form-group">
-                <label for="currentServer">Current Server:</label>
-                <select id="currentServer" onchange="changeServer()">
-                    <option value="Player 1">Player 1</option>
-                    <option value="Player 2">Player 2</option>
-                </select>
-            </div>  -->
 
             <!-- Server Selection -->
             <div class="stat-card">
@@ -121,6 +108,30 @@
                         <button class="tennis-btn" onclick="recordSecondServe(true)">Win</button>
                         <button class="tennis-btn" onclick="recordSecondServe(false)">Loss</button>
                         <button class="tennis-btn" onclick="undoLastServe('second')">Undo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW: Second Shot Tracking -->
+            <div class="stat-card" style="background: rgba(255, 193, 7, 0.2); border: 2px solid rgba(255, 193, 7, 0.5); margin: 2rem 0;">
+                <h3 style="color: #FFC107; margin-top: 0;">🎯 Second Shot Tracking</h3>
+                <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1.5rem;">Only press when someone misses their second ball in the point</p>
+                
+                <div class="tennis-btn-group" style="margin-bottom: 1.5rem;">
+                    <button onclick="recordSecondShotMiss('server')" class="tennis-btn" style="background: rgba(255, 193, 7, 0.8); color: #333;">Server Missed 2nd Shot</button>
+                    <button onclick="recordSecondShotMiss('returner')" class="tennis-btn" style="background: rgba(255, 193, 7, 0.8); color: #333;">Returner Missed 2nd Shot</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card" style="background: rgba(255, 255, 255, 0.1);">
+                        <div class="stat-label">Server 2nd Shot Miss %</div>
+                        <div class="stat-value" id="serverSecondShotPercent">0.0%</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;" id="serverSecondShotCount">0 misses</div>
+                    </div>
+                    <div class="stat-card" style="background: rgba(255, 255, 255, 0.1);">
+                        <div class="stat-label">Returner 2nd Shot Miss %</div>
+                        <div class="stat-value" id="returnerSecondShotPercent">0.0%</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7;" id="returnerSecondShotCount">0 misses</div>
                     </div>
                 </div>
             </div>
