@@ -55,7 +55,7 @@ let currentMatch = {
             firstServeWins: 0,
             firstServeLosses: 0,
             secondServeWins: 0,
-            secondServeLosses: 0
+            secondServeLosses: 0,
             // Second shot match tracking
             secondShotMissesServing: 0,
             secondShotMissesReturning: 0
@@ -66,7 +66,7 @@ let currentMatch = {
             firstServeWins: 0,
             firstServeLosses: 0,
             secondServeWins: 0,
-            secondServeLosses: 0
+            secondServeLosses: 0,
             // Second shot match tracking
             secondShotMissesServing: 0,
             secondShotMissesReturning: 0
