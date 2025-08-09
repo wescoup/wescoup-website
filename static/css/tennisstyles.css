@@ -310,6 +310,9 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
     .tennis-container {
         padding: 1rem;
     }
