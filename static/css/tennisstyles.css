@@ -334,3 +334,38 @@
         width: 200px;
     }
 }
+/* Mobile fullscreen experience */
+@media (max-width: 768px) {
+    /* Enhanced mobile fullscreen for tennis trackers */
+    .tennis-tracker-body {
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for newer browsers */
+        overflow-x: hidden;
+        position: relative;
+    }
+    
+    .tennis-tracker-container {
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding-bottom: env(safe-area-inset-bottom); /* Handle notched phones */
+    }
+    
+    /* Ensure content doesn't get cut off by browser UI */
+    .tennis-section {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+    }
+    
+    /* Make navigation more touch-friendly in fullscreen */
+    .tennis-nav-btn {
+        min-height: 44px; /* Apple's recommended touch target */
+        padding: 0.8rem 1.2rem;
+    }
+}
+
+/* Prevent zooming on form inputs (keeps fullscreen feel) */
+@media (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
