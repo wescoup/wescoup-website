@@ -385,7 +385,8 @@ function updateStatsDisplay() {
                 <div class="stat-label">${currentMatch.player1} - 2nd Serves</div>
                 <div class="stat-value" style="font-size: 1rem; word-break: break-all;">${p1Stats.secondServe || 'None'}</div>
             </div>
-            <div class="stat-card" style="grid-column: 1 / -1;"></div> <!-- Row break -->
+        </div>
+        <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">${currentMatch.player2} - 1st Serves</div>
                 <div class="stat-value" style="font-size: 1rem; word-break: break-all;">${p2Stats.firstServe || 'None'}</div>
