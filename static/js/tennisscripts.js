@@ -256,6 +256,11 @@ function updateServeStats() {
     
     // Update percentages
     updateServePercentages();
+    
+    // Version 2.0: Also update second shot live display
+    if (document.title.includes('2.0')) {
+        updateSecondShotStats();
+    }
 }
 
 function updateServePercentages() {
@@ -292,11 +297,8 @@ function completeGame() {
     updateServeStats();
 }
 
-// Statistics functions
+// Updated to service both tonys-tennis-tracker and tonys-tennis-tracker-20
 function updateStatsDisplay() {
-    //showSection('results');
-    
-    // Calculate and display final statistics
     const resultsContainer = document.getElementById('finalResults');
     if (!resultsContainer) return;
     
@@ -330,8 +332,9 @@ function updateStatsDisplay() {
         ? ((p2Stats.firstServe.replace(/,/g, '').length / 
            (p2Stats.firstServe.replace(/,/g, '').length + p2Stats.secondServe.replace(/,/g, '').length)) * 100).toFixed(1)
         : '0.0';
-    
-    resultsContainer.innerHTML = `
+
+    // Base HTML that works for both versions
+    let resultsHTML = `
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Match Date</div>
@@ -352,7 +355,6 @@ function updateStatsDisplay() {
             <strong>${currentMatch.player1}: ${currentMatch.sets[0]} - ${currentMatch.sets[1]} :${currentMatch.player2}</strong>
         </div>
         
-        // Serve Statistics
         <h3 style="text-align: center; color: #FFE135; margin: 2rem 0;">Serve Statistics</h3>
         <div class="stats-grid">
             <div class="stat-card">
@@ -379,9 +381,56 @@ function updateStatsDisplay() {
                 <div class="stat-label">${currentMatch.player2} - 2nd Serve Win %</div>
                 <div class="stat-value">${p2SecondServePerc}%</div>
             </div>
-        </div>
+        </div>`;
 
-        // Detailed Serve Data
+    // Version 2.0: Add second shot analysis
+    if (document.title.includes('2.0')) {
+        // Calculate second shot percentages
+        const p1ServingTotal = p1Stats.firstServeWins + p1Stats.firstServeLosses + p1Stats.secondServeWins + p1Stats.secondServeLosses;
+        const p1ReturningTotal = p2Stats.firstServeWins + p2Stats.firstServeLosses + p2Stats.secondServeWins + p2Stats.secondServeLosses;
+        const p2ServingTotal = p2Stats.firstServeWins + p2Stats.firstServeLosses + p2Stats.secondServeWins + p2Stats.secondServeLosses;
+        const p2ReturningTotal = p1Stats.firstServeWins + p1Stats.firstServeLosses + p1Stats.secondServeWins + p1Stats.secondServeLosses;
+        
+        const p1ServingSecondShotPerc = calculateSecondShotPercentage(p1Stats.secondShotMissesServing, p1ServingTotal);
+        const p1ReturningSecondShotPerc = calculateSecondShotPercentage(p1Stats.secondShotMissesReturning, p1ReturningTotal);
+        const p2ServingSecondShotPerc = calculateSecondShotPercentage(p2Stats.secondShotMissesServing, p2ServingTotal);
+        const p2ReturningSecondShotPerc = calculateSecondShotPercentage(p2Stats.secondShotMissesReturning, p2ReturningTotal);
+        
+        resultsHTML += `
+            <h3 style="text-align: center; color: #FFC107; margin: 2rem 0;">🎯 Second Shot Analysis</h3>
+            <div class="stats-grid">
+                <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3);">
+                    <div class="stat-label">${currentMatch.player1} - Serving 2nd Shot Miss %</div>
+                    <div class="stat-value">${p1ServingSecondShotPerc.toFixed(1)}%</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">${p1Stats.secondShotMissesServing} misses</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3);">
+                    <div class="stat-label">${currentMatch.player1} - Returning 2nd Shot Miss %</div>
+                    <div class="stat-value">${p1ReturningSecondShotPerc.toFixed(1)}%</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">${p1Stats.secondShotMissesReturning} misses</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3);">
+                    <div class="stat-label">${currentMatch.player2} - Serving 2nd Shot Miss %</div>
+                    <div class="stat-value">${p2ServingSecondShotPerc.toFixed(1)}%</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">${p2Stats.secondShotMissesServing} misses</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3);">
+                    <div class="stat-label">${currentMatch.player2} - Returning 2nd Shot Miss %</div>
+                    <div class="stat-value">${p2ReturningSecondShotPerc.toFixed(1)}%</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">${p2Stats.secondShotMissesReturning} misses</div>
+                </div>
+            </div>
+
+            <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); margin-top: 2rem;">
+                <h4 style="color: #FFC107; margin-top: 0;">💡 Second Shot Insight</h4>
+                <p style="margin-bottom: 0;">
+                    ${generateSecondShotInsight(p1Stats, p2Stats, currentMatch.player1, currentMatch.player2)}
+                </p>
+            </div>`;
+    }
+
+    // Add detailed serve data (for both versions)
+    resultsHTML += `
         <h3 style="text-align: center; color: #FFE135; margin: 2rem 0;">Detailed Serve Data</h3>
         <div class="stats-grid">
             <div class="stat-card">
@@ -402,8 +451,9 @@ function updateStatsDisplay() {
                 <div class="stat-label">${currentMatch.player2} - 2nd Serves</div>
                 <div class="stat-value" style="font-size: 1rem; word-break: break-all;">${p2Stats.secondServe || 'None'}</div>
             </div>
-        </div>
-    `;
+        </div>`;
+
+    resultsContainer.innerHTML = resultsHTML;
 }
 
 // Screenshot functionality
@@ -434,3 +484,92 @@ document.addEventListener('DOMContentLoaded', function() {
     
     initTennisTracker();
 });
+
+// Second shot tracking functions
+function recordSecondShotMiss(shotType) {
+    const isPlayer1Serving = currentMatch.currentServer === currentMatch.player1;
+    
+    if (shotType === 'server') {
+        // Server missed their second shot
+        if (isPlayer1Serving) {
+            currentMatch.stats.player1.secondShotMissesServing++;
+        } else {
+            currentMatch.stats.player2.secondShotMissesServing++;
+        }
+    } else {
+        // Returner missed their second shot
+        if (isPlayer1Serving) {
+            currentMatch.stats.player2.secondShotMissesReturning++;
+        } else {
+            currentMatch.stats.player1.secondShotMissesReturning++;
+        }
+    }
+    
+    // This will trigger updateSecondShotStats() via updateServeStats()
+    updateServeStats();
+}
+
+function calculateSecondShotPercentage(misses, totalPoints) {
+    if (totalPoints === 0) return 0.0;
+    return ((misses / totalPoints) * 100);
+}
+
+function updateSecondShotStats() {
+    const isPlayer1Serving = currentMatch.currentServer === currentMatch.player1;
+    
+    // Get current server and returner stats
+    const serverStats = isPlayer1Serving ? currentMatch.stats.player1 : currentMatch.stats.player2;
+    const returnerStats = isPlayer1Serving ? currentMatch.stats.player2 : currentMatch.stats.player1;
+    
+    // Calculate total serving points for current server
+    const serverTotalPoints = serverStats.firstServeWins + serverStats.firstServeLosses + 
+                             serverStats.secondServeWins + serverStats.secondServeLosses;
+    
+    // Calculate total returning points for current returner
+    const returnerTotalPoints = returnerStats.firstServeWins + returnerStats.firstServeLosses + 
+                               returnerStats.secondServeWins + returnerStats.secondServeLosses;
+    
+    // Calculate percentages
+    const serverSecondShotPerc = calculateSecondShotPercentage(serverStats.secondShotMissesServing, serverTotalPoints);
+    const returnerSecondShotPerc = calculateSecondShotPercentage(returnerStats.secondShotMissesReturning, returnerTotalPoints);
+    
+    // Update displays
+    const serverPercentElement = document.getElementById('serverSecondShotPercent');
+    const returnerPercentElement = document.getElementById('returnerSecondShotPercent');
+    const serverCountElement = document.getElementById('serverSecondShotCount');
+    const returnerCountElement = document.getElementById('returnerSecondShotCount');
+    
+    if (serverPercentElement) {
+        serverPercentElement.textContent = `${serverSecondShotPerc.toFixed(1)}%`;
+    }
+    if (returnerPercentElement) {
+        returnerPercentElement.textContent = `${returnerSecondShotPerc.toFixed(1)}%`;
+    }
+    if (serverCountElement) {
+        serverCountElement.textContent = `${serverStats.secondShotMissesServing} misses`;
+    }
+    if (returnerCountElement) {
+        returnerCountElement.textContent = `${returnerStats.secondShotMissesReturning} misses`;
+    }
+}
+
+function generateSecondShotInsight(p1Stats, p2Stats, player1Name, player2Name) {
+    const totalMisses = p1Stats.secondShotMissesServing + p1Stats.secondShotMissesReturning + 
+                       p2Stats.secondShotMissesServing + p2Stats.secondShotMissesReturning;
+    
+    if (totalMisses === 0) {
+        return "Outstanding match! No second shot errors from either player.";
+    }
+    
+    // Find who had the most issues
+    const p1Total = p1Stats.secondShotMissesServing + p1Stats.secondShotMissesReturning;
+    const p2Total = p2Stats.secondShotMissesServing + p2Stats.secondShotMissesReturning;
+    
+    if (p1Total === p2Total) {
+        return `Both players had ${totalMisses} second shot errors total. Focus on getting that crucial second ball in play!`;
+    } else if (p1Total > p2Total) {
+        return `${player1Name} struggled more with second shots (${p1Total} vs ${p2Total} misses). Work on consistency after serves and returns.`;
+    } else {
+        return `${player2Name} struggled more with second shots (${p2Total} vs ${p1Total} misses). Work on consistency after serves and returns.`;
+    }
+}
