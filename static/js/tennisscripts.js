@@ -30,6 +30,10 @@ function showSection(sectionId) {
 
 // Initialize the app
 function initTennisTracker() {
+    // Initialize default values if not set
+if (!currentMatch.player1) currentMatch.player1 = 'Player 1';
+if (!currentMatch.player2) currentMatch.player2 = 'Player 2';
+if (!currentMatch.currentServer) currentMatch.currentServer = currentMatch.player1;
     // Show the first section by default
     showSection('match-info');
     console.log('Tennis Tracker initialized');
