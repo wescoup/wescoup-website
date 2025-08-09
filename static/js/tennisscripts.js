@@ -56,6 +56,9 @@ let currentMatch = {
             firstServeLosses: 0,
             secondServeWins: 0,
             secondServeLosses: 0
+            // Second shot match tracking
+            secondShotMissesServing: 0,
+            secondShotMissesReturning: 0
         },
         player2: {
             firstServe: '',
@@ -64,6 +67,10 @@ let currentMatch = {
             firstServeLosses: 0,
             secondServeWins: 0,
             secondServeLosses: 0
+            // Second shot match tracking
+            secondShotMissesServing: 0,
+            secondShotMissesReturning: 0
+            
         }
     }
 };
