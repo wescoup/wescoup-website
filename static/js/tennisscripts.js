@@ -345,6 +345,7 @@ function updateStatsDisplay() {
             <strong>${currentMatch.player1}: ${currentMatch.sets[0]} - ${currentMatch.sets[1]} :${currentMatch.player2}</strong>
         </div>
         
+        // Serve Statistics
         <h3 style="text-align: center; color: #FFE135; margin: 2rem 0;">Serve Statistics</h3>
         <div class="stats-grid">
             <div class="stat-card">
@@ -352,27 +353,28 @@ function updateStatsDisplay() {
                 <div class="stat-value">${p1FirstServeInPerc}%</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">${currentMatch.player2} - 1st Serve %</div>
-                <div class="stat-value">${p2FirstServeInPerc}%</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-label">${currentMatch.player1} - 1st Serve Win %</div>
                 <div class="stat-value">${p1FirstServePerc}%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">${currentMatch.player2} - 1st Serve Win %</div>
-                <div class="stat-value">${p2FirstServePerc}%</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">${currentMatch.player1} - 2nd Serve Win %</div>
                 <div class="stat-value">${p1SecondServePerc}%</div>
             </div>
             <div class="stat-card">
+                <div class="stat-label">${currentMatch.player2} - 1st Serve %</div>
+                <div class="stat-value">${p2FirstServeInPerc}%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">${currentMatch.player2} - 1st Serve Win %</div>
+                <div class="stat-value">${p2FirstServePerc}%</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-label">${currentMatch.player2} - 2nd Serve Win %</div>
                 <div class="stat-value">${p2SecondServePerc}%</div>
             </div>
         </div>
-        
+
+        // Detailed Serve Data
         <h3 style="text-align: center; color: #FFE135; margin: 2rem 0;">Detailed Serve Data</h3>
         <div class="stats-grid">
             <div class="stat-card">
@@ -380,12 +382,13 @@ function updateStatsDisplay() {
                 <div class="stat-value" style="font-size: 1rem; word-break: break-all;">${p1Stats.firstServe || 'None'}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">${currentMatch.player2} - 1st Serves</div>
-                <div class="stat-value" style="font-size: 1rem; word-break: break-all;">${p2Stats.firstServe || 'None'}</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-label">${currentMatch.player1} - 2nd Serves</div>
                 <div class="stat-value" style="font-size: 1rem; word-break: break-all;">${p1Stats.secondServe || 'None'}</div>
+            </div>
+            <div class="stat-card" style="grid-column: 1 / -1;"></div> <!-- Row break -->
+            <div class="stat-card">
+                <div class="stat-label">${currentMatch.player2} - 1st Serves</div>
+                <div class="stat-value" style="font-size: 1rem; word-break: break-all;">${p2Stats.firstServe || 'None'}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">${currentMatch.player2} - 2nd Serves</div>
