@@ -16,7 +16,7 @@ def tonys_tennis_tracker():
     return render_template('tonys-tennis-tracker.html')
 
 @app.route('/tonys-doubles-tracker')
-def tonys_tennis_tracker():
+def tonys_doubles_tracker():
     return render_template('tonys-doubles-tracker.html')
 
 @app.route('/second-shot')
