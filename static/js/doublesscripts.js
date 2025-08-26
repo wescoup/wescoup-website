@@ -1,4 +1,8 @@
 // Tony's Doubles Tracker JavaScript
+// TEST: Add this at the very beginning of doublesscripts.js
+console.log('🎾 doublesscripts.js is loading...');
+window.doublesScriptLoaded = true;
+alert('JavaScript file loaded successfully!');
 
 // Match data structure for doubles
 let doublesMatch = {
