@@ -517,6 +517,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export for potential debugging
 window.doublesMatch = doublesMatch; 
 
+// Navigation between sections
+function showSection(sectionId) {
+    // Hide all sections
+    const sections = document.querySelectorAll('.tennis-section');
+    sections.forEach(section => section.classList.remove('active'));
+
     // Remove active class from nav buttons
     const navButtons = document.querySelectorAll('.tennis-nav-btn');
     navButtons.forEach(btn => btn.classList.remove('active'));
