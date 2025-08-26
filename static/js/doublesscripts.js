@@ -515,7 +515,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Export for potential debugging
-window.doublesMatch = doublesMatch; active class from nav buttons
+window.doublesMatch = doublesMatch; 
+
+    // Remove active class from nav buttons
     const navButtons = document.querySelectorAll('.tennis-nav-btn');
     navButtons.forEach(btn => btn.classList.remove('active'));
     
