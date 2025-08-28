@@ -18,8 +18,12 @@ let doublesMatch = {
         team2: [0] 
     },
     returners: { 
-        deuce: 'player3',  // Default: Team 2 player 3 on deuce court
-        ad: 'player4'      // Default: Team 2 player 4 on ad court
+        deuce: 'player3',  // Current deuce court returner
+        ad: 'player4'      // Current ad court returner
+    },
+    returnerPreferences: {
+        team1: { deuce: 'player1', ad: 'player2' }, // Team 1's preferred returner positions
+        team2: { deuce: 'player3', ad: 'player4' }  // Team 2's preferred returner positions
     },
     stats: {
         player1: { returnData: '', returnWins: 0, returnLosses: 0, secondShotMisses: { serving: 0, atNet: 0, deuceCourt: 0, adCourt: 0 } },
@@ -126,15 +130,15 @@ function updateServer() {
     const currentTeam = (doublesMatch.currentServer === 'player1' || doublesMatch.currentServer === 'player2') ? 1 : 2;
     
     if (previousTeam !== currentTeam) {
-        // Server switched teams, so returners switch too
+        // Server switched teams, apply the returning team's saved preferences
         if (currentTeam === 1) {
-            // Team 1 now serving, Team 2 now returning
-            doublesMatch.returners.deuce = 'player3';
-            doublesMatch.returners.ad = 'player4';
+            // Team 1 now serving, Team 2 now returning - use Team 2's preferences
+            doublesMatch.returners.deuce = doublesMatch.returnerPreferences.team2.deuce;
+            doublesMatch.returners.ad = doublesMatch.returnerPreferences.team2.ad;
         } else {
-            // Team 2 now serving, Team 1 now returning  
-            doublesMatch.returners.deuce = 'player1';
-            doublesMatch.returners.ad = 'player2';
+            // Team 2 now serving, Team 1 now returning - use Team 1's preferences
+            doublesMatch.returners.deuce = doublesMatch.returnerPreferences.team1.deuce;
+            doublesMatch.returners.ad = doublesMatch.returnerPreferences.team1.ad;
         }
     }
     
@@ -148,6 +152,18 @@ function changeReturners() {
     
     doublesMatch.returners.deuce = currentAd;
     doublesMatch.returners.ad = currentDeuce;
+    
+    // Save the new preference for the currently returning team
+    const currentServingTeam = (doublesMatch.currentServer === 'player1' || doublesMatch.currentServer === 'player2') ? 1 : 2;
+    const currentReturningTeam = currentServingTeam === 1 ? 2 : 1;
+    
+    if (currentReturningTeam === 1) {
+        doublesMatch.returnerPreferences.team1.deuce = doublesMatch.returners.deuce;
+        doublesMatch.returnerPreferences.team1.ad = doublesMatch.returners.ad;
+    } else {
+        doublesMatch.returnerPreferences.team2.deuce = doublesMatch.returners.deuce;
+        doublesMatch.returnerPreferences.team2.ad = doublesMatch.returners.ad;
+    }
     
     updateAllDisplays();
 }
