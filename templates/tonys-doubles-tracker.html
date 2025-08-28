@@ -19,7 +19,7 @@
     <div class="tennis-tracker-container">
         <div class="tennis-tracker-header">
             <h1>🎾 Tony's Doubles Tracker</h1>
-            <p style="color: #FFE135; font-style: italic;">Complete doubles match analysis with second shot tracking</p>
+            <p style="color: #FFE135; font-style: italic;">Complete doubles match analysis with returner-based tracking</p>
         </div>
 
         <!-- Navigation -->
@@ -39,11 +39,11 @@
                     <h3 style="color: #6BB6FF; margin-bottom: 1rem;">🔵 Team 1</h3>
                     <div class="tennis-form-group">
                         <label for="player1">Player 1:</label>
-                        <input type="text" id="player1" placeholder="Player 1 name" value="P1">
+                        <input type="text" id="player1" placeholder="Player 1 name" value="Player 1">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player2">Player 2:</label>
-                        <input type="text" id="player2" placeholder="Player 2 name" value="P2">
+                        <input type="text" id="player2" placeholder="Player 2 name" value="Player 2">
                     </div>
                 </div>
                 
@@ -51,11 +51,11 @@
                     <h3 style="color: #FF6B6B; margin-bottom: 1rem;">🔴 Team 2</h3>
                     <div class="tennis-form-group">
                         <label for="player3">Player 3:</label>
-                        <input type="text" id="player3" placeholder="Player 3 name" value="P3">
+                        <input type="text" id="player3" placeholder="Player 3 name" value="Player 3">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player4">Player 4:</label>
-                        <input type="text" id="player4" placeholder="Player 4 name" value="P4">
+                        <input type="text" id="player4" placeholder="Player 4 name" value="Player 4">
                     </div>
                 </div>
             </div>
@@ -113,47 +113,61 @@
                 </div>
             </div>
 
-            <!-- Server Selection -->
-            <div class="stat-card" style="margin-bottom: 2rem;">
-                <div class="stat-label">Current Server</div>
-                <select id="currentServer" onchange="updateServer()" class="tennis-form-group select">
-                    <option value="player1">P1</option>
-                    <option value="player2">P2</option>
-                    <option value="player3">P3</option>
-                    <option value="player4">P4</option>
-                </select>
-            </div>
-
-            <!-- Returner Selection -->
-            <div class="stat-card" style="margin-bottom: 2rem;">
-                <div class="stat-label">Change Returner Positions</div>
-                <button onclick="changeReturners()" class="tennis-btn">Switch Returner Sides</button>
-                <div style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
-                    <div>Deuce Court: <span id="deuceReturner">P3</span></div>
-                    <div>Ad Court: <span id="adReturner">P4</span></div>
-                </div>
-            </div>
-
-            <!-- Serve Tracking -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
-                <div class="stat-card">
-                    <div class="stat-label">First Serve</div>
-                    <div class="stat-value" id="firstServeDisplay" style="font-size: 1rem; word-break: break-all; min-height: 2rem;"></div>
-                    <div class="stat-label">Win Percentage: <span id="firstServePercentage">0%</span></div>
-                    <div class="tennis-btn-group" style="margin-top: 1rem;">
-                        <button class="tennis-btn" onclick="recordFirstServe(true)">Win</button>
-                        <button class="tennis-btn" onclick="recordFirstServe(false)">Loss</button>
-                        <button class="tennis-btn" onclick="undoLastServe('first')">Undo</button>
+            <!-- Server Selection & Returner Positions -->
+            <div class="stat-card" style="background: rgba(0, 150, 255, 0.2); border: 2px solid rgba(0, 150, 255, 0.3); margin-bottom: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: center;">
+                    <div>
+                        <div class="stat-label">Current Server</div>
+                        <select id="currentServer" onchange="updateServer()" class="tennis-form-group select">
+                            <option value="player1">Player 1</option>
+                            <option value="player2">Player 2</option>
+                            <option value="player3">Player 3</option>
+                            <option value="player4">Player 4</option>
+                        </select>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="tennis-btn" onclick="completeGame()" style="font-size: 0.9rem; white-space: nowrap;">Game Complete</button>
+                    </div>
+                    <div>
+                        <div class="stat-label">Returner Positions</div>
+                        <button class="tennis-btn" onclick="changeReturners()" style="width: 100%;">Switch Returner Sides</button>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-label">Second Serve</div>
-                    <div class="stat-value" id="secondServeDisplay" style="font-size: 1rem; word-break: break-all; min-height: 2rem;"></div>
-                    <div class="stat-label">Win Percentage: <span id="secondServePercentage">0%</span></div>
+            </div>
+
+            <!-- RETURNER-BASED TRACKING -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                <!-- Deuce Court Returner -->
+                <div class="stat-card" style="border: 2px solid rgba(0, 200, 100, 0.5); background: rgba(0, 200, 100, 0.1);">
+                    <div class="stat-label">🟢 Deuce Court Returner</div>
+                    <div class="stat-value" id="deuceReturnerName">Player 3</div>
+                    
+                    <div class="stat-label" style="margin-top: 1rem;">Return Data</div>
+                    <div id="deuceReturnDisplay" style="font-family: monospace; font-size: 1rem; word-break: break-all; min-height: 2rem; background: rgba(0, 0, 0, 0.2); padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;">-</div>
+                    
+                    <div class="stat-label">Return Win %: <span id="deuceReturnPercentage" style="color: #FFE135;">0%</span></div>
+                    
                     <div class="tennis-btn-group" style="margin-top: 1rem;">
-                        <button class="tennis-btn" onclick="recordSecondServe(true)">Win</button>
-                        <button class="tennis-btn" onclick="recordSecondServe(false)">Loss</button>
-                        <button class="tennis-btn" onclick="undoLastServe('second')">Undo</button>
+                        <button class="tennis-btn" onclick="recordReturn('deuce', true)">Return Win</button>
+                        <button class="tennis-btn" onclick="recordReturn('deuce', false)">Return Loss</button>
+                        <button class="tennis-btn" onclick="undoLastReturn('deuce')">Undo</button>
+                    </div>
+                </div>
+
+                <!-- Ad Court Returner -->
+                <div class="stat-card" style="border: 2px solid rgba(200, 0, 100, 0.5); background: rgba(200, 0, 100, 0.1);">
+                    <div class="stat-label">🟣 Ad Court Returner</div>
+                    <div class="stat-value" id="adReturnerName">Player 4</div>
+                    
+                    <div class="stat-label" style="margin-top: 1rem;">Return Data</div>
+                    <div id="adReturnDisplay" style="font-family: monospace; font-size: 1rem; word-break: break-all; min-height: 2rem; background: rgba(0, 0, 0, 0.2); padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;">-</div>
+                    
+                    <div class="stat-label">Return Win %: <span id="adReturnPercentage" style="color: #FFE135;">0%</span></div>
+                    
+                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                        <button class="tennis-btn" onclick="recordReturn('ad', true)">Return Win</button>
+                        <button class="tennis-btn" onclick="recordReturn('ad', false)">Return Loss</button>
+                        <button class="tennis-btn" onclick="undoLastReturn('ad')">Undo</button>
                     </div>
                 </div>
             </div>
@@ -186,30 +200,14 @@
                     </div>
                 </div>
             </div>
-
-            <div style="text-align: center; margin: 2rem 0;">
-                <button class="tennis-btn" onclick="completeGame()">Game Complete</button>
-            </div>
         </div>
 
-        <!-- Results Section with Swipe Navigation -->
+        <!-- Results Section -->
         <div id="results" class="tennis-section">
             <h2 style="text-align: center; color: #FFE135; margin-bottom: 2rem;">Match Results</h2>
             
-            <!-- Results Navigation -->
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">
-                    Page <span id="resultsPageNumber">1</span> of 6 - Swipe to navigate
-                </div>
-                <div class="tennis-btn-group">
-                    <button class="tennis-btn" onclick="previousResultsPage()">← Previous</button>
-                    <button class="tennis-btn" onclick="nextResultsPage()">Next →</button>
-                </div>
-            </div>
-            
-            <!-- Results Content Container -->
-            <div id="resultsContent">
-                <!-- Will be populated by JavaScript -->
+            <div id="finalResults">
+                <!-- Results will be populated by JavaScript -->
             </div>
 
             <div style="text-align: center; margin-top: 2rem;">
