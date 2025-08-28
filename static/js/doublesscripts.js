@@ -3,10 +3,10 @@
 // Match data object
 let doublesMatch = {
     players: { 
-        player1: 'Player 1', 
-        player2: 'Player 2', 
-        player3: 'Player 3', 
-        player4: 'Player 4' 
+        player1: 'P1', 
+        player2: 'P2', 
+        player3: 'P3', 
+        player4: 'P4' 
     },
     location: '',
     surface: 'Hard',
@@ -60,10 +60,10 @@ function showSection(sectionId) {
 
 // Match setup
 function startMatch() {
-    doublesMatch.players.player1 = document.getElementById('player1').value.trim() || 'Player 1';
-    doublesMatch.players.player2 = document.getElementById('player2').value.trim() || 'Player 2';
-    doublesMatch.players.player3 = document.getElementById('player3').value.trim() || 'Player 3';
-    doublesMatch.players.player4 = document.getElementById('player4').value.trim() || 'Player 4';
+    doublesMatch.players.player1 = document.getElementById('player1').value.trim() || 'P1';
+    doublesMatch.players.player2 = document.getElementById('player2').value.trim() || 'P2';
+    doublesMatch.players.player3 = document.getElementById('player3').value.trim() || 'P3';
+    doublesMatch.players.player4 = document.getElementById('player4').value.trim() || 'P4';
     doublesMatch.location = document.getElementById('location').value.trim() || 'Local Court';
     doublesMatch.surface = document.getElementById('surface').value;
     doublesMatch.date = document.getElementById('matchDate').value;
@@ -118,7 +118,26 @@ function adjustSet(change) {
 
 // Server and returner management
 function updateServer() {
+    const previousServer = doublesMatch.currentServer;
     doublesMatch.currentServer = document.getElementById('currentServer').value;
+    
+    // Auto-update returner positions when server changes teams
+    const previousTeam = (previousServer === 'player1' || previousServer === 'player2') ? 1 : 2;
+    const currentTeam = (doublesMatch.currentServer === 'player1' || doublesMatch.currentServer === 'player2') ? 1 : 2;
+    
+    if (previousTeam !== currentTeam) {
+        // Server switched teams, so returners switch too
+        if (currentTeam === 1) {
+            // Team 1 now serving, Team 2 now returning
+            doublesMatch.returners.deuce = 'player3';
+            doublesMatch.returners.ad = 'player4';
+        } else {
+            // Team 2 now serving, Team 1 now returning  
+            doublesMatch.returners.deuce = 'player1';
+            doublesMatch.returners.ad = 'player2';
+        }
+    }
+    
     updateAllDisplays();
 }
 
