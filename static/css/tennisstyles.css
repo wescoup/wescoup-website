@@ -524,3 +524,16 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Returner section (Deuce/Ad) */
+.returner-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+@media (max-width: 768px) {
+    .returner-row {
+        grid-template-columns: 1fr;
+    }
+}
