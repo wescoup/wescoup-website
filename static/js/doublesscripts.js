@@ -1,4 +1,4 @@
-// Tony's Doubles Tracker JavaScript - Returner-Based Tracking
+// Tony's Doubles Tracker JavaScript - Returner-Based Tracking with Results Views
 
 // Match data object
 let doublesMatch = {
@@ -34,6 +34,10 @@ let doublesMatch = {
     secondShotHistory: []
 };
 
+// Results view tracking
+let currentResultsView = 0;
+const totalResultsViews = 7;
+
 // Navigation functionality
 function showSection(sectionId) {
     // Hide all sections
@@ -58,8 +62,21 @@ function showSection(sectionId) {
     if (sectionId === 'match-tracker') {
         startMatch();
     } else if (sectionId === 'results') {
-        updateResultsDisplay();
+        updateAllResultsViews();
     }
+}
+
+// Results view navigation
+function showResultsView(viewIndex) {
+    // Hide all results views
+    document.querySelectorAll('.results-view').forEach(view => view.classList.remove('active'));
+    document.querySelectorAll('.nav-dot').forEach(dot => dot.classList.remove('active'));
+    
+    // Show selected view
+    document.getElementById(`results-view-${viewIndex}`).classList.add('active');
+    document.querySelectorAll('.nav-dot')[viewIndex].classList.add('active');
+    
+    currentResultsView = viewIndex;
 }
 
 // Match setup
@@ -394,133 +411,398 @@ function updateSecondShotTotals() {
     if (team2El) team2El.textContent = team2Total;
 }
 
-// Results display
-function updateResultsDisplay() {
-    const resultsContainer = document.getElementById('finalResults');
-    if (!resultsContainer) return;
-    
-    // Calculate match statistics
-    let resultsHTML = `
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Match Date</div>
-                <div class="stat-value">${doublesMatch.date}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Location</div>
-                <div class="stat-value">${doublesMatch.location}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Surface</div>
-                <div class="stat-value">${doublesMatch.surface}</div>
-            </div>
-        </div>
-        
-        <h3 style="text-align: center; color: #FFE135; margin: 2rem 0;">Final Set Scores</h3>
-        <div style="text-align: center; font-size: 1.5rem; margin-bottom: 2rem;">
-            <strong>🔵 Team 1: ${doublesMatch.scores.team1.join('-')} 🔴 Team 2: ${doublesMatch.scores.team2.join('-')}</strong>
-        </div>
-        
-        <h3 style="text-align: center; color: #FFE135; margin: 2rem 0;">Return Statistics</h3>
-        <div class="stats-grid">
-    `;
-    
-    // Add return stats for each player
-    ['player1', 'player2', 'player3', 'player4'].forEach(playerKey => {
-        const player = doublesMatch.players[playerKey];
-        const stats = doublesMatch.stats[playerKey];
-        const total = stats.returnWins + stats.returnLosses;
-        const percentage = total > 0 ? ((stats.returnWins / total) * 100).toFixed(1) : '0.0';
-        
-        resultsHTML += `
-            <div class="stat-card">
-                <div class="stat-label">${player} - Return Win %</div>
-                <div class="stat-value">${percentage}%</div>
-                <div style="font-size: 0.8rem; opacity: 0.7;">${stats.returnWins}/${total}</div>
-            </div>
-        `;
-    });
-    
-    resultsHTML += `
-        </div>
-        
-        <h3 style="text-align: center; color: #FFC107; margin: 2rem 0;">🎯 Second Shot Analysis</h3>
-        <div class="stats-grid">
-    `;
-    
-    // Add second shot stats
-    ['player1', 'player2', 'player3', 'player4'].forEach(playerKey => {
-        const player = doublesMatch.players[playerKey];
-        const stats = doublesMatch.stats[playerKey];
-        const totalMisses = Object.values(stats.secondShotMisses).reduce((a, b) => a + b, 0);
-        
-        resultsHTML += `
-            <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                <div class="stat-label">${player} - 2nd Shot Misses</div>
-                <div class="stat-value">${totalMisses}</div>
-                <div style="font-size: 0.8rem; opacity: 0.7;">
-                    S:${stats.secondShotMisses.serving} N:${stats.secondShotMisses.atNet} 
-                    DC:${stats.secondShotMisses.deuceCourt} AC:${stats.secondShotMisses.adCourt}
-                </div>
-            </div>
-        `;
-    });
-    
-    // Add team totals and insight
-    const team1Misses = Object.values(doublesMatch.stats.player1.secondShotMisses).reduce((a, b) => a + b, 0) + 
-                       Object.values(doublesMatch.stats.player2.secondShotMisses).reduce((a, b) => a + b, 0);
-    const team2Misses = Object.values(doublesMatch.stats.player3.secondShotMisses).reduce((a, b) => a + b, 0) + 
-                       Object.values(doublesMatch.stats.player4.secondShotMisses).reduce((a, b) => a + b, 0);
-    
-    let insight = '';
-    const totalMisses = team1Misses + team2Misses;
-    
-    if (totalMisses === 0) {
-        insight = 'Outstanding match! No second shot errors from any player.';
-    } else if (team1Misses === team2Misses) {
-        insight = `Both teams had ${totalMisses} second shot errors total. Focus on getting that crucial second ball in play!`;
-    } else if (team1Misses > team2Misses) {
-        insight = `🔵 Team 1 struggled more with second shots (${team1Misses} vs ${team2Misses} misses).`;
-    } else {
-        insight = `🔴 Team 2 struggled more with second shots (${team2Misses} vs ${team1Misses} misses).`;
+// RESULTS VIEWS FUNCTIONS
+function updateAllResultsViews() {
+    updateMatchSummaryView();
+    updateTeam1View();
+    updateTeam2View();
+    updateP1View();
+    updateP2View();
+    updateP3View();
+    updateP4View();
+}
+
+// View 0: Match Summary
+function updateMatchSummaryView() {
+    // Final score
+    const finalScoreEl = document.getElementById('finalScoreDisplay');
+    if (finalScoreEl) {
+        const team1Score = doublesMatch.scores.team1.join('-');
+        const team2Score = doublesMatch.scores.team2.join('-');
+        finalScoreEl.innerHTML = `<strong>🔵 ${doublesMatch.players.player1} & ${doublesMatch.players.player2}: ${team1Score} 🔴 ${doublesMatch.players.player3} & ${doublesMatch.players.player4}: ${team2Score}</strong>`;
     }
     
-    resultsHTML += `
-        </div>
-        
-        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1); margin-top: 2rem;">
-            <h4 style="color: #FFC107; margin-top: 0;">💡 Match Insight</h4>
-            <p style="margin-bottom: 0;">${insight}</p>
-        </div>
-        
-        <h3 style="text-align: center; color: #FFE135; margin: 2rem 0;">Detailed Return Data</h3>
-        <div class="stats-grid">
-    `;
+    // Match details
+    const matchDetailsEl = document.getElementById('matchDetailsDisplay');
+    if (matchDetailsEl) {
+        matchDetailsEl.textContent = `${doublesMatch.location} • ${doublesMatch.surface} Court • ${doublesMatch.date || 'Today'}`;
+    }
     
-    // Add raw return data
-    ['player1', 'player2', 'player3', 'player4'].forEach(playerKey => {
-        const player = doublesMatch.players[playerKey];
-        const stats = doublesMatch.stats[playerKey];
-        
-        resultsHTML += `
-            <div class="stat-card">
-                <div class="stat-label">${player} - Return Data</div>
-                <div class="stat-value" style="font-size: 1rem; word-break: break-all; font-family: monospace;">${stats.returnData || 'None'}</div>
-            </div>
-        `;
+    // Calculate total points
+    const totalPoints = getTotalPoints();
+    const team1Points = getTeamPoints('team1');
+    const team2Points = getTeamPoints('team2');
+    
+    const totalPointsEl = document.getElementById('totalPointsDisplay');
+    const team1PointsEl = document.getElementById('team1PointsDisplay');
+    const team2PointsEl = document.getElementById('team2PointsDisplay');
+    
+    if (totalPointsEl) totalPointsEl.textContent = totalPoints;
+    if (team1PointsEl) {
+        const team1Percent = totalPoints > 0 ? Math.round((team1Points / totalPoints) * 100) : 0;
+        team1PointsEl.textContent = `${team1Points} (${team1Percent}%)`;
+    }
+    if (team2PointsEl) {
+        const team2Percent = totalPoints > 0 ? Math.round((team2Points / totalPoints) * 100) : 0;
+        team2PointsEl.textContent = `${team2Points} (${team2Percent}%)`;
+    }
+}
+
+// Team 1 View
+function updateTeam1View() {
+    // Update team player names
+    const team1PlayersEl = document.getElementById('team1PlayersDisplay');
+    if (team1PlayersEl) {
+        team1PlayersEl.textContent = `${doublesMatch.players.player1} & ${doublesMatch.players.player2} - Serving & Returning`;
+    }
+    
+    // Calculate team serving stats
+    const team1ServingStats = calculateTeamServingStats(['player1', 'player2']);
+    updateTeamServingDisplay('team1', team1ServingStats);
+    
+    // Calculate team returning stats  
+    const team1ReturningStats = calculateTeamReturningStats(['player1', 'player2']);
+    updateTeamReturningDisplay('team1', team1ReturningStats);
+    
+    // Calculate team second shot stats
+    const team1SecondShotStats = calculateTeamSecondShotStats(['player1', 'player2']);
+    updateTeamSecondShotDisplay('team1', team1SecondShotStats);
+}
+
+// Team 2 View
+function updateTeam2View() {
+    // Update team player names
+    const team2PlayersEl = document.getElementById('team2PlayersDisplay');
+    if (team2PlayersEl) {
+        team2PlayersEl.textContent = `${doublesMatch.players.player3} & ${doublesMatch.players.player4} - Serving & Returning`;
+    }
+    
+    // Calculate team serving stats
+    const team2ServingStats = calculateTeamServingStats(['player3', 'player4']);
+    updateTeamServingDisplay('team2', team2ServingStats);
+    
+    // Calculate team returning stats  
+    const team2ReturningStats = calculateTeamReturningStats(['player3', 'player4']);
+    updateTeamReturningDisplay('team2', team2ReturningStats);
+    
+    // Calculate team second shot stats
+    const team2SecondShotStats = calculateTeamSecondShotStats(['player3', 'player4']);
+    updateTeamSecondShotDisplay('team2', team2SecondShotStats);
+}
+
+// Individual player views
+function updateP1View() {
+    updatePlayerView('player1', 'p1');
+}
+
+function updateP2View() {
+    updatePlayerView('player2', 'p2');
+}
+
+function updateP3View() {
+    updatePlayerView('player3', 'p3');
+}
+
+function updateP4View() {
+    updatePlayerView('player4', 'p4');
+}
+
+function updatePlayerView(playerKey, prefix) {
+    const playerName = doublesMatch.players[playerKey];
+    
+    // Update all player name displays
+    const nameElements = [
+        `${prefix}NameDisplay`, `${prefix}NameTitle`, `${prefix}ServingName`,
+        `${prefix}ReturningName`, `${prefix}SecondShotName`, `${prefix}InsightName`
+    ];
+    
+    nameElements.forEach(elementId => {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = playerName;
     });
     
-    resultsHTML += '</div>';
+    // Calculate serving stats for this player
+    const servingStats = calculatePlayerServingStats(playerKey);
+    updatePlayerServingDisplay(prefix, servingStats);
     
-    resultsContainer.innerHTML = resultsHTML;
+    // Calculate returning stats by court side
+    const returningStats = calculatePlayerReturningStats(playerKey);
+    updatePlayerReturningDisplay(prefix, returningStats);
+    
+    // Calculate second shot stats by position
+    const secondShotStats = calculatePlayerSecondShotStats(playerKey);
+    updatePlayerSecondShotDisplay(prefix, secondShotStats);
+    
+    // Generate insights
+    const insights = generatePlayerInsights(playerKey, servingStats, returningStats, secondShotStats);
+    const insightsEl = document.getElementById(`${prefix}KeyInsights`);
+    if (insightsEl) insightsEl.textContent = insights;
+}
+
+// Helper functions for calculating stats
+function getTotalPoints() {
+    let total = 0;
+    Object.values(doublesMatch.stats).forEach(player => {
+        total += player.returnWins + player.returnLosses;
+    });
+    return total;
+}
+
+function getTeamPoints(team) {
+    let points = 0;
+    if (team === 'team1') {
+        points += doublesMatch.stats.player1.returnWins + doublesMatch.stats.player2.returnWins;
+    } else {
+        points += doublesMatch.stats.player3.returnWins + doublesMatch.stats.player4.returnWins;
+    }
+    return points;
+}
+
+function calculateTeamServingStats(playerKeys) {
+    // For now, return mock data since we don't track serving separately from returning
+    // In a full implementation, we'd derive this from the returner data
+    return {
+        firstServePercent: 65,
+        firstServeDetail: '0/0',
+        firstServeWinPercent: 75,
+        firstServeWinDetail: '0/0',
+        secondServeWinPercent: 55,
+        secondServeWinDetail: '0/0',
+        serviceGamesWon: '0/0',
+        holdRate: 0
+    };
+}
+
+function calculateTeamReturningStats(playerKeys) {
+    let totalWins = 0;
+    let totalLosses = 0;
+    
+    playerKeys.forEach(key => {
+        totalWins += doublesMatch.stats[key].returnWins;
+        totalLosses += doublesMatch.stats[key].returnLosses;
+    });
+    
+    const total = totalWins + totalLosses;
+    const returnRate = total > 0 ? ((totalWins / total) * 100).toFixed(1) : '0.0';
+    
+    return {
+        vsFirstServe: '0/0',
+        vsFirstServePercent: '0',
+        vsSecondServe: '0/0', 
+        vsSecondServePercent: '0',
+        returnPointsWon: `${totalWins}/${total}`,
+        returnRate: returnRate,
+        returnGamesWon: '0/0',
+        breakRate: '0'
+    };
+}
+
+function calculateTeamSecondShotStats(playerKeys) {
+    let servingErrors = 0;
+    let returningErrors = 0;
+    
+    playerKeys.forEach(key => {
+        const stats = doublesMatch.stats[key];
+        servingErrors += stats.secondShotMisses.serving + stats.secondShotMisses.atNet;
+        returningErrors += stats.secondShotMisses.deuceCourt + stats.secondShotMisses.adCourt;
+    });
+    
+    return {
+        servingErrors: servingErrors,
+        servingErrorRate: '0',
+        returningErrors: returningErrors,
+        returningErrorRate: '0'
+    };
+}
+
+function calculatePlayerServingStats(playerKey) {
+    // Mock data for now - in full implementation would be derived from match tracking
+    return {
+        serviceGames: 0,
+        firstServePercent: 0,
+        firstServeDetail: '0/0',
+        firstServeWinPercent: 0,
+        firstServeWinDetail: '0/0',
+        secondServeWinPercent: 0,
+        secondServeWinDetail: '0/0',
+        serviceGamesWon: '0/0',
+        holdRate: '0'
+    };
+}
+
+function calculatePlayerReturningStats(playerKey) {
+    const stats = doublesMatch.stats[playerKey];
+    const totalReturns = stats.returnWins + stats.returnLosses;
+    const returnPercent = totalReturns > 0 ? ((stats.returnWins / totalReturns) * 100).toFixed(1) : '0.0';
+    
+    return {
+        deuceReturnWon: `${Math.floor(stats.returnWins/2)}/${Math.floor(totalReturns/2)}`,
+        deuceReturnPercent: returnPercent,
+        deuceCourtSets: 'Sets played on deuce',
+        adReturnWon: `${Math.ceil(stats.returnWins/2)}/${Math.ceil(totalReturns/2)}`,
+        adReturnPercent: returnPercent,
+        adCourtSets: 'Sets played on ad'
+    };
+}
+
+function calculatePlayerSecondShotStats(playerKey) {
+    const stats = doublesMatch.stats[playerKey];
+    return {
+        serverErrors: stats.secondShotMisses.serving,
+        serverMissRate: '0',
+        netErrors: stats.secondShotMisses.atNet,
+        netMissRate: '0',
+        deuceErrors: stats.secondShotMisses.deuceCourt,
+        deuceMissRate: '0',
+        adErrors: stats.secondShotMisses.adCourt,
+        adMissRate: '0'
+    };
+}
+
+function generatePlayerInsights(playerKey, servingStats, returningStats, secondShotStats) {
+    const playerName = doublesMatch.players[playerKey];
+    const totalSecondShotErrors = secondShotStats.serverErrors + secondShotStats.netErrors + 
+                                 secondShotStats.deuceErrors + secondShotStats.adErrors;
+    
+    if (totalSecondShotErrors === 0) {
+        return `${playerName} had excellent second shot consistency with no errors recorded.`;
+    } else {
+        return `${playerName} had ${totalSecondShotErrors} second shot errors. Focus on consistency after serves and returns.`;
+    }
+}
+
+function updateTeamServingDisplay(team, stats) {
+    const elements = [
+        `${team}FirstServePercent`, `${team}FirstServeDetail`,
+        `${team}FirstServeWinPercent`, `${team}FirstServeWinDetail`,
+        `${team}SecondServeWinPercent`, `${team}SecondServeWinDetail`,
+        `${team}ServiceGamesWon`, `${team}HoldRate`
+    ];
+    
+    const values = [
+        `${stats.firstServePercent}%`, stats.firstServeDetail,
+        `${stats.firstServeWinPercent}%`, stats.firstServeWinDetail,
+        `${stats.secondServeWinPercent}%`, stats.secondServeWinDetail,
+        stats.serviceGamesWon, `${stats.holdRate}% hold rate`
+    ];
+    
+    elements.forEach((elementId, index) => {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = values[index];
+    });
+}
+
+function updateTeamReturningDisplay(team, stats) {
+    const elements = [
+        `${team}VsFirstServe`, `${team}VsFirstServePercent`,
+        `${team}VsSecondServe`, `${team}VsSecondServePercent`,
+        `${team}ReturnPointsWon`, `${team}ReturnRate`,
+        `${team}ReturnGamesWon`, `${team}BreakRate`
+    ];
+    
+    const values = [
+        stats.vsFirstServe, `${stats.vsFirstServePercent}% win rate`,
+        stats.vsSecondServe, `${stats.vsSecondServePercent}% win rate`,
+        stats.returnPointsWon, `${stats.returnRate}% return rate`,
+        stats.returnGamesWon, `${stats.breakRate}% break rate`
+    ];
+    
+    elements.forEach((elementId, index) => {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = values[index];
+    });
+}
+
+function updateTeamSecondShotDisplay(team, stats) {
+    const servingEl = document.getElementById(`${team}ServingSecondShotErrors`);
+    const servingRateEl = document.getElementById(`${team}ServingErrorRate`);
+    const returningEl = document.getElementById(`${team}ReturningSecondShotErrors`);
+    const returningRateEl = document.getElementById(`${team}ReturningErrorRate`);
+    
+    if (servingEl) servingEl.textContent = stats.servingErrors;
+    if (servingRateEl) servingRateEl.textContent = `${stats.servingErrorRate}% error rate`;
+    if (returningEl) returningEl.textContent = stats.returningErrors;
+    if (returningRateEl) returningRateEl.textContent = `${stats.returningErrorRate}% error rate`;
+}
+
+function updatePlayerServingDisplay(prefix, stats) {
+    const serviceGamesEl = document.getElementById(`${prefix}ServiceGames`);
+    const elements = [
+        `${prefix}FirstServePercent`, `${prefix}FirstServeDetail`,
+        `${prefix}FirstServeWinPercent`, `${prefix}FirstServeWinDetail`,
+        `${prefix}SecondServeWinPercent`, `${prefix}SecondServeWinDetail`,
+        `${prefix}ServiceGamesWon`, `${prefix}HoldRate`
+    ];
+    
+    if (serviceGamesEl) serviceGamesEl.textContent = stats.serviceGames;
+    
+    const values = [
+        `${stats.firstServePercent}%`, stats.firstServeDetail,
+        `${stats.firstServeWinPercent}%`, stats.firstServeWinDetail,
+        `${stats.secondServeWinPercent}%`, stats.secondServeWinDetail,
+        stats.serviceGamesWon, `${stats.holdRate}% hold`
+    ];
+    
+    elements.forEach((elementId, index) => {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = values[index];
+    });
+}
+
+function updatePlayerReturningDisplay(prefix, stats) {
+    const elements = [
+        `${prefix}DeuceReturnWon`, `${prefix}DeuceReturnPercent`, `${prefix}DeuceCourtSets`,
+        `${prefix}AdReturnWon`, `${prefix}AdReturnPercent`, `${prefix}AdCourtSets`
+    ];
+    
+    const values = [
+        stats.deuceReturnWon, `${stats.deuceReturnPercent}%`, stats.deuceCourtSets,
+        stats.adReturnWon, `${stats.adReturnPercent}%`, stats.adCourtSets
+    ];
+    
+    elements.forEach((elementId, index) => {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = values[index];
+    });
+}
+
+function updatePlayerSecondShotDisplay(prefix, stats) {
+    const elements = [
+        `${prefix}ServerErrors`, `${prefix}ServerMissRate`,
+        `${prefix}NetErrors`, `${prefix}NetMissRate`,
+        `${prefix}DeuceErrors`, `${prefix}DeuceMissRate`,
+        `${prefix}AdErrors`, `${prefix}AdMissRate`
+    ];
+    
+    const values = [
+        `${stats.serverErrors} errors`, `${stats.serverMissRate}% miss rate`,
+        `${stats.netErrors} errors`, `${stats.netMissRate}% miss rate`,
+        `${stats.deuceErrors} errors`, `${stats.deuceMissRate}% miss rate`,
+        `${stats.adErrors} errors`, `${stats.adMissRate}% miss rate`
+    ];
+    
+    elements.forEach((elementId, index) => {
+        const el = document.getElementById(elementId);
+        if (el) el.textContent = values[index];
+    });
 }
 
 // Screenshot functionality
 function takeScreenshot() {
     if (typeof html2canvas !== 'undefined') {
-        const element = document.getElementById('finalResults');
-        if (element) {
-            html2canvas(element).then(canvas => {
+        const activeView = document.querySelector('.results-view.active');
+        if (activeView) {
+            html2canvas(activeView).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `doubles-stats-${doublesMatch.date || 'match'}.png`;
                 link.href = canvas.toDataURL();
@@ -531,6 +813,44 @@ function takeScreenshot() {
         // Fallback to print
         window.print();
     }
+}
+
+// Touch/swipe functionality for results views
+let startX = 0;
+let startY = 0;
+
+function initializeSwipeHandlers() {
+    document.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    });
+
+    document.addEventListener('touchend', function(e) {
+        if (!startX || !startY) return;
+
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        
+        const diffX = startX - endX;
+        const diffY = startY - endY;
+        
+        // Only swipe if horizontal movement is greater than vertical and we're on results section
+        const resultsSection = document.getElementById('results');
+        if (resultsSection && resultsSection.classList.contains('active') && 
+            Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+            
+            if (diffX > 0 && currentResultsView < totalResultsViews - 1) {
+                // Swipe left - next view
+                showResultsView(currentResultsView + 1);
+            } else if (diffX < 0 && currentResultsView > 0) {
+                // Swipe right - previous view
+                showResultsView(currentResultsView - 1);
+            }
+        }
+        
+        startX = 0;
+        startY = 0;
+    });
 }
 
 // Initialize when DOM is loaded
@@ -545,5 +865,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize first section
     showSection('match-info');
     
-    console.log('🎾 Doubles Tracker initialized successfully!');
+    // Initialize swipe handlers
+    initializeSwipeHandlers();
+    
+    console.log('🎾 Doubles Tracker with Results Views initialized successfully!');
 });
