@@ -284,7 +284,7 @@
 
 .return-btn-group {
     display: flex;
-    gap: 0.5rem;
+    gap: 0rem;
     flex-wrap: nowrap;
     justify-content: center;
 }
