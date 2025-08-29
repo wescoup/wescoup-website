@@ -501,12 +501,12 @@
     
     /* Ensure content doesn't get cut off by browser UI */
     .tennis-section {
-        margin: 0 auto 1rem auto;
         width: 90%;
         max-width: 90%;
+        margin: 0 auto 1rem auto; /* centers horizontally */
         padding-bottom: 1rem;
     }
-    
+
     /* Make navigation more touch-friendly in fullscreen */
     .tennis-nav-btn {
         min-height: 44px; /* Apple's recommended touch target */
