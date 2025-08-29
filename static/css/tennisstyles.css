@@ -547,3 +547,70 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* =================================
+   Print-Specific Styles for PDF
+   ================================= */
+@media print {
+
+    /* Hide everything initially */
+    body > * {
+        display: none !important;
+    }
+    
+    /* Only show the results container and the views within it */
+    .tennis-tracker-container,
+    .tennis-tracker-container #results,
+    .tennis-tracker-container .results-view {
+        display: block !important;
+    }
+    
+    /* General print cleanup */
+    .tennis-tracker-body {
+        background: none !important; /* Remove background gradient */
+    }
+    
+    .tennis-section,
+    .results-view,
+    .team-card,
+    .player-card,
+    .stat-card,
+    .match-summary {
+        background: #ffffff !important; /* Use a plain white background */
+        color: #000000 !important;      /* Use black text for readability */
+        box-shadow: none !important;
+        border: 1px solid #ccc !important; /* Add simple borders for definition */
+        backdrop-filter: none !important;
+    }
+    
+    /* Ensure all text colors are readable */
+    h1, h2, h3, h4, h5,
+    .stat-value,
+    .view-title {
+        color: #000000 !important;
+        text-shadow: none !important;
+    }
+    
+    .team-card h3, .player-card h3 {
+        color: #000000 !important;
+    }
+
+    /* Hide buttons and navigation */
+    .tennis-nav,
+    .results-navigation,
+    .tennis-btn,
+    .swipe-hint {
+        display: none !important;
+    }
+
+    /* Add a page break after each results view */
+    .results-view {
+        page-break-after: always;
+        margin-top: 0;
+        padding: 1.5rem;
+    }
+    
+    .results-view:last-child {
+        page-break-after: avoid; /* Don't add a blank page at the end */
+    }
+}
