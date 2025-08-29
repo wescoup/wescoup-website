@@ -248,6 +248,7 @@
     background: rgba(255, 255, 255, 0.9);
     color: #333;
     font-size: 1rem;
+    box-sizing: border-box;
 }
 
 .tennis-form-group input:focus,
