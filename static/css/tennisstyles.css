@@ -501,7 +501,7 @@
     
     /* Ensure content doesn't get cut off by browser UI */
     .tennis-section {
-        max-width: 800px;
+        max-width: 95%;
         margin: 0 auto;
         padding: 3rem 2rem;
     }
