@@ -501,9 +501,10 @@
     
     /* Ensure content doesn't get cut off by browser UI */
     .tennis-section {
+        margin: 0;          /* remove side margins */
+        padding: 1rem 0;    /* keep vertical padding, remove side padding */
+        width: 100%;
         max-width: 100%;
-        margin: 0 auto;
-        padding: 1rem 0rem;
     }
 
     /* Make navigation more touch-friendly in fullscreen */
