@@ -501,10 +501,9 @@
     
     /* Ensure content doesn't get cut off by browser UI */
     .tennis-section {
-        width: 90%;
-        max-width: 90%;
-        margin: 0 auto 1rem auto; /* centers horizontally */
-        padding-bottom: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
     }
 
     /* Make navigation more touch-friendly in fullscreen */
