@@ -511,3 +511,16 @@
         font-size: 16px; /* Prevents zoom on iOS */
     }
 }
+
+/* Responsive row for server/returner section */
+.server-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+@media (max-width: 768px) {
+    .server-row {
+        grid-template-columns: 1fr;
+    }
+}
