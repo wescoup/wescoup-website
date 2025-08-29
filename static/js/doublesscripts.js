@@ -799,20 +799,57 @@ function updatePlayerSecondShotDisplay(prefix, stats) {
 
 // Screenshot functionality
 function takeScreenshot() {
-    if (typeof html2canvas !== 'undefined') {
-        const activeView = document.querySelector('.results-view.active');
-        if (activeView) {
-            html2canvas(activeView).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `doubles-stats-${doublesMatch.date || 'match'}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        }
-    } else {
-        // Fallback to print
-        window.print();
+    // Check if the required libraries are available
+    if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+        alert("PDF generation library is not loaded.");
+        return;
     }
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4'); // Create a new PDF document
+    const elements = document.querySelectorAll('.results-view');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    // Hide non-essential elements for a cleaner PDF
+    document.querySelector('.tennis-nav').style.display = 'none';
+    document.querySelector('.results-navigation').style.display = 'none';
+    
+    let processedElements = 0;
+
+    elements.forEach((element, index) => {
+        // Temporarily make the element visible to capture it
+        element.classList.add('active');
+
+        html2canvas(element, {
+            scale: 2, // Increase scale for better image quality
+            useCORS: true 
+        }).then(canvas => {
+            element.classList.remove('active'); // Hide it again
+            
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            // Add a new page for each element after the first one
+            if (index > 0) {
+                pdf.addPage();
+            }
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
+            
+            processedElements++;
+            
+            // When all elements are processed, save the PDF
+            if (processedElements === elements.length) {
+                pdf.save(`doubles-stats-${doublesMatch.date || 'match'}.pdf`);
+                // Restore the original view
+                showResultsView(currentResultsView); 
+                document.querySelector('.tennis-nav').style.display = 'flex';
+                document.querySelector('.results-navigation').style.display = 'flex';
+            }
+        });
+    });
 }
 
 // Touch/swipe functionality for results views
