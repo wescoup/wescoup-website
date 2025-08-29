@@ -461,6 +461,10 @@
     }
 }
 
+.stats-grid.set-score {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 /* Mobile fullscreen experience */
 @media (max-width: 768px) {
     /* Enhanced mobile fullscreen for tennis trackers */
