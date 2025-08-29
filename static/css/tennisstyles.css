@@ -474,6 +474,17 @@
         overflow-x: hidden;
         position: relative;
     }
+
+    /* Mobile tweaks for set score row */
+    .stats-grid.set-score .stat-card {
+        padding: 0.5rem;
+    }
+    .stats-grid.set-score .stat-value {
+        font-size: 1.2rem;
+    }
+    .stats-grid.set-score .stat-label {
+        font-size: 0.8rem;
+    }
     
     .tennis-tracker-container {
         min-height: 100vh;
