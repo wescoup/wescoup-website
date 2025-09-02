@@ -1,195 +1,54 @@
-/* Tony's Tennis Page Styles */
+/* Tony's Tennis Page & Trackers - Refactored Styles */
 
-/* Tennis page body styling */
-.tennis-body {
+/* --- General & Body --- */
+.tennis-body, .tennis-tracker-body {
     font-family: Arial, sans-serif;
+    color: white;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.tennis-body { /* For main tennis page */
     background: linear-gradient(135deg, #2E8B57 0%, #228B22 50%, #32CD32 100%);
-    color: white;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
 }
 
-/* Tennis page header */
-.tennis-header {
-    text-align: center;
-    padding: 2rem 0;
-    background: rgba(0, 0, 0, 0.2);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.tennis-header h1 {
-    font-size: 3.5rem;
-    margin: 0;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-}
-
-.tennis-header p {
-    font-size: 1.3rem;
-    margin-top: 0.5rem;
-    opacity: 0.9;
-}
-
-/* Tennis container */
-.tennis-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 3rem 2rem;
-}
-
-/* Tennis tools grid */
-.tennis-tools {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin: 2rem 0;
-}
-
-/* Tool cards */
-.tool-card {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 15px;
-    padding: 2rem;
-    text-align: center;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-}
-
-.tool-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
-}
-
-.tool-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    display: block;
-}
-
-.tool-card h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #FFE135;
-}
-
-.tool-card p {
-    font-size: 1rem;
-    line-height: 1.5;
-    opacity: 0.9;
-    margin-bottom: 1.5rem;
-}
-
-/* Tool links */
-.tool-link {
-    display: inline-block;
-    background: rgba(255, 225, 53, 0.2);
-    color: #FFE135;
-    padding: 0.8rem 2rem;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: bold;
-    border: 2px solid rgba(255, 225, 53, 0.3);
-    transition: all 0.3s ease;
-}
-
-.tool-link:hover {
-    background: rgba(255, 225, 53, 0.3);
-    color: white;
-    transform: scale(1.05);
-}
-
-/* Back link */
-.tennis-back-link {
-    display: inline-block;
-    margin-top: 2rem;
-    padding: 1rem 2rem;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    text-decoration: none;
-    border-radius: 25px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.tennis-back-link:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-}
-
-/* Coming soon styling */
-.coming-soon {
-    opacity: 0.6;
-}
-
-.coming-soon .tool-link {
-    background: rgba(128, 128, 128, 0.3);
-    color: #ccc;
-    cursor: not-allowed;
-}
-
-/* Home page tennis link */
-.tennis-link {
-    background: rgba(76, 175, 80, 0.8);
-    padding: 1rem 2rem;
-    border-radius: 25px;
-    margin: 2rem 0;
-    transition: all 0.3s ease;
-    border: 2px solid rgba(76, 175, 80, 0.5);
-}
-
-.tennis-link:hover {
-    background: rgba(76, 175, 80, 1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-}
-
-.tennis-link a {
-    color: white;
-    font-size: 1.3rem;
-    display: block;
-    text-decoration: none;
-}
-
-.tennis-link a:hover {
-    text-decoration: none;
-}
-
-/* Tennis tracker app styles */
-.tennis-tracker-body {
-    font-family: Arial, sans-serif;
+.tennis-tracker-body { /* For tracker apps */
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
 }
 
-.tennis-tracker-container {
-    max-width: 1000px;
+/* --- Containers & Headers --- */
+.tennis-container, .tennis-tracker-container {
+    max-width: 800px;
     margin: 0 auto;
     padding: 1rem;
 }
 
-.tennis-tracker-header {
+.tennis-header, .tennis-tracker-header {
     text-align: center;
-    margin-bottom: 2rem;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
 }
 
-.tennis-tracker-header h1 {
+.tennis-header h1, .tennis-tracker-header h1 {
     font-size: 2.5rem;
     margin: 0;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    color: #FFE135;
 }
 
-/* Navigation tabs */
+.subtitle-text {
+    color: #FFE135;
+    font-style: italic;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+}
+
+/* --- Navigation --- */
 .tennis-nav {
     display: flex;
     justify-content: center;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
     flex-wrap: wrap;
 }
 
@@ -197,28 +56,26 @@
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border: none;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem 1.2rem;
     border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: bold;
 }
 
-.tennis-nav-btn:hover,
-.tennis-nav-btn.active {
-    background: rgba(255, 225, 53, 0.3);
+.tennis-nav-btn:hover, .tennis-nav-btn.active {
+    background: rgba(255, 225, 53, 0.4);
     color: #FFE135;
     transform: translateY(-2px);
 }
 
-/* Tennis sections */
+/* --- Sections --- */
 .tennis-section {
     display: none;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    backdrop-filter: blur(4px);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -226,9 +83,16 @@
     display: block;
 }
 
-/* Form styling */
-.tennis-form-group {
+.section-title {
+    text-align: center;
+    color: #FFE135;
+    margin-top: 0;
     margin-bottom: 1.5rem;
+}
+
+/* --- Forms --- */
+.tennis-form-group {
+    margin-bottom: 1rem;
 }
 
 .tennis-form-group label {
@@ -238,9 +102,7 @@
     color: #FFE135;
 }
 
-.tennis-form-group input,
-.tennis-form-group textarea,
-.tennis-form-group select {
+.tennis-form-group input, .tennis-form-group select {
     width: 100%;
     padding: 0.8rem;
     border: none;
@@ -251,24 +113,74 @@
     box-sizing: border-box;
 }
 
-.tennis-form-group input:focus,
-.tennis-form-group textarea:focus,
-.tennis-form-group select:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 225, 53, 0.3);
+/* --- Grids --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
-/* Button styling */
+.team-setup-grid, .returner-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 600px) {
+    .team-setup-grid, .returner-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .score-grid {
+         grid-template-columns: 1fr 100px 1fr;
+    }
+}
+
+/* --- Cards --- */
+.stat-card, .team-card {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.team-card {
+    padding: 1.5rem;
+}
+
+.control-card, .second-shot-card {
+    background: rgba(0, 0, 0, 0.2);
+    margin-bottom: 1.5rem;
+}
+
+.returner-card {
+    padding-bottom: 1.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #FFE135;
+    margin-bottom: 0.5rem;
+}
+
+/* --- Buttons --- */
 .tennis-btn {
     background: rgba(255, 225, 53, 0.8);
     color: #333;
     border: none;
-    padding: 0.8rem 1.5rem;
+    padding: 0.6rem 1rem;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    transition: all 0.3s ease;
-    margin: 0.25rem;
+    transition: all 0.2s ease;
+    flex-grow: 1;
 }
 
 .tennis-btn:hover {
@@ -279,338 +191,51 @@
 .tennis-btn-group {
     display: flex;
     gap: 0.5rem;
-    flex-wrap: wrap;
     justify-content: center;
 }
 
-.return-btn-group {
-    display: flex;
-    gap: 0rem;
-    flex-wrap: nowrap;
-    justify-content: center;
+.tennis-btn-group.compact {
+    gap: 0.25rem;
 }
-
-/* Stats display */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin: 1rem 0;
-}
-
-.stat-card {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 1rem;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #FFE135;
-}
-
-.stat-label {
+.tennis-btn-group.compact .tennis-btn {
+    padding: 0.5rem 0.8rem;
     font-size: 0.9rem;
-    opacity: 0.8;
 }
 
-/* Server dropdown styling */
-.server-dropdown {
-    width: 100%;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    font-size: 1rem;
-    font-weight: bold;
-}
-
-.server-dropdown:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 225, 53, 0.3);
-}
-
-/* Results Views Styling */
-.results-navigation {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-}
-
-.nav-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.nav-dot.active {
-    background: #FFE135;
-    transform: scale(1.2);
-}
-
-.results-view {
-    display: none;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.results-view.active {
-    display: block;
-}
-
-.view-title {
-    text-align: center;
-    font-size: 1.5rem;
-    color: #FFE135;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid rgba(255, 225, 53, 0.3);
-    padding-bottom: 1rem;
-}
-
-.team-card {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 2rem;
-    border-radius: 15px;
-    margin: 1rem 0;
-}
-
-.team-1 {
-    border-left: 5px solid #6BB6FF;
-}
-
-.team-2 {
-    border-left: 5px solid #FF6B6B;
-}
-
-.player-card {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 2rem;
-    border-radius: 15px;
-    margin: 1rem 0;
-}
-
-.side-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.side-card {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.deuce-side {
-    border: 2px solid rgba(0, 200, 100, 0.5);
-}
-
-.ad-side {
-    border: 2px solid rgba(200, 0, 100, 0.5);
-}
-
-.match-summary {
-    background: rgba(255, 193, 7, 0.2);
-    border: 2px solid rgba(255, 193, 7, 0.5);
-    padding: 1.5rem;
-    border-radius: 10px;
-    margin-bottom: 2rem;
-}
-
-.swipe-hint {
-    text-align: center;
-    font-size: 0.9rem;
-    opacity: 0.7;
-    margin-bottom: 1rem;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .tennis-container {
-        padding: 1rem;
-    }
-    
-    .tennis-header h1 {
-        font-size: 2.5rem;
-    }
-    
-    .tennis-tools {
-        grid-template-columns: 1fr;
-    }
-    
-    .tennis-nav {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .tennis-nav-btn {
-        width: 200px;
-    }
-    
-    .side-stats {
-        grid-template-columns: 1fr;
-    }
-}
-
-.stats-grid.set-score {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-/* Mobile fullscreen experience */
-@media (max-width: 768px) {
-    /* Enhanced mobile fullscreen for tennis trackers */
-    .tennis-tracker-body {
-        height: 100vh;
-        height: 100dvh; /* Dynamic viewport height for newer browsers */
-        overflow-x: hidden;
-        position: relative;
-    }
-
-    /* Mobile tweaks for set score row */
-    .stats-grid.set-score .stat-card {
-        padding: 0.5rem;
-    }
-    .stats-grid.set-score .stat-value {
-        font-size: 1.2rem;
-    }
-    .stats-grid.set-score .stat-label {
-        font-size: 0.8rem;
-    }
-    
-    .tennis-tracker-container {
-        min-height: 100vh;
-        min-height: 100dvh;
-        padding-bottom: env(safe-area-inset-bottom); /* Handle notched phones */
-    }
-    
-    /* Ensure content doesn't get cut off by browser UI */
-    .tennis-section {
-        margin: 0;          /* remove side margins */
-        padding: 1rem 0;    /* keep vertical padding, remove side padding */
-        width: 100%;
-        max-width: 100%;
-    }
-
-    /* Make navigation more touch-friendly in fullscreen */
-    .tennis-nav-btn {
-        min-height: 44px; /* Apple's recommended touch target */
-        padding: 0.8rem 1.2rem;
-    }
-}
-
-/* Prevent zooming on form inputs (keeps fullscreen feel) */
-@media (max-width: 768px) {
-    input, select, textarea {
-        font-size: 16px; /* Prevents zoom on iOS */
-    }
-}
-
-/* Responsive row for server/returner section */
+/* --- Specific Component Styles --- */
 .server-row {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
     align-items: center;
 }
+.server-dropdown {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
+}
+
+.return-section {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.deuce-side-border { border-left: 4px solid rgba(0, 200, 100, 0.7); }
+.ad-side-border { border-left: 4px solid rgba(200, 0, 100, 0.7); }
+
+.second-shot-title { color: #FFC107; margin: 0 0 0.5rem 0; }
+.positions-display { font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem; }
+
+.team-1-bg { background-color: rgba(0, 100, 200, 0.3); }
+.team-2-bg { background-color: rgba(200, 0, 0, 0.3); }
+.team-title-blue { color: #6BB6FF; margin-bottom: 1rem; }
+.team-title-red { color: #FF6B6B; margin-bottom: 1rem; }
+
+/* Prevent zoom on form inputs on iOS */
 @media (max-width: 768px) {
-    .server-row {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Returner section (Deuce/Ad) */
-.returner-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin: 2rem 0;
-}
-@media (max-width: 768px) {
-    .returner-row {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* =================================
-   Print-Specific Styles for PDF
-   ================================= */
-@media print {
-
-    /* Hide everything initially */
-    body > * {
-        display: none !important;
-    }
-    
-    /* Only show the results container and the views within it */
-    .tennis-tracker-container,
-    .tennis-tracker-container #results,
-    .tennis-tracker-container .results-view {
-        display: block !important;
-    }
-    
-    /* General print cleanup */
-    .tennis-tracker-body {
-        background: none !important; /* Remove background gradient */
-    }
-    
-    .tennis-section,
-    .results-view,
-    .team-card,
-    .player-card,
-    .stat-card,
-    .match-summary {
-        background: #ffffff !important; /* Use a plain white background */
-        color: #000000 !important;      /* Use black text for readability */
-        box-shadow: none !important;
-        border: 1px solid #ccc !important; /* Add simple borders for definition */
-        backdrop-filter: none !important;
-    }
-    
-    /* Ensure all text colors are readable */
-    h1, h2, h3, h4, h5,
-    .stat-value,
-    .view-title {
-        color: #000000 !important;
-        text-shadow: none !important;
-    }
-    
-    .team-card h3, .player-card h3 {
-        color: #000000 !important;
-    }
-
-    /* Hide buttons and navigation */
-    .tennis-nav,
-    .results-navigation,
-    .tennis-btn,
-    .swipe-hint {
-        display: none !important;
-    }
-
-    /* Add a page break after each results view */
-    .results-view {
-        page-break-after: always;
-        margin-top: 0;
-        padding: 1.5rem;
-    }
-    
-    .results-view:last-child {
-        page-break-after: avoid; /* Don't add a blank page at the end */
+    input, select, textarea {
+        font-size: 16px;
     }
 }
