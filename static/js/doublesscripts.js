@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', initializeTracker);
 let matchData = {};
 let currentView = 'match-info';
 let currentResultsView = 0;
-// Restoring to full 7 views for robust debugging
 const totalResultsViews = 7;
 
 // A clean slate for a new match, preserving structure
@@ -139,7 +138,11 @@ function changeReturners() {
 }
 
 function getAbbrev(playerKey) {
-    return matchData.players[playerKey].substring(0, 3);
+    // Add a check to prevent errors if player name is not yet defined
+    if (matchData.players[playerKey]) {
+        return matchData.players[playerKey].substring(0, 3);
+    }
+    return ''; // Return an empty string as a fallback
 }
 
 function updateServerDropdown() {
@@ -250,38 +253,24 @@ function updateSecondShotDisplay() {
 // --- RESULTS ---
 
 function renderResults() {
-    try {
-        console.log("renderResults started...");
-        const container = document.getElementById('results');
-        container.innerHTML = `
-            <div class="results-navigation">
-                ${Array.from({length: totalResultsViews}, (_, i) => `<div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="showResultsView(${i})"></div>`).join('')}
-            </div>
-            <div class="swipe-hint">← Swipe to navigate →</div>
-            <div id="results-views-container">
-                ${generateAllResultsViewsHTML()}
-            </div>
-        `;
-        populateAllResultsViews();
-        showResultsView(currentResultsView);
-        console.log("renderResults finished successfully.");
-    } catch (error) {
-        console.error("Error in renderResults():", error);
-        // Display a user-friendly error message
-        const container = document.getElementById('results');
-        container.innerHTML = `<div class="error-message">Could not load results. Error: ${error.message}</div>`;
-    }
+    const container = document.getElementById('results');
+    container.innerHTML = `
+        <div class="results-navigation">
+            ${Array.from({length: totalResultsViews}, (_, i) => `<div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="showResultsView(${i})"></div>`).join('')}
+        </div>
+        <div class="swipe-hint">← Swipe to navigate →</div>
+        <div id="results-views-container">
+            ${generateAllResultsViewsHTML()}
+        </div>
+    `;
+    populateAllResultsViews();
+    showResultsView(currentResultsView);
 }
 
 function showResultsView(index) {
     currentResultsView = index;
     document.querySelectorAll('.results-view').forEach(v => v.style.display = 'none');
-    const viewToShow = document.getElementById(`results-view-${index}`);
-    if (viewToShow) {
-        viewToShow.style.display = 'block';
-    } else {
-        console.error(`Could not find view with id: results-view-${index}`);
-    }
+    document.getElementById(`results-view-${index}`).style.display = 'block';
     document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === index));
 }
 
@@ -301,24 +290,10 @@ function initializeSwipeHandlers() {
     });
 }
 
-// Helper function to safely populate elements and throw an error if an element is missing
-function populateElement(id, content, isHTML = false) {
-    const element = document.getElementById(id);
-    if (!element) {
-        // This is a critical error. If an ID is missing, something is wrong with the HTML generation.
-        throw new Error(`FATAL: DOM element with ID '${id}' not found!`);
-    }
-    if (isHTML) {
-        element.innerHTML = content;
-    } else {
-        element.textContent = content;
-    }
-}
-
 function generateAllResultsViewsHTML() {
     const p = matchData.players;
-    const team1Name = `${getAbbrev(p.player1)} & ${getAbbrev(p.player2)}`;
-    const team2Name = `${getAbbrev(p.player3)} & ${getAbbrev(p.player4)}`;
+    const team1Name = `${getAbbrev('player1')} & ${getAbbrev('player2')}`;
+    const team2Name = `${getAbbrev('player3')} & ${getAbbrev('player4')}`;
     
     let html = '';
     html += `<div class="results-view" id="results-view-0">
@@ -330,8 +305,8 @@ function generateAllResultsViewsHTML() {
         </div>
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-label">Total Points</div><div class="stat-value" id="totalPoints"></div></div>
-            <div class="stat-card"><div class="stat-label">🔵 ${getAbbrev(p.player1)}/${getAbbrev(p.player2)} Won</div><div class="stat-value" id="team1PointsWon"></div></div>
-            <div class="stat-card"><div class="stat-label">🔴 ${getAbbrev(p.player3)}/${getAbbrev(p.player4)} Won</div><div class="stat-value" id="team2PointsWon"></div></div>
+            <div class="stat-card"><div class="stat-label">🔵 ${getAbbrev('player1')}/${getAbbrev('player2')} Won</div><div class="stat-value" id="team1PointsWon"></div></div>
+            <div class="stat-card"><div class="stat-label">🔴 ${getAbbrev('player3')}/${getAbbrev('player4')} Won</div><div class="stat-value" id="team2PointsWon"></div></div>
             <div class="stat-card"><div class="stat-label">2nd Shot Misses</div><div class="stat-value" id="totalSSMisses"></div></div>
         </div>
     </div>`;
@@ -385,106 +360,90 @@ function generateAllResultsViewsHTML() {
 }
 
 function calculateAllStats() {
-    try {
-        const totals = { team1: {}, team2: {}, player1: {}, player2: {}, player3: {}, player4: {} };
+    const totals = { team1: {}, team2: {}, player1: {}, player2: {}, player3: {}, player4: {} };
 
-        ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
-            const pData = matchData.stats[pKey];
-            const pTotals = totals[pKey] = {};
-            pTotals.ssMisses = pData.secondShotMisses;
-            ['deuce', 'ad'].forEach(court => {
-                ['first', 'second'].forEach(serve => {
-                    const str = pData.returnData[court][serve].replace(/,/g, '');
-                    const won = (str.match(/1/g) || []).length;
-                    const total = str.length;
-                    const key = `ret${court[0].toUpperCase() + court.slice(1)}${serve[0].toUpperCase() + serve.slice(1)}`;
-                    pTotals[`${key}Won`] = won;
-                    pTotals[`${key}Total`] = total;
-                });
+    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+        const pData = matchData.stats[pKey];
+        const pTotals = totals[pKey] = {};
+        pTotals.ssMisses = pData.secondShotMisses;
+        ['deuce', 'ad'].forEach(court => {
+            ['first', 'second'].forEach(serve => {
+                const str = pData.returnData[court][serve].replace(/,/g, '');
+                const won = (str.match(/1/g) || []).length;
+                const total = str.length;
+                const key = `ret${court[0].toUpperCase() + court.slice(1)}${serve[0].toUpperCase() + serve.slice(1)}`;
+                pTotals[`${key}Won`] = won;
+                pTotals[`${key}Total`] = total;
             });
         });
+    });
 
-        ['team1', 'team2'].forEach(teamKey => {
-            const teamTotals = totals[teamKey];
-            teamTotals.ret1stWon = teamTotals.ret2ndWon = teamTotals.ret1stTotal = teamTotals.ret2ndTotal = 0;
-            teamTotals.ssServing = teamTotals.ssReturning = 0;
-            matchData.teams[teamKey].forEach(pKey => {
-                const pTotals = totals[pKey];
-                teamTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
-                teamTotals.ret1stTotal += pTotals.retDeuceFirstTotal + pTotals.retAdFirstTotal;
-                teamTotals.ret2ndWon += pTotals.retDeuceSecondWon + pTotals.retAdSecondWon;
-                teamTotals.ret2ndTotal += pTotals.retDeuceSecondTotal + pTotals.retAdSecondTotal;
-                teamTotals.ssServing += pTotals.ssMisses.S + pTotals.ssMisses.N;
-                teamTotals.ssReturning += pTotals.ssMisses.D + pTotals.ssMisses.A;
-            });
-            teamTotals.retTotalWon = teamTotals.ret1stWon + teamTotals.ret2ndWon;
-            teamTotals.retTotal = teamTotals.ret1stTotal + teamTotals.ret2ndTotal;
-
-            teamTotals.ret1stWonPct = teamTotals.ret1stTotal ? Math.round(teamTotals.ret1stWon * 100 / teamTotals.ret1stTotal) : 0;
-            teamTotals.ret2ndWonPct = teamTotals.ret2ndTotal ? Math.round(teamTotals.ret2ndWon * 100 / teamTotals.ret2ndTotal) : 0;
-            teamTotals.retTotalWonPct = teamTotals.retTotal ? Math.round(teamTotals.retTotalWon * 100 / teamTotals.retTotal) : 0;
+    ['team1', 'team2'].forEach(teamKey => {
+        const teamTotals = totals[teamKey];
+        teamTotals.ret1stWon = teamTotals.ret2ndWon = teamTotals.ret1stTotal = teamTotals.ret2ndTotal = 0;
+        teamTotals.ssServing = teamTotals.ssReturning = 0;
+        matchData.teams[teamKey].forEach(pKey => {
+            const pTotals = totals[pKey];
+            teamTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
+            teamTotals.ret1stTotal += pTotals.retDeuceFirstTotal + pTotals.retAdFirstTotal;
+            teamTotals.ret2ndWon += pTotals.retDeuceSecondWon + pTotals.retAdSecondWon;
+            teamTotals.ret2ndTotal += pTotals.retDeuceSecondTotal + pTotals.retAdSecondTotal;
+            teamTotals.ssServing += pTotals.ssMisses.S + pTotals.ssMisses.N;
+            teamTotals.ssReturning += pTotals.ssMisses.D + pTotals.ssMisses.A;
         });
-        
-        totals.totalPoints = totals.team1.retTotal + totals.team2.retTotal;
-        
-        totals.team1.pointsWon = totals.team1.retTotalWon;
-        totals.team2.pointsWon = totals.team2.retTotalWon;
-        
-        totals.team1.pointsWonPct = totals.totalPoints ? Math.round(totals.team1.pointsWon * 100 / totals.totalPoints) : 0;
-        totals.team2.pointsWonPct = totals.totalPoints ? Math.round(totals.team2.pointsWon * 100 / totals.totalPoints) : 0;
+        teamTotals.retTotalWon = teamTotals.ret1stWon + teamTotals.ret2ndWon;
+        teamTotals.retTotal = teamTotals.ret1stTotal + teamTotals.ret2ndTotal;
 
-        totals.totalSSMisses = totals.team1.ssServing + totals.team1.ssReturning + totals.team2.ssServing + totals.team2.ssReturning;
-        totals.scores = matchData.scores;
+        teamTotals.ret1stWonPct = teamTotals.ret1stTotal ? Math.round(teamTotals.ret1stWon * 100 / teamTotals.ret1stTotal) : 0;
+        teamTotals.ret2ndWonPct = teamTotals.ret2ndTotal ? Math.round(teamTotals.ret2ndWon * 100 / teamTotals.ret2ndTotal) : 0;
+        teamTotals.retTotalWonPct = teamTotals.retTotal ? Math.round(teamTotals.retTotalWon * 100 / teamTotals.retTotal) : 0;
+    });
+    
+    totals.totalPoints = totals.team1.retTotal + totals.team2.retTotal;
+    
+    totals.team1.pointsWon = totals.team1.retTotalWon;
+    totals.team2.pointsWon = totals.team2.retTotalWon;
+    
+    totals.team1.pointsWonPct = totals.totalPoints ? Math.round(totals.team1.pointsWon * 100 / totals.totalPoints) : 0;
+    totals.team2.pointsWonPct = totals.totalPoints ? Math.round(totals.team2.pointsWon * 100 / totals.totalPoints) : 0;
 
-        return totals;
-    } catch (error) {
-        console.error("Error in calculateAllStats():", error);
-        return {}; // Return empty object on error to prevent further issues
-    }
+    totals.totalSSMisses = totals.team1.ssServing + totals.team1.ssReturning + totals.team2.ssServing + totals.team2.ssReturning;
+    totals.scores = matchData.scores;
+
+    return totals;
 }
 
 function populateAllResultsViews() {
-    try {
-        console.log("populateAllResultsViews started...");
-        const calc = calculateAllStats();
-        
-        if (Object.keys(calc).length === 0) {
-            console.error("calculateAllStats returned an empty object. Aborting populate.");
-            return;
-        }
+    const calc = calculateAllStats();
+    
+    // Populate Match Summary (View 0)
+    document.getElementById('finalScoreDisplay').innerHTML = `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`;
+    document.getElementById('matchDetailsDisplay').textContent = `${matchData.location} • ${matchData.surface} • ${matchData.date}`;
+    document.getElementById('totalPoints').textContent = calc.totalPoints;
+    document.getElementById('team1PointsWon').textContent = `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`;
+    document.getElementById('team2PointsWon').textContent = `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`;
+    document.getElementById('totalSSMisses').textContent = calc.totalSSMisses;
+    
+    // Populate Team Views (View 1 and 2)
+    ['team1', 'team2'].forEach(teamKey => {
+        const teamStats = calc[teamKey];
+        document.getElementById(`${teamKey}Ret1st`).innerHTML = `${teamStats.ret1stWonPct}%<small>${teamStats.ret1stWon}/${teamStats.ret1stTotal}</small>`;
+        document.getElementById(`${teamKey}Ret2nd`).innerHTML = `${teamStats.ret2ndWonPct}%<small>${teamStats.ret2ndWon}/${teamStats.ret2ndTotal}</small>`;
+        document.getElementById(`${teamKey}RetTotal`).innerHTML = `${teamStats.retTotalWonPct}%<small>${teamStats.retTotalWon}/${teamStats.retTotal}</small>`;
+        document.getElementById(`${teamKey}SSServing`).textContent = teamStats.ssServing;
+        document.getElementById(`${teamKey}SSReturning`).textContent = teamStats.ssReturning;
+    });
 
-        // Populate Match Summary (View 0)
-        populateElement('finalScoreDisplay', `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`, true);
-        populateElement('matchDetailsDisplay', `${matchData.location} • ${matchData.surface} • ${matchData.date}`);
-        populateElement('totalPoints', calc.totalPoints);
-        populateElement('team1PointsWon', `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`);
-        populateElement('team2PointsWon', `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`);
-        populateElement('totalSSMisses', calc.totalSSMisses);
-        
-        // Populate Team Views (View 1 and 2)
-        ['team1', 'team2'].forEach(teamKey => {
-            const teamStats = calc[teamKey];
-            populateElement(`${teamKey}Ret1st`, `${teamStats.ret1stWonPct}%<small>${teamStats.ret1stWon}/${teamStats.ret1stTotal}</small>`, true);
-            populateElement(`${teamKey}Ret2nd`, `${teamStats.ret2ndWonPct}%<small>${teamStats.ret2ndWon}/${teamStats.ret2ndTotal}</small>`, true);
-            populateElement(`${teamKey}RetTotal`, `${teamStats.retTotalWonPct}%<small>${teamStats.retTotalWon}/${teamStats.retTotal}</small>`, true);
-            populateElement(`${teamKey}SSServing`, teamStats.ssServing);
-            populateElement(`${teamKey}SSReturning`, teamStats.ssReturning);
-        });
-
-        // Populate Player Views (View 3 through 6)
-        ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
-            const pStats = calc[pKey];
-            populateElement(`${pKey}DeuceRet`, `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`, true);
-            populateElement(`${pKey}AdRet`, `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`, true);
-            populateElement(`${pKey}ssS`, pStats.ssMisses.S);
-            populateElement(`${pKey}ssN`, pStats.ssMisses.N);
-            populateElement(`${pKey}ssD`, pStats.ssMisses.D);
-            populateElement(`${pKey}ssA`, pStats.ssMisses.A);
-        });
-        console.log("populateAllResultsViews finished successfully.");
-    } catch (error) {
-        console.error("Error in populateAllResultsViews():", error);
-    }
+    // Populate Player Views (View 3 through 6)
+    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+        const pStats = calc[pKey];
+        document.getElementById(`${pKey}DeuceRet`).innerHTML = `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`;
+        document.getElementById(`${pKey}AdRet`).innerHTML = `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`;
+        document.getElementById(`${pKey}ssS`).textContent = pStats.ssMisses.S;
+        document.getElementById(`${pKey}ssN`).textContent = pStats.ssMisses.N;
+        document.getElementById(`${pKey}ssD`).textContent = pStats.ssMisses.D;
+        document.getElementById(`${pKey}ssA`).textContent = pStats.ssMisses.A;
+    });
 }
 
 
