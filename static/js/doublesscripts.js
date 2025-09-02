@@ -63,7 +63,8 @@ function showSection(sectionId) {
     document.querySelector(`.tennis-nav-btn[onclick="showSection('${sectionId}')"]`).classList.add('active');
     
     if (sectionId === 'results') {
-        renderResults();
+        //renderResults();
+        renderResults2();
     } else {
         updateAllDisplays();
     }
@@ -248,6 +249,26 @@ function updateSecondShotDisplay() {
 
 
 // --- RESULTS ---
+function renderResults2() {
+    const container = document.getElementById('results');
+    let html = `
+        <div class="results-navigation">
+            ${Array.from({length: totalResultsViews}, (_, i) => `<div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="showResultsView(${i})"></div>`).join('')}
+        </div>
+        <div class="swipe-hint">← Swipe to navigate →</div>
+        <div id="results-views-container">`;
+
+    for (let i = 0; i < totalResultsViews; i++) {
+        html += `
+            <div class="results-view" id="results-view-${i}" style="text-align: center; padding: 4rem 0;">
+                <h1 class="view-title" style="font-size: 3rem;">Result ${i + 1}</h1>
+            </div>`;
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
+    showResultsView(currentResultsView);
+}
 function renderResults() {
     const container = document.getElementById('results');
     container.innerHTML = `
