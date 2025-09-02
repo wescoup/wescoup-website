@@ -403,11 +403,19 @@ function calculateAllStats() {
         teamTotals.retTotalWonPct = teamTotals.retTotal ? Math.round(teamTotals.retTotalWon * 100 / teamTotals.retTotal) : 0;
     });
     
-    // Opponent points are serves won by the other team. For now, we base it on returns.
-    totals.team1.pointsWon = totals.team1.retTotalWon; // Simplified for this version
-    totals.team2.pointsWon = totals.team2.retTotalWon; // Simplified for this version
-    
-    totals.totalPoints = totals.team1.retTotal + totals.team2.retTotal;
+    // FIX: Correctly calculate total points
+    totals.totalPoints = 0;
+    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+        totals.totalPoints += (
+            totals[pKey].retDeuceFirstTotal +
+            totals[pKey].retDeuceSecondTotal +
+            totals[pKey].retAdFirstTotal +
+            totals[pKey].retAdSecondTotal
+        );
+    });
+
+    totals.team1.pointsWon = totals.team1.retTotalWon;
+    totals.team2.pointsWon = totals.team2.retTotalWon;
     
     totals.team1.pointsWonPct = totals.totalPoints ? Math.round(totals.team1.pointsWon * 100 / totals.totalPoints) : 0;
     totals.team2.pointsWonPct = totals.totalPoints ? Math.round(totals.team2.pointsWon * 100 / totals.totalPoints) : 0;
