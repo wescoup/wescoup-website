@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Tony's Doubles Tracker - Wescoup.com</title>
 
-    <!-- Mobile app-like experience -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,43 +19,41 @@
     <div class="tennis-tracker-container">
         <div class="tennis-tracker-header">
             <h1>🎾 Tony's Doubles Tracker</h1>
-            <p style="color: #FFE135; font-style: italic;">Complete doubles match analysis with returner-based tracking</p>
+            <p class="subtitle-text">Return-based doubles match analysis</p>
         </div>
 
-        <!-- Navigation -->
         <div class="tennis-nav">
-            <button class="tennis-nav-btn" onclick="showSection('match-info')">Match Info</button>
+            <button class="tennis-nav-btn active" onclick="showSection('match-info')">Match Info</button>
             <button class="tennis-nav-btn" onclick="showSection('match-tracker')">Track Match</button>
             <button class="tennis-nav-btn" onclick="showSection('results')">Results</button>
-            <button class="tennis-nav-btn" onclick="window.location.href='/tonys-tennis-page'">Tony's Tennis Page</button>
+            <button class="tennis-nav-btn" onclick="window.location.href='/tonys-tennis-page'">Back</button>
         </div>
 
-        <!-- Match Info Section -->
         <div id="match-info" class="tennis-section active">
-            <h2 style="text-align: center; color: #FFE135; margin-bottom: 2rem;">Enter Match Information</h2>
+            <h2 class="section-title">Enter Match Information</h2>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                <div style="text-align: center; background: rgba(0, 100, 200, 0.2); padding: 1rem; border-radius: 8px;">
-                    <h3 style="color: #6BB6FF; margin-bottom: 1rem;">🔵 Team 1</h3>
+            <div class="team-setup-grid">
+                <div class="team-card team-1-bg">
+                    <h3 class="team-title-blue">🔵 Team 1</h3>
                     <div class="tennis-form-group">
                         <label for="player1">Player 1:</label>
-                        <input type="text" id="player1" placeholder="Player 1 name" value="P1">
+                        <input type="text" id="player1" placeholder="Player 1 name" value="Player 1">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player2">Player 2:</label>
-                        <input type="text" id="player2" placeholder="Player 2 name" value="P2">
+                        <input type="text" id="player2" placeholder="Player 2 name" value="Player 2">
                     </div>
                 </div>
                 
-                <div style="text-align: center; background: rgba(200, 0, 0, 0.2); padding: 1rem; border-radius: 8px;">
-                    <h3 style="color: #FF6B6B; margin-bottom: 1rem;">🔴 Team 2</h3>
+                <div class="team-card team-2-bg">
+                    <h3 class="team-title-red">🔴 Team 2</h3>
                     <div class="tennis-form-group">
                         <label for="player3">Player 3:</label>
-                        <input type="text" id="player3" placeholder="Player 3 name" value="P3">
+                        <input type="text" id="player3" placeholder="Player 3 name" value="Player 3">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player4">Player 4:</label>
-                        <input type="text" id="player4" placeholder="Player 4 name" value="P4">
+                        <input type="text" id="player4" placeholder="Player 4 name" value="Player 4">
                     </div>
                 </div>
             </div>
@@ -82,16 +79,14 @@
             </div>
         </div>
 
-        <!-- Match Tracker Section -->
         <div id="match-tracker" class="tennis-section">
-            <h2 style="text-align: center; color: #FFE135; margin-bottom: 2rem;">Track Your Match</h2>
+            <h2 class="section-title">Track Your Match</h2>
             
-            <!-- Set Score -->
-            <div class="stats-grid set-score" style="margin-bottom: 2rem;">
+            <div class="stats-grid score-grid">
                 <div class="stat-card">
-                    <div class="stat-label">🔵 Team 1 Games</div>
+                    <div class="stat-label" id="team1NameScore">Team 1</div>
                     <div class="stat-value" id="team1Score">0</div>
-                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                    <div class="tennis-btn-group">
                         <button class="tennis-btn" onclick="adjustGames('team1', 1)">+</button>
                         <button class="tennis-btn" onclick="adjustGames('team1', -1)">-</button>
                     </div>
@@ -99,639 +94,95 @@
                 <div class="stat-card">
                     <div class="stat-label">Set</div>
                     <div class="stat-value" id="currentSet">1</div>
-                    <div class="tennis-btn-group" style="margin-top: 1rem;">
-                        <button class="tennis-btn" onclick="adjustSet(1)">+</button>
+                    <div class="tennis-btn-group">
+                        <button class.="tennis-btn" onclick="adjustSet(1)">+</button>
                         <button class="tennis-btn" onclick="adjustSet(-1)">-</button>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">🔴 Team 2 Games</div>
+                    <div class="stat-label" id="team2NameScore">Team 2</div>
                     <div class="stat-value" id="team2Score">0</div>
-                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                    <div class="tennis-btn-group">
                         <button class="tennis-btn" onclick="adjustGames('team2', 1)">+</button>
                         <button class="tennis-btn" onclick="adjustGames('team2', -1)">-</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Server Selection & Returner Positions -->
-            <div class="stat-card" style="background: rgba(0, 150, 255, 0.2); border: 2px solid rgba(0, 150, 255, 0.3); margin-bottom: 2rem;">
+            <div class="stat-card control-card">
                 <div class="server-row">
                     <div>
-                        <div class="stat-label">Current Server</div>
-                        <select id="currentServer" onchange="updateServer()" class="server-dropdown">
-                            <option value="player1">P1</option>
-                            <option value="player2">P2</option>
-                            <option value="player3">P3</option>
-                            <option value="player4">P4</option>
-                        </select>
-                    </div>
-                    <div style="text-align: center;">
-                        <button class="tennis-btn" onclick="completeGame()" style="font-size: 0.9rem; white-space: nowrap;">Game Complete</button>
+                        <label class="stat-label">Current Server</label>
+                        <select id="currentServer" onchange="updateServer()" class="server-dropdown"></select>
                     </div>
                     <div>
-                        <div class="stat-label">Returner Positions</div>
-                        <button class="tennis-btn" onclick="changeReturners()" style="width: 100%;">Switch Returner Sides</button>
+                        <label class="stat-label">Returner Sides</label>
+                        <button class="tennis-btn" onclick="changeReturners()">Switch</button>
+                    </div>
+                    <div>
+                        <label class="stat-label">End of Game</label>
+                        <button class="tennis-btn" onclick="gameComplete()">Complete</button>
                     </div>
                 </div>
             </div>
 
-            <!-- RETURNER-BASED TRACKING -->
-            <div class="returner-row">
-                <!-- Deuce Court Returner -->
-                <div class="stat-card" style="border: 2px solid rgba(0, 200, 100, 0.5); background: rgba(0, 200, 100, 0.1);">
-                    <div class="stat-label">🟢 Deuce Court Returner</div>
+            <div class="returner-grid">
+                <div class="stat-card returner-card deuce-side-border">
+                    <div class="stat-label">🟢 Deuce Returner</div>
                     <div class="stat-value" id="deuceReturnerName">P3</div>
-                    
-                    <div class="stat-label" style="margin-top: 1rem;">Return Data</div>
-                    <div id="deuceReturnDisplay" style="font-family: monospace; font-size: 1rem; word-break: break-all; min-height: 2rem; background: rgba(0, 0, 0, 0.2); padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;">-</div>
-                    
-                    <div class="stat-label">Return Win %: <span id="deuceReturnPercentage" style="color: #FFE135;">0%</span></div>
-                    
-                    <div class="return-btn-group" style="margin-top: 1rem;">
-                        <button class="tennis-btn" onclick="recordReturn('deuce', true)">Return Win</button>
-                        <button class="tennis-btn" onclick="recordReturn('deuce', false)">Return Loss</button>
-                        <button class="tennis-btn" onclick="undoLastReturn('deuce')">Undo</button>
+                    <div class="return-section">
+                        <label class="stat-label">1st Serve Return</label>
+                        <div class="tennis-btn-group compact">
+                            <button class="tennis-btn" onclick="recordReturn('deuce', 'first', true)">Win</button>
+                            <button class="tennis-btn" onclick="recordReturn('deuce', 'first', false)">Loss</button>
+                            <button class="tennis-btn" onclick="undoReturn('deuce', 'first')">Undo</button>
+                        </div>
+                        <div class="stat-label">2nd Serve Return</div>
+                        <div class="tennis-btn-group compact">
+                            <button class="tennis-btn" onclick="recordReturn('deuce', 'second', true)">Win</button>
+                            <button class="tennis-btn" onclick="recordReturn('deuce', 'second', false)">Loss</button>
+                            <button class="tennis-btn" onclick="undoReturn('deuce', 'second')">Undo</button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Ad Court Returner -->
-                <div class="stat-card" style="border: 2px solid rgba(200, 0, 100, 0.5); background: rgba(200, 0, 100, 0.1);">
-                    <div class="stat-label">🟣 Ad Court Returner</div>
+                <div class="stat-card returner-card ad-side-border">
+                    <div class="stat-label">🟣 Ad Returner</div>
                     <div class="stat-value" id="adReturnerName">P4</div>
-                    
-                    <div class="stat-label" style="margin-top: 1rem;">Return Data</div>
-                    <div id="adReturnDisplay" style="font-family: monospace; font-size: 1rem; word-break: break-all; min-height: 2rem; background: rgba(0, 0, 0, 0.2); padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0;">-</div>
-                    
-                    <div class="stat-label">Return Win %: <span id="adReturnPercentage" style="color: #FFE135;">0%</span></div>
-                    
-                    <div class="return-btn-group" style="margin-top: 1rem;">
-                        <button class="tennis-btn" onclick="recordReturn('ad', true)">Return Win</button>
-                        <button class="tennis-btn" onclick="recordReturn('ad', false)">Return Loss</button>
-                        <button class="tennis-btn" onclick="undoLastReturn('ad')">Undo</button>
+                    <div class="return-section">
+                        <label class="stat-label">1st Serve Return</label>
+                        <div class="tennis-btn-group compact">
+                            <button class="tennis-btn" onclick="recordReturn('ad', 'first', true)">Win</button>
+                            <button class="tennis-btn" onclick="recordReturn('ad', 'first', false)">Loss</button>
+                            <button class="tennis-btn" onclick="undoReturn('ad', 'first')">Undo</button>
+                        </div>
+                        <label class="stat-label">2nd Serve Return</label>
+                        <div class="tennis-btn-group compact">
+                            <button class="tennis-btn" onclick="recordReturn('ad', 'second', true)">Win</button>
+                            <button class="tennis-btn" onclick="recordReturn('ad', 'second', false)">Loss</button>
+                            <button class="tennis-btn" onclick="undoReturn('ad', 'second')">Undo</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Second Shot Tracking -->
-            <div class="stat-card" style="background: rgba(255, 193, 7, 0.2); border: 2px solid rgba(255, 193, 7, 0.5); margin: 2rem 0;">
-                <h3 style="color: #FFC107; margin-top: 0;">🎯 Second Shot Tracking</h3>
-                <p style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem;">Current positions and quick tracking buttons</p>
-                
-                <div style="text-align: center; margin-bottom: 1.5rem; font-size: 1rem; background: rgba(255, 255, 255, 0.15); padding: 0.8rem; border-radius: 8px; font-weight: bold;">
-                    <div id="currentPositions">🔵 P1(S) P2(N) vs 🔴 P3(DC) P4(AC)</div>
-                </div>
-                
-                <div class="tennis-btn-group" style="margin-bottom: 1rem;">
-                    <button id="player1SecondShotBtn" onclick="recordSecondShotMiss('player1')" class="tennis-btn" style="background: rgba(0, 100, 200, 0.7); color: white;">P1-S</button>
-                    <button id="player2SecondShotBtn" onclick="recordSecondShotMiss('player2')" class="tennis-btn" style="background: rgba(0, 100, 200, 0.7); color: white;">P2-N</button>
-                    <button id="player3SecondShotBtn" onclick="recordSecondShotMiss('player3')" class="tennis-btn" style="background: rgba(200, 0, 0, 0.7); color: white;">P3-DC</button>
-                    <button id="player4SecondShotBtn" onclick="recordSecondShotMiss('player4')" class="tennis-btn" style="background: rgba(200, 0, 0, 0.7); color: white;">P4-AC</button>
+            <div class="stat-card second-shot-card">
+                <h3 class="second-shot-title">🎯 Second Shot Miss</h3>
+                <p class="subtitle-text">Track who misses the 2nd ball of the point</p>
+                <div id="currentPositions" class="positions-display"></div>
+                <div class="tennis-btn-group">
+                    <button id="p1_ss" onclick="recordSecondShotMiss('player1')" class="tennis-btn team-1-bg">P1</button>
+                    <button id="p2_ss" onclick="recordSecondShotMiss('player2')" class="tennis-btn team-1-bg">P2</button>
+                    <button id="p3_ss" onclick="recordSecondShotMiss('player3')" class="tennis-btn team-2-bg">P3</button>
+                    <button id="p4_ss" onclick="recordSecondShotMiss('player4')" class="tennis-btn team-2-bg">P4</button>
                     <button onclick="undoSecondShotMiss()" class="tennis-btn">↶ Undo</button>
                 </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card" style="background: rgba(255, 255, 255, 0.1);">
-                        <div class="stat-label">🔵 Team 1 Misses</div>
-                        <div class="stat-value" id="team1Misses">0</div>
-                    </div>
-                    <div class="stat-card" style="background: rgba(255, 255, 255, 0.1);">
-                        <div class="stat-label">🔴 Team 2 Misses</div>
-                        <div class="stat-value" id="team2Misses">0</div>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- Results Section -->
         <div id="results" class="tennis-section">
-            <h2 style="text-align: center; color: #FFE135; margin-bottom: 2rem;">Match Results</h2>
-            
-            <!-- Navigation Dots for Results Views -->
-            <div class="results-navigation">
-                <div class="nav-dot active" onclick="showResultsView(0)"></div>
-                <div class="nav-dot" onclick="showResultsView(1)"></div>
-                <div class="nav-dot" onclick="showResultsView(2)"></div>
-                <div class="nav-dot" onclick="showResultsView(3)"></div>
-                <div class="nav-dot" onclick="showResultsView(4)"></div>
-                <div class="nav-dot" onclick="showResultsView(5)"></div>
-                <div class="nav-dot" onclick="showResultsView(6)"></div>
+            <h2 class="section-title">Match Results</h2>
             </div>
-            
-            <!-- View 0: Match Summary -->
-            <div class="results-view active" id="results-view-0">
-                <div class="view-title">📊 Match Summary</div>
-                
-                <div class="match-summary">
-                    <h3 style="margin-top: 0; color: #FFC107;">🏆 Final Score</h3>
-                    <div style="text-align: center; font-size: 2rem; margin: 1rem 0;" id="finalScoreDisplay">
-                        <strong>🔵 Team 1: 0-0 🔴 Team 2</strong>
-                    </div>
-                    <div style="text-align: center; opacity: 0.8;" id="matchDetailsDisplay">
-                        Local Court • Hard Court • Today
-                    </div>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Points Played</div>
-                        <div class="stat-value" id="totalPointsDisplay">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">🔵 Team 1 Points Won</div>
-                        <div class="stat-value" id="team1PointsDisplay">0 (0%)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">🔴 Team 2 Points Won</div>
-                        <div class="stat-value" id="team2PointsDisplay">0 (0%)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Match Duration</div>
-                        <div class="stat-value">-</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- View 1: Team 1 Combined Stats -->
-            <div class="results-view" id="results-view-1">
-                <div class="view-title">🔵 Team 1 - Complete Performance</div>
-                
-                <div class="team-card team-1">
-                    <h3 style="margin-top: 0;" id="team1PlayersDisplay">P1 & P2 - Serving & Returning</h3>
-                    
-                    <h4 style="color: #FFE135; margin-bottom: 1rem;">📤 Serving Statistics</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve %</div>
-                            <div class="stat-value" id="team1FirstServePercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1FirstServeDetail">0/0 serves</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve Win %</div>
-                            <div class="stat-value" id="team1FirstServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1FirstServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Second Serve Win %</div>
-                            <div class="stat-value" id="team1SecondServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1SecondServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Service Games Won</div>
-                            <div class="stat-value" id="team1ServiceGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1HoldRate">0% hold rate</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFE135; margin: 2rem 0 1rem 0;">📥 Returning Statistics</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">vs First Serve</div>
-                            <div class="stat-value" id="team1VsFirstServe">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1VsFirstServePercent">0% win rate</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">vs Second Serve</div>
-                            <div class="stat-value" id="team1VsSecondServe">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1VsSecondServePercent">0% win rate</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="team1ReturnPointsWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1ReturnRate">0% return rate</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Return Games Won</div>
-                            <div class="stat-value" id="team1ReturnGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1BreakRate">0% break rate</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFC107; margin: 2rem 0 1rem 0;">🎯 Second Shot Analysis</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Serving 2nd Shot Errors</div>
-                            <div class="stat-value" id="team1ServingSecondShotErrors">0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1ServingErrorRate">0% error rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Returning 2nd Shot Errors</div>
-                            <div class="stat-value" id="team1ReturningSecondShotErrors">0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team1ReturningErrorRate">0% error rate</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- View 2: Team 2 Combined Stats -->
-            <div class="results-view" id="results-view-2">
-                <div class="view-title">🔴 Team 2 - Complete Performance</div>
-                
-                <div class="team-card team-2">
-                    <h3 style="margin-top: 0;" id="team2PlayersDisplay">P3 & P4 - Serving & Returning</h3>
-                    
-                    <h4 style="color: #FFE135; margin-bottom: 1rem;">📤 Serving Statistics</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve %</div>
-                            <div class="stat-value" id="team2FirstServePercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2FirstServeDetail">0/0 serves</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve Win %</div>
-                            <div class="stat-value" id="team2FirstServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2FirstServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Second Serve Win %</div>
-                            <div class="stat-value" id="team2SecondServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2SecondServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Service Games Won</div>
-                            <div class="stat-value" id="team2ServiceGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2HoldRate">0% hold rate</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFE135; margin: 2rem 0 1rem 0;">📥 Returning Statistics</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">vs First Serve</div>
-                            <div class="stat-value" id="team2VsFirstServe">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2VsFirstServePercent">0% win rate</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">vs Second Serve</div>
-                            <div class="stat-value" id="team2VsSecondServe">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2VsSecondServePercent">0% win rate</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="team2ReturnPointsWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2ReturnRate">0% return rate</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Return Games Won</div>
-                            <div class="stat-value" id="team2ReturnGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2BreakRate">0% break rate</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFC107; margin: 2rem 0 1rem 0;">🎯 Second Shot Analysis</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Serving 2nd Shot Errors</div>
-                            <div class="stat-value" id="team2ServingSecondShotErrors">0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2ServingErrorRate">0% error rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Returning 2nd Shot Errors</div>
-                            <div class="stat-value" id="team2ReturningSecondShotErrors">0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="team2ReturningErrorRate">0% error rate</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- View 3: P1 Individual Stats -->
-            <div class="results-view" id="results-view-3">
-                <div class="view-title">👤 <span id="p1NameDisplay">P1</span> - Individual Performance</div>
-                
-                <div class="player-card" style="border-left: 5px solid #6BB6FF;">
-                    <h3 style="margin-top: 0; color: #6BB6FF;">🔵 <span id="p1NameTitle">P1</span> Complete Stats</h3>
-                    
-                    <h4 style="color: #FFE135; margin-bottom: 1rem;">📤 When <span id="p1ServingName">P1</span> Served (<span id="p1ServiceGames">0</span> games)</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve %</div>
-                            <div class="stat-value" id="p1FirstServePercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1FirstServeDetail">0/0 serves</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve Win %</div>
-                            <div class="stat-value" id="p1FirstServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1FirstServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Second Serve Win %</div>
-                            <div class="stat-value" id="p1SecondServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1SecondServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Service Games Won</div>
-                            <div class="stat-value" id="p1ServiceGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1HoldRate">0% hold</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFE135; margin: 2rem 0 1rem 0;"><span id="p1ReturningName">P1</span>'s Returning Performance</h4>
-                    <div class="side-stats">
-                        <div class="side-card deuce-side">
-                            <h5 style="color: #00C864; margin-top: 0;">🟢 From Deuce Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p1DeuceReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p1DeuceReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1DeuceCourtSets">Sets played on deuce</div>
-                        </div>
-                        
-                        <div class="side-card ad-side">
-                            <h5 style="color: #C80064; margin-top: 0;">🟣 From Ad Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p1AdReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p1AdReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1AdCourtSets">Sets played on ad</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFC107; margin: 2rem 0 1rem 0;"><span id="p1SecondShotName">P1</span>'s Second Shot Performance</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">As Server (S)</div>
-                            <div class="stat-value" id="p1ServerErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1ServerMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">At Net (N)</div>
-                            <div class="stat-value" id="p1NetErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1NetMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Deuce Court (DC)</div>
-                            <div class="stat-value" id="p1DeuceErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1DeuceMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Ad Court (AC)</div>
-                            <div class="stat-value" id="p1AdErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p1AdMissRate">0% miss rate</div>
-                        </div>
-                    </div>
-                    
-                    <div class="match-summary">
-                        <h4 style="color: #FFC107; margin-top: 0;"><span id="p1InsightName">P1</span>'s Key Insights</h4>
-                        <p style="margin-bottom: 0;" id="p1KeyInsights">Performance analysis will appear after match data is available.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- View 4: P2 Individual Stats -->
-            <div class="results-view" id="results-view-4">
-                <div class="view-title">👤 <span id="p2NameDisplay">P2</span> - Individual Performance</div>
-                
-                <div class="player-card" style="border-left: 5px solid #6BB6FF;">
-                    <h3 style="margin-top: 0; color: #6BB6FF;">🔵 <span id="p2NameTitle">P2</span> Complete Stats</h3>
-                    
-                    <h4 style="color: #FFE135; margin-bottom: 1rem;">📤 When <span id="p2ServingName">P2</span> Served (<span id="p2ServiceGames">0</span> games)</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve %</div>
-                            <div class="stat-value" id="p2FirstServePercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2FirstServeDetail">0/0 serves</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve Win %</div>
-                            <div class="stat-value" id="p2FirstServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2FirstServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Second Serve Win %</div>
-                            <div class="stat-value" id="p2SecondServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2SecondServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Service Games Won</div>
-                            <div class="stat-value" id="p2ServiceGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2HoldRate">0% hold</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFE135; margin: 2rem 0 1rem 0;"><span id="p2ReturningName">P2</span>'s Returning Performance</h4>
-                    <div class="side-stats">
-                        <div class="side-card ad-side">
-                            <h5 style="color: #C80064; margin-top: 0;">🟣 From Ad Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p2AdReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p2AdReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2AdCourtSets">Sets played on ad</div>
-                        </div>
-                        
-                        <div class="side-card deuce-side">
-                            <h5 style="color: #00C864; margin-top: 0;">🟢 From Deuce Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p2DeuceReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p2DeuceReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2DeuceCourtSets">Sets played on deuce</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFC107; margin: 2rem 0 1rem 0;"><span id="p2SecondShotName">P2</span>'s Second Shot Performance</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">As Server (S)</div>
-                            <div class="stat-value" id="p2ServerErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2ServerMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">At Net (N)</div>
-                            <div class="stat-value" id="p2NetErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2NetMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Ad Court (AC)</div>
-                            <div class="stat-value" id="p2AdErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2AdMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Deuce Court (DC)</div>
-                            <div class="stat-value" id="p2DeuceErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p2DeuceMissRate">0% miss rate</div>
-                        </div>
-                    </div>
-                    
-                    <div class="match-summary">
-                        <h4 style="color: #FFC107; margin-top: 0;"><span id="p2InsightName">P2</span>'s Key Insights</h4>
-                        <p style="margin-bottom: 0;" id="p2KeyInsights">Performance analysis will appear after match data is available.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- View 5: P3 Individual Stats -->
-            <div class="results-view" id="results-view-5">
-                <div class="view-title">👤 <span id="p3NameDisplay">P3</span> - Individual Performance</div>
-                
-                <div class="player-card" style="border-left: 5px solid #FF6B6B;">
-                    <h3 style="margin-top: 0; color: #FF6B6B;">🔴 <span id="p3NameTitle">P3</span> Complete Stats</h3>
-                    
-                    <h4 style="color: #FFE135; margin-bottom: 1rem;">📤 When <span id="p3ServingName">P3</span> Served (<span id="p3ServiceGames">0</span> games)</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve %</div>
-                            <div class="stat-value" id="p3FirstServePercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3FirstServeDetail">0/0 serves</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve Win %</div>
-                            <div class="stat-value" id="p3FirstServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3FirstServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Second Serve Win %</div>
-                            <div class="stat-value" id="p3SecondServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3SecondServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Service Games Won</div>
-                            <div class="stat-value" id="p3ServiceGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3HoldRate">0% hold</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFE135; margin: 2rem 0 1rem 0;"><span id="p3ReturningName">P3</span>'s Returning Performance</h4>
-                    <div class="side-stats">
-                        <div class="side-card deuce-side">
-                            <h5 style="color: #00C864; margin-top: 0;">🟢 From Deuce Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p3DeuceReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p3DeuceReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3DeuceCourtSets">Sets played on deuce</div>
-                        </div>
-                        
-                        <div class="side-card ad-side">
-                            <h5 style="color: #C80064; margin-top: 0;">🟣 From Ad Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p3AdReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p3AdReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3AdCourtSets">Sets played on ad</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFC107; margin: 2rem 0 1rem 0;"><span id="p3SecondShotName">P3</span>'s Second Shot Performance</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">As Server (S)</div>
-                            <div class="stat-value" id="p3ServerErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3ServerMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">At Net (N)</div>
-                            <div class="stat-value" id="p3NetErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3NetMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Deuce Court (DC)</div>
-                            <div class="stat-value" id="p3DeuceErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3DeuceMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Ad Court (AC)</div>
-                            <div class="stat-value" id="p3AdErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p3AdMissRate">0% miss rate</div>
-                        </div>
-                    </div>
-                    
-                    <div class="match-summary">
-                        <h4 style="color: #FFC107; margin-top: 0;"><span id="p3InsightName">P3</span>'s Key Insights</h4>
-                        <p style="margin-bottom: 0;" id="p3KeyInsights">Performance analysis will appear after match data is available.</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- View 6: P4 Individual Stats -->
-            <div class="results-view" id="results-view-6">
-                <div class="view-title">👤 <span id="p4NameDisplay">P4</span> - Individual Performance</div>
-                
-                <div class="player-card" style="border-left: 5px solid #FF6B6B;">
-                    <h3 style="margin-top: 0; color: #FF6B6B;">🔴 <span id="p4NameTitle">P4</span> Complete Stats</h3>
-                    
-                    <h4 style="color: #FFE135; margin-bottom: 1rem;">📤 When <span id="p4ServingName">P4</span> Served (<span id="p4ServiceGames">0</span> games)</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve %</div>
-                            <div class="stat-value" id="p4FirstServePercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4FirstServeDetail">0/0 serves</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">First Serve Win %</div>
-                            <div class="stat-value" id="p4FirstServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4FirstServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Second Serve Win %</div>
-                            <div class="stat-value" id="p4SecondServeWinPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4SecondServeWinDetail">0/0 points</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Service Games Won</div>
-                            <div class="stat-value" id="p4ServiceGamesWon">0/0</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4HoldRate">0% hold</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFE135; margin: 2rem 0 1rem 0;"><span id="p4ReturningName">P4</span>'s Returning Performance</h4>
-                    <div class="side-stats">
-                        <div class="side-card ad-side">
-                            <h5 style="color: #C80064; margin-top: 0;">🟣 From Ad Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p4AdReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p4AdReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4AdCourtSets">Sets played on ad</div>
-                        </div>
-                        
-                        <div class="side-card deuce-side">
-                            <h5 style="color: #00C864; margin-top: 0;">🟢 From Deuce Court</h5>
-                            <div class="stat-label">Return Points Won</div>
-                            <div class="stat-value" id="p4DeuceReturnWon">0/0</div>
-                            <div class="stat-label">Return Win %</div>
-                            <div class="stat-value" id="p4DeuceReturnPercent">0%</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4DeuceCourtSets">Sets played on deuce</div>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #FFC107; margin: 2rem 0 1rem 0;"><span id="p4SecondShotName">P4</span>'s Second Shot Performance</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">As Server (S)</div>
-                            <div class="stat-value" id="p4ServerErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4ServerMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">At Net (N)</div>
-                            <div class="stat-value" id="p4NetErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4NetMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Ad Court (AC)</div>
-                            <div class="stat-value" id="p4AdErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4AdMissRate">0% miss rate</div>
-                        </div>
-                        <div class="stat-card" style="background: rgba(255, 193, 7, 0.1);">
-                            <div class="stat-label">Deuce Court (DC)</div>
-                            <div class="stat-value" id="p4DeuceErrors">0 errors</div>
-                            <div style="font-size: 0.8rem; opacity: 0.7;" id="p4DeuceMissRate">0% miss rate</div>
-                        </div>
-                    </div>
-                    
-                    <div class="match-summary">
-                        <h4 style="color: #FFC107; margin-top: 0;"><span id="p4InsightName">P4</span>'s Key Insights</h4>
-                        <p style="margin-bottom: 0;" id="p4KeyInsights">Performance analysis will appear after match data is available.</p>
-                        <button class="tennis-btn" onclick="takeScreenshot()">📸 Save Screenshot</button>
-                        <button class="tennis-btn" onclick="showSection('match-info')">🔄 New Match</button>
-                    </div>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 2rem;">
-                <div class="swipe-hint">← Swipe or click dots to navigate between views →</div>
-            </div>
-        </div>
     </div>
 
     <script src="/static/js/doublesscripts.js"></script>
