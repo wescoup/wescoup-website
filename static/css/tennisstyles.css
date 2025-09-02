@@ -1,37 +1,30 @@
-/* Tony's Tennis Page & Trackers - Refactored Styles */
+/* Tony's Tennis Page & Trackers - Refactored Styles v2 */
 
 /* --- General & Body --- */
-.tennis-body, .tennis-tracker-body {
+.tennis-tracker-body {
     font-family: Arial, sans-serif;
     color: white;
     margin: 0;
     padding: 0;
-    min-height: 100vh;
-}
-
-.tennis-body { /* For main tennis page */
-    background: linear-gradient(135deg, #2E8B57 0%, #228B22 50%, #32CD32 100%);
-}
-
-.tennis-tracker-body { /* For tracker apps */
+    min-height: 100dvh;
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
 }
 
 /* --- Containers & Headers --- */
-.tennis-container, .tennis-tracker-container {
+.tennis-tracker-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 1rem;
 }
 
-.tennis-header, .tennis-tracker-header {
+.tennis-tracker-header {
     text-align: center;
     padding: 1rem 0;
     margin-bottom: 1rem;
 }
 
-.tennis-header h1, .tennis-tracker-header h1 {
-    font-size: 2.5rem;
+.tennis-tracker-header h1 {
+    font-size: 2.2rem;
     margin: 0;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
@@ -41,6 +34,7 @@
     font-style: italic;
     opacity: 0.9;
     margin-top: 0.5rem;
+    font-size: 0.9rem;
 }
 
 /* --- Navigation --- */
@@ -79,9 +73,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.tennis-section.active {
-    display: block;
-}
+.tennis-section.active { display: block; }
 
 .section-title {
     text-align: center;
@@ -90,152 +82,71 @@
     margin-bottom: 1.5rem;
 }
 
-/* --- Forms --- */
-.tennis-form-group {
-    margin-bottom: 1rem;
-}
+/* --- Forms & Grids --- */
+.tennis-form-group { margin-bottom: 1rem; }
+.tennis-form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #FFE135; }
+.tennis-form-group input, .tennis-form-group select { width: 100%; padding: 0.8rem; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.9); color: #333; font-size: 1rem; box-sizing: border-box; }
 
-.tennis-form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: #FFE135;
-}
-
-.tennis-form-group input, .tennis-form-group select {
-    width: 100%;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
-    font-size: 1rem;
-    box-sizing: border-box;
-}
-
-/* --- Grids --- */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.team-setup-grid, .returner-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.team-setup-grid, .returner-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 
 @media (min-width: 600px) {
-    .team-setup-grid, .returner-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .score-grid {
-         grid-template-columns: 1fr 100px 1fr;
-    }
+    .team-setup-grid, .returner-grid { grid-template-columns: 1fr 1fr; }
+    .score-grid { grid-template-columns: 1fr 100px 1fr; }
 }
 
 /* --- Cards --- */
-.stat-card, .team-card {
-    background: rgba(255, 255, 255, 0.15);
-    padding: 1rem;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.team-card {
-    padding: 1.5rem;
-}
-
-.control-card, .second-shot-card {
-    background: rgba(0, 0, 0, 0.2);
-    margin-bottom: 1.5rem;
-}
-
-.returner-card {
-    padding-bottom: 1.5rem;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    opacity: 0.8;
-    margin-bottom: 0.25rem;
-}
-
-.stat-value {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #FFE135;
-    margin-bottom: 0.5rem;
-}
+.stat-card, .team-card { background: rgba(255, 255, 255, 0.15); padding: 1rem; border-radius: 8px; text-align: center; }
+.team-card { padding: 1.5rem; }
+.control-card, .second-shot-card { background: rgba(0, 0, 0, 0.2); margin-bottom: 1.5rem; }
+.returner-card { padding-bottom: 1.5rem; }
+.stat-label { font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.25rem; }
+.stat-value { font-size: 1.8rem; font-weight: bold; color: #FFE135; margin-bottom: 0.5rem; }
 
 /* --- Buttons --- */
-.tennis-btn {
-    background: rgba(255, 225, 53, 0.8);
-    color: #333;
-    border: none;
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s ease;
-    flex-grow: 1;
-}
-
-.tennis-btn:hover {
-    background: rgba(255, 225, 53, 1);
-    transform: translateY(-1px);
-}
-
-.tennis-btn-group {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-}
-
-.tennis-btn-group.compact {
-    gap: 0.25rem;
-}
-.tennis-btn-group.compact .tennis-btn {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.9rem;
-}
+.tennis-btn { background: rgba(255, 225, 53, 0.8); color: #333; border: none; padding: 0.6rem 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s ease; flex-grow: 1; }
+.tennis-btn:hover { background: rgba(255, 225, 53, 1); transform: translateY(-1px); }
+.tennis-btn-group { display: flex; gap: 0.5rem; justify-content: center; }
+.tennis-btn-group.compact { gap: 0.25rem; }
+.tennis-btn-group.compact .tennis-btn { padding: 0.5rem 0.8rem; font-size: 0.9rem; }
 
 /* --- Specific Component Styles --- */
-.server-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    align-items: center;
-}
-.server-dropdown {
-    width: 100%;
-    padding: 0.6rem;
-    border-radius: 8px;
-}
-
-.return-section {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
+.server-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; align-items: end; }
+.server-dropdown { width: 100%; padding: 0.7rem; border-radius: 8px; font-weight: bold; }
+.return-section { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.return-string-display { min-height: 2.5rem; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 0.5rem; font-family: monospace; word-break: break-all; margin-bottom: 0.5rem; }
 .deuce-side-border { border-left: 4px solid rgba(0, 200, 100, 0.7); }
 .ad-side-border { border-left: 4px solid rgba(200, 0, 100, 0.7); }
 
 .second-shot-title { color: #FFC107; margin: 0 0 0.5rem 0; }
-.positions-display { font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem; }
+.positions-display { font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem; font-weight: bold; }
+.ss-miss-tally { margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; font-size: 0.9rem; font-weight: bold; }
 
 .team-1-bg { background-color: rgba(0, 100, 200, 0.3); }
 .team-2-bg { background-color: rgba(200, 0, 0, 0.3); }
 .team-title-blue { color: #6BB6FF; margin-bottom: 1rem; }
 .team-title-red { color: #FF6B6B; margin-bottom: 1rem; }
 
-/* Prevent zoom on form inputs on iOS */
+/* --- Results View Styles --- */
+.results-navigation { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.nav-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); cursor: pointer; transition: all 0.3s ease; }
+.nav-dot.active { background: #FFE135; transform: scale(1.2); }
+.swipe-hint { text-align: center; font-size: 0.8rem; opacity: 0.6; margin-bottom: 1rem; }
+.results-view { display: none; }
+.view-title { text-align: center; font-size: 1.5rem; color: #FFE135; margin-bottom: 1rem; }
+.match-summary, .player-card, .team-card { background: rgba(0, 0, 0, 0.2); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; }
+.results-subtitle { margin-top: 0; margin-bottom: 1rem; color: #FFE135; border-bottom: 1px solid rgba(255,225,53,0.3); padding-bottom: 0.5rem; }
+.final-score { font-size: 1.8rem; font-weight: bold; text-align: center; margin-bottom: 0.5rem; }
+.match-details { text-align: center; font-size: 0.9rem; opacity: 0.8; }
+.side-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.side-card { padding: 1rem; border-radius: 8px; }
+.side-title { margin-top: 0; }
+.deuce-side { background: rgba(0, 200, 100, 0.1); }
+.ad-side { background: rgba(200, 0, 100, 0.1); }
+.results-view .stat-value small { display: block; font-size: 0.8rem; color: white; opacity: 0.7; font-weight: normal; }
+.text-center { text-align: center; margin-top: 1.5rem; }
+
 @media (max-width: 768px) {
-    input, select, textarea {
-        font-size: 16px;
-    }
+    input, select, textarea { font-size: 16px; }
+    .side-stats { grid-template-columns: 1fr; }
 }
