@@ -351,8 +351,6 @@ function generateAllResultsViewsHTML() {
         </div>`;
     });
     
-    html = html.replace(/(<div class="player-card team-2">[\s\S]*?<\/div>)\s*<\/div>\s*$/, `$1<div class="text-center"><button class="tennis-btn" onclick="generatePdf()">Save as PDF</button></div></div>`);
-
     return html;
 }
 
