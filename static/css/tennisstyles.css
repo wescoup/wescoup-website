@@ -120,7 +120,7 @@
 
 .second-shot-title { color: #FFC107; margin: 0 0 0.5rem 0; }
 .positions-display { font-size: 0.9rem; opacity: 0.8; margin-bottom: 1rem; font-weight: bold; }
-.ss-miss-tally { margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; font-size: 0.9rem; font-weight: bold; }
+.ss-miss-tally { margin-top: 1rem; display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; font-size: 0.9rem; font-weight: bold; min-width: 300px; }
 
 .team-1-bg { background-color: rgba(0, 100, 200, 0.3); }
 .team-2-bg { background-color: rgba(200, 0, 0, 0.3); }
