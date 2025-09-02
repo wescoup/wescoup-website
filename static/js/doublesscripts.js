@@ -1,4 +1,4 @@
-// Tony's Doubles Tracker JavaScript (Rewritten v2)
+// Tony's Doubles Tracker JavaScript (Rewritten v3)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -7,6 +7,7 @@ let currentView = 'match-info';
 let currentResultsView = 0;
 const totalResultsViews = 7;
 
+// A clean slate for a new match, preserving structure
 const initialMatchData = {
     players: { player1: 'P1', player2: 'P2', player3: 'P3', player4: 'P4' },
     teams: { team1: ['player1', 'player2'], team2: ['player3', 'player4'] },
@@ -20,7 +21,7 @@ const initialMatchData = {
     returnerHistory: { team1: { deuce: 'player1', ad: 'player2' }, team2: { deuce: 'player3', ad: 'player4' } },
     stats: {},
     secondShotHistory: [],
-    pointHistory: []
+    pointHistory: [] // Tracks every point for accurate undo
 };
 
 function initializePlayerStats() {
@@ -70,10 +71,10 @@ function showSection(sectionId) {
 
 function collectMatchInfo() {
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
-        const inputId = pKey.slice(0, -1) + pKey.slice(-1);
-        matchData.players[pKey] = document.getElementById(inputId).value || `P${pKey.slice(-1)}`;
+        const inputId = pKey;
+        matchData.players[pKey] = document.getElementById(inputId).value.trim() || `P${pKey.slice(-1)}`;
     });
-    matchData.location = document.getElementById('location').value || 'Local Court';
+    matchData.location = document.getElementById('location').value.trim() || 'Local Court';
     matchData.surface = document.getElementById('surface').value;
     matchData.date = document.getElementById('matchDate').value;
     
@@ -167,9 +168,10 @@ function recordReturn(court, serveType, won) {
 }
 
 function undoReturn(court, serveType) {
-    const lastPoint = matchData.pointHistory.pop();
+    const lastPoint = matchData.pointHistory[matchData.pointHistory.length - 1];
+    // To keep it simple, we only allow undoing the very last point, regardless of which button was pressed
     if (lastPoint && lastPoint.type === 'return') {
-        const { returnerKey, court, serveType } = lastPoint;
+        const { returnerKey, court, serveType } = matchData.pointHistory.pop();
         const returnString = matchData.stats[returnerKey].returnData[court][serveType];
         if (returnString.length > 0) {
             matchData.stats[returnerKey].returnData[court][serveType] = returnString.slice(0, -1);
@@ -349,7 +351,7 @@ function generateAllResultsViewsHTML() {
         </div>`;
     });
     
-    html = html.replace(/<\/div>$/, `<div class="text-center"><button class="tennis-btn" onclick="generatePdf()">Save as PDF</button></div></div>`);
+    html = html.replace(/(<div class="player-card team-2">[\s\S]*?<\/div>)\s*<\/div>\s*$/, `$1<div class="text-center"><button class="tennis-btn" onclick="generatePdf()">Save as PDF</button></div></div>`);
 
     return html;
 }
@@ -394,8 +396,10 @@ function calculateAllStats() {
         teamTotals.retTotalWonPct = teamTotals.retTotal ? Math.round(teamTotals.retTotalWon * 100 / teamTotals.retTotal) : 0;
     });
     
-    totals.team1.pointsWon = totals.team1.retTotalWon;
-    totals.team2.pointsWon = totals.team2.retTotalWon;
+    // Opponent points are serves won by the other team. For now, we base it on returns.
+    totals.team1.pointsWon = totals.team1.retTotalWon; // Simplified for this version
+    totals.team2.pointsWon = totals.team2.retTotalWon; // Simplified for this version
+    
     totals.totalPoints = totals.team1.retTotal + totals.team2.retTotal;
     
     totals.team1.pointsWonPct = totals.totalPoints ? Math.round(totals.team1.pointsWon * 100 / totals.totalPoints) : 0;
@@ -449,22 +453,25 @@ function generatePdf() {
     document.querySelector('.swipe-hint').style.display = 'none';
 
     Array.from(container.children).forEach((view, index) => {
-        view.style.display = 'block'; // Make all views visible for capture
+        view.style.display = 'block';
         promises.push(
             html2canvas(view, { scale: 2, backgroundColor: '#1e3c72' }).then(canvas => {
-                if (index > 0) pdf.addPage();
-                const imgData = canvas.toDataURL('image/png');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const imgProps = pdf.getImageProperties(imgData);
-                const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+                return { order: parseInt(view.id.split('-')[2]), canvas };
             })
         );
     });
 
-    Promise.all(promises).then(() => {
+    Promise.all(promises).then(canvases => {
+        canvases.sort((a, b) => a.order - b.order);
+        canvases.forEach(({ canvas }, index) => {
+            if (index > 0) pdf.addPage();
+            const imgData = canvas.toDataURL('image/png');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+        });
         pdf.save(`doubles-stats-${matchData.date}.pdf`);
-        // Restore view state
         document.querySelector('.results-navigation').style.display = 'flex';
         document.querySelector('.swipe-hint').style.display = 'block';
         showResultsView(originalView);
