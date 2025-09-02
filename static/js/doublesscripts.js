@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', initializeTracker);
 let matchData = {};
 let currentView = 'match-info';
 let currentResultsView = 0;
-// PHASE 1: Forcing only 1 view for debugging
-const totalResultsViews = 1;
+// Restoring to full 7 views for robust debugging
+const totalResultsViews = 7;
 
 // A clean slate for a new match, preserving structure
 const initialMatchData = {
@@ -64,7 +64,6 @@ function showSection(sectionId) {
     document.querySelector(`.tennis-nav-btn[onclick="showSection('${sectionId}')"]`).classList.add('active');
     
     if (sectionId === 'results') {
-        // Switch back to the real function for Phase 1
         renderResults(); 
     } else {
         updateAllDisplays();
@@ -251,24 +250,35 @@ function updateSecondShotDisplay() {
 // --- RESULTS ---
 
 function renderResults() {
-    const container = document.getElementById('results');
-    container.innerHTML = `
-        <div class="results-navigation">
-            ${Array.from({length: totalResultsViews}, (_, i) => `<div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="showResultsView(${i})"></div>`).join('')}
-        </div>
-        <div class="swipe-hint">← Swipe to navigate →</div>
-        <div id="results-views-container">
-            ${generateAllResultsViewsHTML()}
-        </div>
-    `;
-    populateAllResultsViews();
-    showResultsView(currentResultsView);
+    try {
+        console.log("renderResults started...");
+        const container = document.getElementById('results');
+        container.innerHTML = `
+            <div class="results-navigation">
+                ${Array.from({length: totalResultsViews}, (_, i) => `<div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="showResultsView(${i})"></div>`).join('')}
+            </div>
+            <div class="swipe-hint">← Swipe to navigate →</div>
+            <div id="results-views-container">
+                ${generateAllResultsViewsHTML()}
+            </div>
+        `;
+        populateAllResultsViews();
+        showResultsView(currentResultsView);
+        console.log("renderResults finished successfully.");
+    } catch (error) {
+        console.error("Error in renderResults():", error);
+    }
 }
 
 function showResultsView(index) {
     currentResultsView = index;
     document.querySelectorAll('.results-view').forEach(v => v.style.display = 'none');
-    document.getElementById(`results-view-${index}`).style.display = 'block';
+    const viewToShow = document.getElementById(`results-view-${index}`);
+    if (viewToShow) {
+        viewToShow.style.display = 'block';
+    } else {
+        console.error(`Could not find view with id: results-view-${index}`);
+    }
     document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === index));
 }
 
@@ -288,9 +298,11 @@ function initializeSwipeHandlers() {
     });
 }
 
-// PHASE 1: Generate HTML for only the Match Summary view
 function generateAllResultsViewsHTML() {
     const p = matchData.players;
+    const team1Name = `${getAbbrev(p.player1)} & ${getAbbrev(p.player2)}`;
+    const team2Name = `${getAbbrev(p.player3)} & ${getAbbrev(p.player4)}`;
+    
     let html = '';
     html += `<div class="results-view" id="results-view-0">
         <div class="view-title">📊 Match Summary</div>
@@ -306,72 +318,159 @@ function generateAllResultsViewsHTML() {
             <div class="stat-card"><div class="stat-label">2nd Shot Misses</div><div class="stat-value" id="totalSSMisses"></div></div>
         </div>
     </div>`;
+
+    [1, 2].forEach(teamNum => {
+        const teamKey = `team${teamNum}`;
+        const teamName = teamNum === 1 ? team1Name : team2Name;
+        html += `<div class="results-view" id="results-view-${teamNum}">
+            <div class="view-title">${teamNum === 1 ? '🔵' : '🔴'} ${teamName}</div>
+            <div class="team-card team-${teamNum}">
+                 <h3 class="results-subtitle">📥 Returning Performance</h3>
+                 <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">vs 1st Serve</div><div class="stat-value" id="${teamKey}Ret1st"></div></div>
+                    <div class="stat-card"><div class="stat-label">vs 2nd Serve</div><div class="stat-value" id="${teamKey}Ret2nd"></div></div>
+                    <div class="stat-card"><div class="stat-label">Total Won</div><div class="stat-value" id="${teamKey}RetTotal"></div></div>
+                 </div>
+                 <h3 class="results-subtitle">🎯 2nd Shot Misses</h3>
+                 <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">As Serving Team</div><div class="stat-value" id="${teamKey}SSServing"></div></div>
+                    <div class="stat-card"><div class="stat-label">As Returning Team</div><div class="stat-value" id="${teamKey}SSReturning"></div></div>
+                 </div>
+            </div>
+        </div>`;
+    });
+
+    ['player1', 'player2', 'player3', 'player4'].forEach((pKey, i) => {
+        const viewNum = i + 3;
+        const teamNum = i < 2 ? 1 : 2;
+        const pName = matchData.players[pKey];
+        html += `<div class="results-view" id="results-view-${viewNum}">
+            <div class="view-title">👤 ${pName}</div>
+            <div class="player-card team-${teamNum}">
+                <h3 class="results-subtitle">📥 Returning Performance</h3>
+                <div class="side-stats">
+                    <div class="side-card deuce-side"><h5 class="side-title">🟢 Deuce</h5><div id="${pKey}DeuceRet"></div></div>
+                    <div class="side-card ad-side"><h5 class="side-title">🟣 Ad</h5><div id="${pKey}AdRet"></div></div>
+                </div>
+                <h3 class="results-subtitle">🎯 2nd Shot Misses by Position</h3>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">Server (S)</div><div class="stat-value" id="${pKey}ssS"></div></div>
+                    <div class="stat-card"><div class="stat-label">Net (N)</div><div class="stat-value" id="${pKey}ssN"></div></div>
+                    <div class="stat-card"><div class="stat-label">Deuce Ret (D)</div><div class="stat-value" id="${pKey}ssD"></div></div>
+                    <div class="stat-card"><div class="stat-label">Ad Ret (A)</div><div class="stat-value" id="${pKey}ssA"></div></div>
+                </div>
+            </div>
+        </div>`;
+    });
+    
     return html;
 }
 
-// PHASE 1: Calculate only the stats needed for the Match Summary
 function calculateAllStats() {
-    const totals = { team1: {}, team2: {} };
+    try {
+        const totals = { team1: {}, team2: {}, player1: {}, player2: {}, player3: {}, player4: {} };
 
-    // This part is condensed but crucial for getting team points
-    ['team1', 'team2'].forEach(teamKey => {
-        let pointsWon = 0;
-        matchData.teams[teamKey].forEach(pKey => {
+        ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
             const pData = matchData.stats[pKey];
+            const pTotals = totals[pKey] = {};
+            pTotals.ssMisses = pData.secondShotMisses;
             ['deuce', 'ad'].forEach(court => {
                 ['first', 'second'].forEach(serve => {
                     const str = pData.returnData[court][serve].replace(/,/g, '');
-                    pointsWon += (str.match(/1/g) || []).length;
+                    const won = (str.match(/1/g) || []).length;
+                    const total = str.length;
+                    const key = `ret${court[0].toUpperCase() + court.slice(1)}${serve[0].toUpperCase() + serve.slice(1)}`;
+                    pTotals[`${key}Won`] = won;
+                    pTotals[`${key}Total`] = total;
                 });
             });
         });
-        totals[teamKey].pointsWon = pointsWon;
-    });
 
-    // Calculate total points played from all returns
-    let totalPoints = 0;
-    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
-        const pData = matchData.stats[pKey];
-        ['deuce', 'ad'].forEach(court => {
-            ['first', 'second'].forEach(serve => {
-                totalPoints += pData.returnData[court][serve].replace(/,/g, '').length;
+        ['team1', 'team2'].forEach(teamKey => {
+            const teamTotals = totals[teamKey];
+            teamTotals.ret1stWon = teamTotals.ret2ndWon = teamTotals.ret1stTotal = teamTotals.ret2ndTotal = 0;
+            teamTotals.ssServing = teamTotals.ssReturning = 0;
+            matchData.teams[teamKey].forEach(pKey => {
+                const pTotals = totals[pKey];
+                teamTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
+                teamTotals.ret1stTotal += pTotals.retDeuceFirstTotal + pTotals.retAdFirstTotal;
+                teamTotals.ret2ndWon += pTotals.retDeuceSecondWon + pTotals.retAdSecondWon;
+                teamTotals.ret2ndTotal += pTotals.retDeuceSecondTotal + pTotals.retAdSecondTotal;
+                teamTotals.ssServing += pTotals.ssMisses.S + pTotals.ssMisses.N;
+                teamTotals.ssReturning += pTotals.ssMisses.D + pTotals.ssMisses.A;
             });
+            teamTotals.retTotalWon = teamTotals.ret1stWon + teamTotals.ret2ndWon;
+            teamTotals.retTotal = teamTotals.ret1stTotal + teamTotals.ret2ndTotal;
+
+            teamTotals.ret1stWonPct = teamTotals.ret1stTotal ? Math.round(teamTotals.ret1stWon * 100 / teamTotals.ret1stTotal) : 0;
+            teamTotals.ret2ndWonPct = teamTotals.ret2ndTotal ? Math.round(teamTotals.ret2ndWon * 100 / teamTotals.ret2ndTotal) : 0;
+            teamTotals.retTotalWonPct = teamTotals.retTotal ? Math.round(teamTotals.retTotalWon * 100 / teamTotals.retTotal) : 0;
         });
-    });
-    totals.totalPoints = totalPoints;
+        
+        totals.totalPoints = totals.team1.retTotal + totals.team2.retTotal;
+        
+        totals.team1.pointsWon = totals.team1.retTotalWon;
+        totals.team2.pointsWon = totals.team2.retTotalWon;
+        
+        totals.team1.pointsWonPct = totals.totalPoints ? Math.round(totals.team1.pointsWon * 100 / totals.totalPoints) : 0;
+        totals.team2.pointsWonPct = totals.totalPoints ? Math.round(totals.team2.pointsWon * 100 / totals.totalPoints) : 0;
 
-    // Calculate percentages
-    totals.team1.pointsWonPct = totalPoints ? Math.round(totals.team1.pointsWon * 100 / totalPoints) : 0;
-    totals.team2.pointsWonPct = totalPoints ? Math.round(totals.team2.pointsWon * 100 / totalPoints) : 0;
+        totals.totalSSMisses = totals.team1.ssServing + totals.team1.ssReturning + totals.team2.ssServing + totals.team2.ssReturning;
+        totals.scores = matchData.scores;
 
-    // Calculate total second shot misses
-    let totalSSMisses = 0;
-    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
-        totalSSMisses += Object.values(matchData.stats[pKey].secondShotMisses).reduce((a, b) => a + b, 0);
-    });
-    totals.totalSSMisses = totalSSMisses;
-    
-    // Pass along scores
-    totals.scores = matchData.scores;
-
-    return totals;
+        return totals;
+    } catch (error) {
+        console.error("Error in calculateAllStats():", error);
+        return {}; // Return empty object on error to prevent further issues
+    }
 }
 
-// PHASE 1: Populate only the elements in the Match Summary view
 function populateAllResultsViews() {
-    const calc = calculateAllStats();
-    
-    document.getElementById('finalScoreDisplay').innerHTML = `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`;
-    document.getElementById('matchDetailsDisplay').textContent = `${matchData.location} • ${matchData.surface} • ${matchData.date}`;
-    document.getElementById('totalPoints').textContent = calc.totalPoints;
-    document.getElementById('team1PointsWon').textContent = `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`;
-    document.getElementById('team2PointsWon').textContent = `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`;
-    document.getElementById('totalSSMisses').textContent = calc.totalSSMisses;
+    try {
+        console.log("populateAllResultsViews started...");
+        const calc = calculateAllStats();
+        
+        // Check if calc object is empty, indicating an error occurred
+        if (Object.keys(calc).length === 0) {
+            console.error("calculateAllStats returned an empty object. Aborting populate.");
+            return;
+        }
+
+        // Populate Match Summary (View 0)
+        document.getElementById('finalScoreDisplay').innerHTML = `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`;
+        document.getElementById('matchDetailsDisplay').textContent = `${matchData.location} • ${matchData.surface} • ${matchData.date}`;
+        document.getElementById('totalPoints').textContent = calc.totalPoints;
+        document.getElementById('team1PointsWon').textContent = `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`;
+        document.getElementById('team2PointsWon').textContent = `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`;
+        document.getElementById('totalSSMisses').textContent = calc.totalSSMisses;
+        
+        // Populate Team Views (View 1 and 2)
+        ['team1', 'team2'].forEach(teamKey => {
+            const teamStats = calc[teamKey];
+            document.getElementById(`${teamKey}Ret1st`).innerHTML = `${teamStats.ret1stWonPct}%<small>${teamStats.ret1stWon}/${teamStats.ret1stTotal}</small>`;
+            document.getElementById(`${teamKey}Ret2nd`).innerHTML = `${teamStats.ret2ndWonPct}%<small>${teamStats.ret2ndWon}/${teamStats.ret2ndTotal}</small>`;
+            document.getElementById(`${teamKey}RetTotal`).innerHTML = `${teamStats.retTotalWonPct}%<small>${teamStats.retTotalWon}/${teamStats.retTotal}</small>`;
+            document.getElementById(`${teamKey}SSServing`).textContent = teamStats.ssServing;
+            document.getElementById(`${teamKey}SSReturning`).textContent = teamStats.ssReturning;
+        });
+
+        // Populate Player Views (View 3 through 6)
+        ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+            const pStats = calc[pKey];
+            document.getElementById(`${pKey}DeuceRet`).innerHTML = `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`;
+            document.getElementById(`${pKey}AdRet`).innerHTML = `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`;
+            document.getElementById(`${pKey}ssS`).textContent = pStats.ssMisses.S;
+            document.getElementById(`${pKey}ssN`).textContent = pStats.ssMisses.N;
+            document.getElementById(`${pKey}ssD`).textContent = pStats.ssMisses.D;
+            document.getElementById(`${pKey}ssA`).textContent = pStats.ssMisses.A;
+        });
+        console.log("populateAllResultsViews finished successfully.");
+    } catch (error) {
+        console.error("Error in populateAllResultsViews():", error);
+    }
 }
 
 
-// --- HELPER FUNCTIONS (like generatePdf) would go here, but are omitted for this phase ---
-// --- We can add them back once the core display logic is confirmed working ---
 function generatePdf() {
     alert("PDF generation is temporarily disabled for debugging.");
 }
