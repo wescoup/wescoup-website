@@ -347,10 +347,19 @@ function generateAllResultsViewsHTML() {
                     <div class="stat-card"><div class="stat-label">Deuce Ret (D)</div><div class="stat-value" id="${pKey}ssD"></div></div>
                     <div class="stat-card"><div class="stat-label">Ad Ret (A)</div><div class="stat-value" id="${pKey}ssA"></div></div>
                 </div>
-            </div>
-        </div>`;
+            </div>`;
+        
+        // FIX: Add the button after the last player's card is generated
+        if (i === 3) {
+             html += `<div class="text-center"><button class="tennis-btn" onclick="generatePdf()">Save as PDF</button></div>`;
+        }
+
+        html += `</div>`; // Close results-view div
     });
     
+    // REMOVED the problematic replace line
+    // html = html.replace(...);
+
     return html;
 }
 
