@@ -267,6 +267,9 @@ function renderResults() {
         console.log("renderResults finished successfully.");
     } catch (error) {
         console.error("Error in renderResults():", error);
+        // Display a user-friendly error message
+        const container = document.getElementById('results');
+        container.innerHTML = `<div class="error-message">Could not load results. Error: ${error.message}</div>`;
     }
 }
 
@@ -296,6 +299,20 @@ function initializeSwipeHandlers() {
         }
         startX = 0;
     });
+}
+
+// Helper function to safely populate elements and throw an error if an element is missing
+function populateElement(id, content, isHTML = false) {
+    const element = document.getElementById(id);
+    if (!element) {
+        // This is a critical error. If an ID is missing, something is wrong with the HTML generation.
+        throw new Error(`FATAL: DOM element with ID '${id}' not found!`);
+    }
+    if (isHTML) {
+        element.innerHTML = content;
+    } else {
+        element.textContent = content;
+    }
 }
 
 function generateAllResultsViewsHTML() {
@@ -360,6 +377,7 @@ function generateAllResultsViewsHTML() {
                     <div class="stat-card"><div class="stat-label">Ad Ret (A)</div><div class="stat-value" id="${pKey}ssA"></div></div>
                 </div>
             </div>
+             ${i === 3 ? `<div class="text-center" style="margin-top: 1rem;"><button class="tennis-btn" onclick="generatePdf()">Save as PDF</button></div>` : ''}
         </div>`;
     });
     
@@ -430,39 +448,38 @@ function populateAllResultsViews() {
         console.log("populateAllResultsViews started...");
         const calc = calculateAllStats();
         
-        // Check if calc object is empty, indicating an error occurred
         if (Object.keys(calc).length === 0) {
             console.error("calculateAllStats returned an empty object. Aborting populate.");
             return;
         }
 
         // Populate Match Summary (View 0)
-        document.getElementById('finalScoreDisplay').innerHTML = `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`;
-        document.getElementById('matchDetailsDisplay').textContent = `${matchData.location} • ${matchData.surface} • ${matchData.date}`;
-        document.getElementById('totalPoints').textContent = calc.totalPoints;
-        document.getElementById('team1PointsWon').textContent = `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`;
-        document.getElementById('team2PointsWon').textContent = `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`;
-        document.getElementById('totalSSMisses').textContent = calc.totalSSMisses;
+        populateElement('finalScoreDisplay', `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`, true);
+        populateElement('matchDetailsDisplay', `${matchData.location} • ${matchData.surface} • ${matchData.date}`);
+        populateElement('totalPoints', calc.totalPoints);
+        populateElement('team1PointsWon', `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`);
+        populateElement('team2PointsWon', `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`);
+        populateElement('totalSSMisses', calc.totalSSMisses);
         
         // Populate Team Views (View 1 and 2)
         ['team1', 'team2'].forEach(teamKey => {
             const teamStats = calc[teamKey];
-            document.getElementById(`${teamKey}Ret1st`).innerHTML = `${teamStats.ret1stWonPct}%<small>${teamStats.ret1stWon}/${teamStats.ret1stTotal}</small>`;
-            document.getElementById(`${teamKey}Ret2nd`).innerHTML = `${teamStats.ret2ndWonPct}%<small>${teamStats.ret2ndWon}/${teamStats.ret2ndTotal}</small>`;
-            document.getElementById(`${teamKey}RetTotal`).innerHTML = `${teamStats.retTotalWonPct}%<small>${teamStats.retTotalWon}/${teamStats.retTotal}</small>`;
-            document.getElementById(`${teamKey}SSServing`).textContent = teamStats.ssServing;
-            document.getElementById(`${teamKey}SSReturning`).textContent = teamStats.ssReturning;
+            populateElement(`${teamKey}Ret1st`, `${teamStats.ret1stWonPct}%<small>${teamStats.ret1stWon}/${teamStats.ret1stTotal}</small>`, true);
+            populateElement(`${teamKey}Ret2nd`, `${teamStats.ret2ndWonPct}%<small>${teamStats.ret2ndWon}/${teamStats.ret2ndTotal}</small>`, true);
+            populateElement(`${teamKey}RetTotal`, `${teamStats.retTotalWonPct}%<small>${teamStats.retTotalWon}/${teamStats.retTotal}</small>`, true);
+            populateElement(`${teamKey}SSServing`, teamStats.ssServing);
+            populateElement(`${teamKey}SSReturning`, teamStats.ssReturning);
         });
 
         // Populate Player Views (View 3 through 6)
         ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
             const pStats = calc[pKey];
-            document.getElementById(`${pKey}DeuceRet`).innerHTML = `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`;
-            document.getElementById(`${pKey}AdRet`).innerHTML = `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`;
-            document.getElementById(`${pKey}ssS`).textContent = pStats.ssMisses.S;
-            document.getElementById(`${pKey}ssN`).textContent = pStats.ssMisses.N;
-            document.getElementById(`${pKey}ssD`).textContent = pStats.ssMisses.D;
-            document.getElementById(`${pKey}ssA`).textContent = pStats.ssMisses.A;
+            populateElement(`${pKey}DeuceRet`, `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`, true);
+            populateElement(`${pKey}AdRet`, `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`, true);
+            populateElement(`${pKey}ssS`, pStats.ssMisses.S);
+            populateElement(`${pKey}ssN`, pStats.ssMisses.N);
+            populateElement(`${pKey}ssD`, pStats.ssMisses.D);
+            populateElement(`${pKey}ssA`, pStats.ssMisses.A);
         });
         console.log("populateAllResultsViews finished successfully.");
     } catch (error) {
@@ -472,5 +489,5 @@ function populateAllResultsViews() {
 
 
 function generatePdf() {
-    alert("PDF generation is temporarily disabled for debugging.");
+    alert("This feature is coming soon!");
 }
