@@ -170,13 +170,15 @@ function recordReturn(court, serveType, won) {
     updateReturnStringsDisplay();
 }
 
-function undoReturn(court, serveType) {
+function undoReturn() {
+    if (matchData.pointHistory.length === 0) return;
     const lastPoint = matchData.pointHistory.pop();
-    if (lastPoint && lastPoint.type === 'return') {
-        const { returnerKey, court: lastCourt, serveType: lastServeType } = lastPoint;
-        const returnString = matchData.stats[returnerKey].returnData[lastCourt][lastServeType];
+    
+    if (lastPoint.type === 'return') {
+        const { returnerKey, court, serveType } = lastPoint;
+        const returnString = matchData.stats[returnerKey].returnData[court][serveType];
         if (returnString.length > 0) {
-            matchData.stats[returnerKey].returnData[lastCourt][lastServeType] = returnString.slice(0, -1);
+            matchData.stats[returnerKey].returnData[court][serveType] = returnString.slice(0, -1);
         }
     }
     updateReturnStringsDisplay();
@@ -211,8 +213,13 @@ function getPlayerPosition(playerKey) {
     if (playerKey === matchData.currentServer) return 'S';
     if (playerKey === matchData.returners.deuce) return 'D';
     if (playerKey === matchData.returners.ad) return 'A';
-    return 'N';
+    // Find the partner of the server
+    const serverTeam = matchData.teams.team1.includes(matchData.currentServer) ? 'team1' : 'team2';
+    const serverPartner = matchData.teams[serverTeam].find(p => p !== matchData.currentServer);
+    if (playerKey === serverPartner) return 'N';
+    return 'N'; // Fallback
 }
+
 
 function recordSecondShotMiss(playerKey) {
     const position = getPlayerPosition(playerKey);
@@ -318,17 +325,17 @@ function generateAllResultsViewsHTML() {
             <div class="view-title">${teamNum === 1 ? '🔵' : '🔴'} ${teamName}</div>
             <div class="team-card team-${teamNum}">
                 <h3 class="results-subtitle">📤 Serving Performance</h3>
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                     <div class="stat-card"><div class="stat-label">1st Serves Won</div><div class="stat-value" id="${teamKey}Serv1st"></div></div>
                     <div class="stat-card"><div class="stat-label">2nd Serves Won</div><div class="stat-value" id="${teamKey}Serv2nd"></div></div>
                 </div>
                 <h3 class="results-subtitle">📥 Returning Performance</h3>
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                     <div class="stat-card"><div class="stat-label">vs 1st Serve</div><div class="stat-value" id="${teamKey}Ret1st"></div></div>
                     <div class="stat-card"><div class="stat-label">vs 2nd Serve</div><div class="stat-value" id="${teamKey}Ret2nd"></div></div>
                 </div>
                 <h3 class="results-subtitle">🎯 2nd Shot Misses</h3>
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                     <div class="stat-card"><div class="stat-label">As Serving Team</div><div class="stat-value" id="${teamKey}SSServing"></div></div>
                     <div class="stat-card"><div class="stat-label">As Returning Team</div><div class="stat-value" id="${teamKey}SSReturning"></div></div>
                 </div>
@@ -344,12 +351,12 @@ function generateAllResultsViewsHTML() {
             <div class="view-title">👤 ${pName}</div>
             <div class="player-card team-${teamNum}">
                 <h3 class="results-subtitle">📤 Serving Performance</h3>
-                <div class="side-stats">
+                <div class="side-stats" style="grid-template-columns: 1fr 1fr;">
                     <div class="side-card deuce-side"><h5 class="side-title">🟢 Deuce</h5><div id="${pKey}DeuceServ"></div></div>
                     <div class="side-card ad-side"><h5 class="side-title">🟣 Ad</h5><div id="${pKey}AdServ"></div></div>
                 </div>
                 <h3 class="results-subtitle">📥 Returning Performance</h3>
-                <div class="side-stats">
+                <div class="side-stats" style="grid-template-columns: 1fr 1fr;">
                     <div class="side-card deuce-side"><h5 class="side-title">🟢 Deuce</h5><div id="${pKey}DeuceRet"></div></div>
                     <div class="side-card ad-side"><h5 class="side-title">🟣 Ad</h5><div id="${pKey}AdRet"></div></div>
                 </div>
@@ -370,24 +377,35 @@ function generateAllResultsViewsHTML() {
 function calculateAllStats() {
     const totals = { team1: {}, team2: {}, player1: {}, player2: {}, player3: {}, player4: {} };
 
+    // Initialize stats for all players
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         const pData = matchData.stats[pKey];
-        const pTotals = totals[pKey] = {};
-        pTotals.ssMisses = { ...pData.secondShotMisses };
-        ['deuce', 'ad'].forEach(court => {
-            ['first', 'second'].forEach(serve => {
-                const str = pData.returnData[court][serve].replace(/,/g, '');
-                const won = (str.match(/1/g) || []).length;
-                const total = str.length;
-                const key = `ret${court[0].toUpperCase() + court.slice(1)}${serve[0].toUpperCase() + serve.slice(1)}`;
-                pTotals[`${key}Won`] = won;
-                pTotals[`${key}Total`] = total;
+        const pTotals = totals[pKey] = {
+            ssMisses: { S: 0, N: 0, D: 0, A: 0 },
+            retDeuceFirstWon: 0, retDeuceFirstTotal: 0,
+            retDeuceSecondWon: 0, retDeuceSecondTotal: 0,
+            retAdFirstWon: 0, retAdFirstTotal: 0,
+            retAdSecondWon: 0, retAdSecondTotal: 0,
+        };
+        
+        if (pData) {
+            pTotals.ssMisses = { ...pData.secondShotMisses };
+            ['deuce', 'ad'].forEach(court => {
+                ['first', 'second'].forEach(serve => {
+                    const str = (pData.returnData?.[court]?.[serve] || '').replace(/,/g, '');
+                    const won = (str.match(/1/g) || []).length;
+                    const total = str.length;
+                    const key = `ret${court.charAt(0).toUpperCase() + court.slice(1)}${serve.charAt(0).toUpperCase() + serve.slice(1)}`;
+                    pTotals[`${key}Won`] = won;
+                    pTotals[`${key}Total`] = total;
+                });
             });
-        });
+        }
     });
 
+    // Calculate team stats
     ['team1', 'team2'].forEach(teamKey => {
-        const teamTotals = totals[teamKey] = totals[teamKey] || {};
+        const teamTotals = totals[teamKey] = {};
         const opponentTeamKey = teamKey === 'team1' ? 'team2' : 'team1';
         
         teamTotals.ret1stWon = teamTotals.ret2ndWon = teamTotals.ret1stTotal = teamTotals.ret2ndTotal = 0;
@@ -399,19 +417,20 @@ function calculateAllStats() {
             teamTotals.ret1stTotal += pTotals.retDeuceFirstTotal + pTotals.retAdFirstTotal;
             teamTotals.ret2ndWon += pTotals.retDeuceSecondWon + pTotals.retAdSecondWon;
             teamTotals.ret2ndTotal += pTotals.retDeuceSecondTotal + pTotals.retAdSecondTotal;
-            teamTotals.ssServing += pTotals.ssMisses.S + pTotals.ssMisses.N;
-            teamTotals.ssReturning += pTotals.ssMisses.D + pTotals.ssMisses.A;
+            teamTotals.ssServing += (pTotals.ssMisses.S || 0) + (pTotals.ssMisses.N || 0);
+            teamTotals.ssReturning += (pTotals.ssMisses.D || 0) + (pTotals.ssMisses.A || 0);
         });
 
-        const opponentTotals = totals[opponentTeamKey] = totals[opponentTeamKey] || {};
-        opponentTotals.ret1stWon = opponentTotals.ret2ndWon = opponentTotals.ret1stTotal = opponentTotals.ret2ndTotal = 0;
+        // Calculate serving stats based on opponent's returning stats
+        const opponentTotals = totals[opponentTeamKey] = (totals[opponentTeamKey] || {});
+        opponentTotals.ret1stTotal = opponentTotals.ret1stWon = opponentTotals.ret2ndTotal = opponentTotals.ret2ndWon = 0;
         
         matchData.teams[opponentTeamKey].forEach(pKey => {
-            const pTotals = totals[pKey];
-            opponentTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
-            opponentTotals.ret1stTotal += pTotals.retDeuceFirstTotal + pTotals.retAdFirstTotal;
-            opponentTotals.ret2ndWon += pTotals.retDeuceSecondWon + pTotals.retAdSecondWon;
-            opponentTotals.ret2ndTotal += pTotals.retDeuceSecondTotal + pTotals.retAdSecondTotal;
+             const pTotals = totals[pKey];
+             opponentTotals.ret1stTotal += pTotals.retDeuceFirstTotal + pTotals.retAdFirstTotal;
+             opponentTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
+             opponentTotals.ret2ndTotal += pTotals.retDeuceSecondTotal + pTotals.retAdSecondTotal;
+             opponentTotals.ret2ndWon += pTotals.retDeuceSecondWon + pTotals.retAdSecondWon;
         });
 
         teamTotals.serv1stTotal = opponentTotals.ret1stTotal;
@@ -424,10 +443,9 @@ function calculateAllStats() {
 
         teamTotals.ret1stWonPct = teamTotals.ret1stTotal ? Math.round(teamTotals.ret1stWon * 100 / teamTotals.ret1stTotal) : 0;
         teamTotals.ret2ndWonPct = teamTotals.ret2ndTotal ? Math.round(teamTotals.ret2ndWon * 100 / teamTotals.ret2ndTotal) : 0;
-
-        teamTotals.pointsWon = teamTotals.ret1stWon + teamTotals.ret2ndWon + teamTotals.serv1stWon + teamTotals.serv2ndWon;
     });
     
+    // Calculate total points and win percentages
     const totalPointsTeam1Serves = totals.team2.ret1stTotal + totals.team2.ret2ndTotal;
     const totalPointsTeam2Serves = totals.team1.ret1stTotal + totals.team1.ret2ndTotal;
     totals.totalPoints = totalPointsTeam1Serves + totalPointsTeam2Serves;
@@ -462,27 +480,33 @@ function populateAllResultsViews() {
         document.getElementById(`${teamKey}SSReturning`).textContent = teamStats.ssReturning;
     });
 
+    // Calculate and populate individual player serving stats
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         const pStats = calc[pKey];
-        const playerTeam = matchData.teams.team1.includes(pKey) ? 'team1' : 'team2';
-        const opponentTeam = playerTeam === 'team1' ? 'team2' : 'team1';
+        const playerTeamKey = matchData.teams.team1.includes(pKey) ? 'team1' : 'team2';
+        const opponentTeamKey = playerTeamKey === 'team1' ? 'team2' : 'team1';
 
-        const opponentDeucePlayer = matchData.returnerHistory[opponentTeam].deuce;
-        const opponentAdPlayer = matchData.returnerHistory[opponentTeam].ad;
-        
-        const deuceServ1stWon = calc[opponentDeucePlayer].retDeuceFirstTotal - calc[opponentDeucePlayer].retDeuceFirstWon;
-        const deuceServ1stTotal = calc[opponentDeucePlayer].retDeuceFirstTotal;
-        const deuceServ2ndWon = calc[opponentDeucePlayer].retDeuceSecondTotal - calc[opponentDeucePlayer].retDeuceSecondWon;
-        const deuceServ2ndTotal = calc[opponentDeucePlayer].retDeuceSecondTotal;
+        // Find out who is returning on what side on the OPPONENT team
+        const deuceReturnerKey = matchData.returnerHistory[opponentTeamKey].deuce;
+        const adReturnerKey = matchData.returnerHistory[opponentTeamKey].ad;
 
-        const adServ1stWon = calc[opponentAdPlayer].retAdFirstTotal - calc[opponentAdPlayer].retAdFirstWon;
-        const adServ1stTotal = calc[opponentAdPlayer].retAdFirstTotal;
-        const adServ2ndWon = calc[opponentAdPlayer].retAdSecondTotal - calc[opponentAdPlayer].retAdSecondWon;
-        const adServ2ndTotal = calc[opponentAdPlayer].retAdSecondTotal;
+        // Get their return stats (which is the server's performance against them)
+        const deuceReturnerStats = calc[deuceReturnerKey];
+        const adReturnerStats = calc[adReturnerKey];
+
+        const servDeuce1stTotal = deuceReturnerStats.retDeuceFirstTotal;
+        const servDeuce1stWon = servDeuce1stTotal - deuceReturnerStats.retDeuceFirstWon;
+        const servDeuce2ndTotal = deuceReturnerStats.retDeuceSecondTotal;
+        const servDeuce2ndWon = servDeuce2ndTotal - deuceReturnerStats.retDeuceSecondWon;
         
-        document.getElementById(`${pKey}DeuceServ`).innerHTML = `1st: ${deuceServ1stWon}/${deuceServ1stTotal}<br>2nd: ${deuceServ2ndWon}/${deuceServ2ndTotal}`;
-        document.getElementById(`${pKey}AdServ`).innerHTML = `1st: ${adServ1stWon}/${adServ1stTotal}<br>2nd: ${adServ2ndWon}/${adServ2ndTotal}`;
-        
+        const servAd1stTotal = adReturnerStats.retAdFirstTotal;
+        const servAd1stWon = servAd1stTotal - adReturnerStats.retAdFirstWon;
+        const servAd2ndTotal = adReturnerStats.retAdSecondTotal;
+        const servAd2ndWon = servAd2ndTotal - adReturnerStats.retAdSecondWon;
+
+        document.getElementById(`${pKey}DeuceServ`).innerHTML = `1st: ${servDeuce1stWon}/${servDeuce1stTotal}<br>2nd: ${servDeuce2ndWon}/${servDeuce2ndTotal}`;
+        document.getElementById(`${pKey}AdServ`).innerHTML = `1st: ${servAd1stWon}/${servAd1stTotal}<br>2nd: ${servAd2ndWon}/${servAd2ndTotal}`;
+
         document.getElementById(`${pKey}DeuceRet`).innerHTML = `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`;
         document.getElementById(`${pKey}AdRet`).innerHTML = `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`;
         
@@ -513,7 +537,8 @@ function generatePdf() {
             return html2canvas(element, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                windowWidth: 800 // Force a consistent width for rendering
             });
         }).then(canvas => {
             const imgData = canvas.toDataURL('image/png');
