@@ -150,3 +150,33 @@
     input, select, textarea { font-size: 16px; }
     .side-stats { grid-template-columns: 1fr; }
 }
+
+/* PDF Export Styles */
+body.pdf-export-mode .tennis-nav,
+body.pdf-export-mode .results-navigation,
+body.pdf-export-mode .swipe-hint,
+body.pdf-export-mode .text-center button {
+    display: none;
+}
+
+body.pdf-export-mode .results-view {
+    display: block !important; /* Ensure all views are visible for capture */
+    background: white;
+    color: #333;
+}
+
+body.pdf-export-mode .match-summary,
+body.pdf-export-mode .player-card,
+body.pdf-export-mode .team-card {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
+}
+
+body.pdf-export-mode .view-title,
+body.pdf-export-mode .results-subtitle,
+body.pdf-export-mode .stat-value,
+body.pdf-export-mode .team-title-blue,
+body.pdf-export-mode .team-title-red {
+    color: #0056b3;
+}
