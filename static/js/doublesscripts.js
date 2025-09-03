@@ -138,11 +138,10 @@ function changeReturners() {
 }
 
 function getAbbrev(playerKey) {
-    // Add a check to prevent errors if player name is not yet defined
     if (matchData.players[playerKey]) {
         return matchData.players[playerKey].substring(0, 3);
     }
-    return ''; // Return an empty string as a fallback
+    return '';
 }
 
 function updateServerDropdown() {
@@ -172,16 +171,17 @@ function recordReturn(court, serveType, won) {
 }
 
 function undoReturn(court, serveType) {
-    const lastPoint = matchData.pointHistory[matchData.pointHistory.length - 1];
+    const lastPoint = matchData.pointHistory.pop();
     if (lastPoint && lastPoint.type === 'return') {
-        const { returnerKey, court, serveType } = matchData.pointHistory.pop();
-        const returnString = matchData.stats[returnerKey].returnData[court][serveType];
+        const { returnerKey, court: lastCourt, serveType: lastServeType } = lastPoint;
+        const returnString = matchData.stats[returnerKey].returnData[lastCourt][lastServeType];
         if (returnString.length > 0) {
-            matchData.stats[returnerKey].returnData[court][serveType] = returnString.slice(0, -1);
+            matchData.stats[returnerKey].returnData[lastCourt][lastServeType] = returnString.slice(0, -1);
         }
     }
     updateReturnStringsDisplay();
 }
+
 
 function gameComplete() {
     ['deuce', 'ad'].forEach(court => {
@@ -197,6 +197,7 @@ function gameComplete() {
 }
 
 function updateReturnStringsDisplay() {
+    if (currentView !== 'match-tracker') return;
     const deuceKey = matchData.returners.deuce;
     const adKey = matchData.returners.ad;
     document.getElementById('deuce_first_return_str').textContent = matchData.stats[deuceKey].returnData.deuce.first || "-";
@@ -259,7 +260,7 @@ function renderResults() {
             ${Array.from({length: totalResultsViews}, (_, i) => `<div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="showResultsView(${i})"></div>`).join('')}
         </div>
         <div class="swipe-hint">← Swipe to navigate →</div>
-        <div id="results-views-container">
+        <div id="results-views-container" style="overflow-x: hidden;">
             ${generateAllResultsViewsHTML()}
         </div>
     `;
@@ -353,11 +354,11 @@ function generateAllResultsViewsHTML() {
                     <div class="side-card ad-side"><h5 class="side-title">🟣 Ad</h5><div id="${pKey}AdRet"></div></div>
                 </div>
                 <h3 class="results-subtitle">🎯 2nd Shot Misses by Position</h3>
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-label">Server (S)</div><div class="stat-value" id="${pKey}ssS"></div></div>
-                    <div class="stat-card"><div class="stat-label">Net (N)</div><div class="stat-value" id="${pKey}ssN"></div></div>
-                    <div class="stat-card"><div class="stat-label">Deuce Ret (D)</div><div class="stat-value" id="${pKey}ssD"></div></div>
-                    <div class="stat-card"><div class="stat-label">Ad Ret (A)</div><div class="stat-value" id="${pKey}ssA"></div></div>
+                <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="stat-card"><div class="stat-label">S</div><div class="stat-value" id="${pKey}ssS"></div></div>
+                    <div class="stat-card"><div class="stat-label">N</div><div class="stat-value" id="${pKey}ssN"></div></div>
+                    <div class="stat-card"><div class="stat-label">D</div><div class="stat-value" id="${pKey}ssD"></div></div>
+                    <div class="stat-card"><div class="stat-label">A</div><div class="stat-value" id="${pKey}ssA"></div></div>
                 </div>
             </div>
         </div>`;
@@ -372,7 +373,7 @@ function calculateAllStats() {
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         const pData = matchData.stats[pKey];
         const pTotals = totals[pKey] = {};
-        pTotals.ssMisses = pData.secondShotMisses;
+        pTotals.ssMisses = { ...pData.secondShotMisses };
         ['deuce', 'ad'].forEach(court => {
             ['first', 'second'].forEach(serve => {
                 const str = pData.returnData[court][serve].replace(/,/g, '');
@@ -386,9 +387,9 @@ function calculateAllStats() {
     });
 
     ['team1', 'team2'].forEach(teamKey => {
-        const teamTotals = totals[teamKey];
+        const teamTotals = totals[teamKey] = totals[teamKey] || {};
         const opponentTeamKey = teamKey === 'team1' ? 'team2' : 'team1';
-
+        
         teamTotals.ret1stWon = teamTotals.ret2ndWon = teamTotals.ret1stTotal = teamTotals.ret2ndTotal = 0;
         teamTotals.ssServing = teamTotals.ssReturning = 0;
 
@@ -402,8 +403,9 @@ function calculateAllStats() {
             teamTotals.ssReturning += pTotals.ssMisses.D + pTotals.ssMisses.A;
         });
 
-        const opponentTotals = totals[opponentTeamKey];
+        const opponentTotals = totals[opponentTeamKey] = totals[opponentTeamKey] || {};
         opponentTotals.ret1stWon = opponentTotals.ret2ndWon = opponentTotals.ret1stTotal = opponentTotals.ret2ndTotal = 0;
+        
         matchData.teams[opponentTeamKey].forEach(pKey => {
             const pTotals = totals[pKey];
             opponentTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
@@ -416,7 +418,7 @@ function calculateAllStats() {
         teamTotals.serv1stWon = teamTotals.serv1stTotal - opponentTotals.ret1stWon;
         teamTotals.serv2ndTotal = opponentTotals.ret2ndTotal;
         teamTotals.serv2ndWon = teamTotals.serv2ndTotal - opponentTotals.ret2ndWon;
-
+        
         teamTotals.serv1stWonPct = teamTotals.serv1stTotal ? Math.round(teamTotals.serv1stWon * 100 / teamTotals.serv1stTotal) : 0;
         teamTotals.serv2ndWonPct = teamTotals.serv2ndTotal ? Math.round(teamTotals.serv2ndWon * 100 / teamTotals.serv2ndTotal) : 0;
 
@@ -426,7 +428,12 @@ function calculateAllStats() {
         teamTotals.pointsWon = teamTotals.ret1stWon + teamTotals.ret2ndWon + teamTotals.serv1stWon + teamTotals.serv2ndWon;
     });
     
-    totals.totalPoints = totals.team1.ret1stTotal + totals.team1.ret2ndTotal + totals.team2.ret1stTotal + totals.team2.ret2ndTotal;
+    const totalPointsTeam1Serves = totals.team2.ret1stTotal + totals.team2.ret2ndTotal;
+    const totalPointsTeam2Serves = totals.team1.ret1stTotal + totals.team1.ret2ndTotal;
+    totals.totalPoints = totalPointsTeam1Serves + totalPointsTeam2Serves;
+    
+    totals.team1.pointsWon = (totalPointsTeam1Serves - (totals.team2.ret1stWon + totals.team2.ret2ndWon)) + (totals.team1.ret1stWon + totals.team1.ret2ndWon);
+    totals.team2.pointsWon = (totalPointsTeam2Serves - (totals.team1.ret1stWon + totals.team1.ret2ndWon)) + (totals.team2.ret1stWon + totals.team2.ret2ndWon);
     
     totals.team1.pointsWonPct = totals.totalPoints ? Math.round(totals.team1.pointsWon * 100 / totals.totalPoints) : 0;
     totals.team2.pointsWonPct = totals.totalPoints ? Math.round(totals.team2.pointsWon * 100 / totals.totalPoints) : 0;
@@ -436,16 +443,15 @@ function calculateAllStats() {
     return totals;
 }
 
+
 function populateAllResultsViews() {
     const calc = calculateAllStats();
     
-    // Populate Match Summary (View 0)
     document.getElementById('finalScoreDisplay').innerHTML = `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`;
     document.getElementById('matchDetailsDisplay').textContent = `${matchData.location} • ${matchData.surface} • ${matchData.date}`;
     document.getElementById('team1PointsWon').textContent = `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`;
     document.getElementById('team2PointsWon').textContent = `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`;
     
-    // Populate Team Views (View 1 and 2)
     ['team1', 'team2'].forEach(teamKey => {
         const teamStats = calc[teamKey];
         document.getElementById(`${teamKey}Serv1st`).innerHTML = `${teamStats.serv1stWonPct}%<small>${teamStats.serv1stWon}/${teamStats.serv1stTotal}</small>`;
@@ -456,35 +462,37 @@ function populateAllResultsViews() {
         document.getElementById(`${teamKey}SSReturning`).textContent = teamStats.ssReturning;
     });
 
-    // Populate Player Views (View 3 through 6)
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         const pStats = calc[pKey];
-        const opponentTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
+        const playerTeam = matchData.teams.team1.includes(pKey) ? 'team1' : 'team2';
+        const opponentTeam = playerTeam === 'team1' ? 'team2' : 'team1';
+
+        const opponentDeucePlayer = matchData.returnerHistory[opponentTeam].deuce;
+        const opponentAdPlayer = matchData.returnerHistory[opponentTeam].ad;
         
-        let deuceServTotal = 0;
-        let adServTotal = 0;
-        let deuceServWon = 0;
-        let adServWon = 0;
+        const deuceServ1stWon = calc[opponentDeucePlayer].retDeuceFirstTotal - calc[opponentDeucePlayer].retDeuceFirstWon;
+        const deuceServ1stTotal = calc[opponentDeucePlayer].retDeuceFirstTotal;
+        const deuceServ2ndWon = calc[opponentDeucePlayer].retDeuceSecondTotal - calc[opponentDeucePlayer].retDeuceSecondWon;
+        const deuceServ2ndTotal = calc[opponentDeucePlayer].retDeuceSecondTotal;
 
-        matchData.teams[opponentTeamKey].forEach(opponentKey => {
-            const opponentStats = calc[opponentKey];
-            deuceServTotal += opponentStats.retDeuceFirstTotal + opponentStats.retDeuceSecondTotal;
-            adServTotal += opponentStats.retAdFirstTotal + opponentStats.retAdSecondTotal;
-            deuceServWon += (opponentStats.retDeuceFirstTotal - opponentStats.retDeuceFirstWon) + (opponentStats.retDeuceSecondTotal - opponentStats.retDeuceSecondWon);
-            adServWon += (opponentStats.retAdFirstTotal - opponentStats.retAdFirstWon) + (opponentStats.retAdSecondTotal - opponentStats.retAdSecondWon);
-        });
-
-        document.getElementById(`${pKey}DeuceServ`).innerHTML = `1st: ${deuceServWon - (calc[pKey].retDeuceFirstTotal - calc[pKey].retDeuceFirstWon)}/${deuceServTotal - calc[pKey].retDeuceFirstTotal}<br>2nd: ${deuceServWon - (calc[pKey].retDeuceSecondTotal - calc[pKey].retDeuceSecondWon)}/${deuceServTotal - calc[pKey].retDeuceSecondTotal}`;
-        document.getElementById(`${pKey}AdServ`).innerHTML = `1st: ${adServWon - (calc[pKey].retAdFirstTotal - calc[pKey].retAdFirstWon)}/${adServTotal - calc[pKey].retAdFirstTotal}<br>2nd: ${adServWon - (calc[pKey].retAdSecondTotal - calc[pKey].retAdSecondWon)}/${adServTotal - calc[pKey].retAdSecondTotal}`;
-
+        const adServ1stWon = calc[opponentAdPlayer].retAdFirstTotal - calc[opponentAdPlayer].retAdFirstWon;
+        const adServ1stTotal = calc[opponentAdPlayer].retAdFirstTotal;
+        const adServ2ndWon = calc[opponentAdPlayer].retAdSecondTotal - calc[opponentAdPlayer].retAdSecondWon;
+        const adServ2ndTotal = calc[opponentAdPlayer].retAdSecondTotal;
+        
+        document.getElementById(`${pKey}DeuceServ`).innerHTML = `1st: ${deuceServ1stWon}/${deuceServ1stTotal}<br>2nd: ${deuceServ2ndWon}/${deuceServ2ndTotal}`;
+        document.getElementById(`${pKey}AdServ`).innerHTML = `1st: ${adServ1stWon}/${adServ1stTotal}<br>2nd: ${adServ2ndWon}/${adServ2ndTotal}`;
+        
         document.getElementById(`${pKey}DeuceRet`).innerHTML = `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`;
         document.getElementById(`${pKey}AdRet`).innerHTML = `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`;
+        
         document.getElementById(`${pKey}ssS`).textContent = pStats.ssMisses.S;
         document.getElementById(`${pKey}ssN`).textContent = pStats.ssMisses.N;
         document.getElementById(`${pKey}ssD`).textContent = pStats.ssMisses.D;
         document.getElementById(`${pKey}ssA`).textContent = pStats.ssMisses.A;
     });
 }
+
 
 function generatePdf() {
     if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
@@ -496,19 +504,17 @@ function generatePdf() {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const elements = document.querySelectorAll('.results-view');
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
     
-    // 1. Add the special class to the body to apply our PDF styles
     document.body.classList.add('pdf-export-mode');
 
-    let processedElements = 0;
-
+    let promise = Promise.resolve();
     elements.forEach((element, index) => {
-        html2canvas(element, {
-            scale: 2, // Improves image quality
-            useCORS: true,
-            // Ensure white background as some browsers default to transparent
-            backgroundColor: '#ffffff' 
+        promise = promise.then(() => {
+            return html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            });
         }).then(canvas => {
             const imgData = canvas.toDataURL('image/png');
             const imgProps = pdf.getImageProperties(imgData);
@@ -517,17 +523,12 @@ function generatePdf() {
             if (index > 0) {
                 pdf.addPage();
             }
-            
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
-            processedElements++;
-            
-            if (processedElements === elements.length) {
-                // 2. IMPORTANT: Remove the class to return the page to normal
-                document.body.classList.remove('pdf-export-mode');
-                
-                // 3. Save the finished PDF
-                pdf.save(`doubles-stats-${matchData.date || 'match'}.pdf`);
-            }
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
         });
+    });
+
+    promise.then(() => {
+        document.body.classList.remove('pdf-export-mode');
+        pdf.save(`${matchData.date || 'match'}-doubles-stats.pdf`);
     });
 }
