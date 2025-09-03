@@ -316,21 +316,21 @@ function generateAllResultsViewsHTML() {
         html += `<div class="results-view" id="results-view-${teamNum}">
             <div class="view-title">${teamNum === 1 ? '🔵' : '🔴'} ${teamName}</div>
             <div class="team-card team-${teamNum}">
-                 <h3 class="results-subtitle">📤 Serving Performance</h3>
-                 <div class="stats-grid">
+                <h3 class="results-subtitle">📤 Serving Performance</h3>
+                <div class="stats-grid">
                     <div class="stat-card"><div class="stat-label">1st Serves Won</div><div class="stat-value" id="${teamKey}Serv1st"></div></div>
                     <div class="stat-card"><div class="stat-label">2nd Serves Won</div><div class="stat-value" id="${teamKey}Serv2nd"></div></div>
-                 </div>
-                 <h3 class="results-subtitle">📥 Returning Performance</h3>
-                 <div class="stats-grid">
+                </div>
+                <h3 class="results-subtitle">📥 Returning Performance</h3>
+                <div class="stats-grid">
                     <div class="stat-card"><div class="stat-label">vs 1st Serve</div><div class="stat-value" id="${teamKey}Ret1st"></div></div>
                     <div class="stat-card"><div class="stat-label">vs 2nd Serve</div><div class="stat-value" id="${teamKey}Ret2nd"></div></div>
-                 </div>
-                 <h3 class="results-subtitle">🎯 2nd Shot Misses</h3>
-                 <div class="stats-grid">
+                </div>
+                <h3 class="results-subtitle">🎯 2nd Shot Misses</h3>
+                <div class="stats-grid">
                     <div class="stat-card"><div class="stat-label">As Serving Team</div><div class="stat-value" id="${teamKey}SSServing"></div></div>
                     <div class="stat-card"><div class="stat-label">As Returning Team</div><div class="stat-value" id="${teamKey}SSReturning"></div></div>
-                 </div>
+                </div>
             </div>
         </div>`;
     });
