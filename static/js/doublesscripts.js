@@ -304,11 +304,10 @@ function generateAllResultsViewsHTML() {
             <div id="matchDetailsDisplay" class="match-details"></div>
         </div>
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">Total Points</div><div class="stat-value" id="totalPoints"></div></div>
             <div class="stat-card"><div class="stat-label">🔵 ${getAbbrev('player1')}/${getAbbrev('player2')} Won</div><div class="stat-value" id="team1PointsWon"></div></div>
             <div class="stat-card"><div class="stat-label">🔴 ${getAbbrev('player3')}/${getAbbrev('player4')} Won</div><div class="stat-value" id="team2PointsWon"></div></div>
-            <div class="stat-card"><div class="stat-label">2nd Shot Misses</div><div class="stat-value" id="totalSSMisses"></div></div>
         </div>
+        <div class="text-center" style="margin-top: 1rem;"><button class="tennis-btn" onclick="generatePdf()">Save as PDF</button></div>
     </div>`;
 
     [1, 2].forEach(teamNum => {
@@ -317,11 +316,15 @@ function generateAllResultsViewsHTML() {
         html += `<div class="results-view" id="results-view-${teamNum}">
             <div class="view-title">${teamNum === 1 ? '🔵' : '🔴'} ${teamName}</div>
             <div class="team-card team-${teamNum}">
+                 <h3 class="results-subtitle">📤 Serving Performance</h3>
+                 <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">1st Serves Won</div><div class="stat-value" id="${teamKey}Serv1st"></div></div>
+                    <div class="stat-card"><div class="stat-label">2nd Serves Won</div><div class="stat-value" id="${teamKey}Serv2nd"></div></div>
+                 </div>
                  <h3 class="results-subtitle">📥 Returning Performance</h3>
                  <div class="stats-grid">
                     <div class="stat-card"><div class="stat-label">vs 1st Serve</div><div class="stat-value" id="${teamKey}Ret1st"></div></div>
                     <div class="stat-card"><div class="stat-label">vs 2nd Serve</div><div class="stat-value" id="${teamKey}Ret2nd"></div></div>
-                    <div class="stat-card"><div class="stat-label">Total Won</div><div class="stat-value" id="${teamKey}RetTotal"></div></div>
                  </div>
                  <h3 class="results-subtitle">🎯 2nd Shot Misses</h3>
                  <div class="stats-grid">
@@ -339,6 +342,11 @@ function generateAllResultsViewsHTML() {
         html += `<div class="results-view" id="results-view-${viewNum}">
             <div class="view-title">👤 ${pName}</div>
             <div class="player-card team-${teamNum}">
+                <h3 class="results-subtitle">📤 Serving Performance</h3>
+                <div class="side-stats">
+                    <div class="side-card deuce-side"><h5 class="side-title">🟢 Deuce</h5><div id="${pKey}DeuceServ"></div></div>
+                    <div class="side-card ad-side"><h5 class="side-title">🟣 Ad</h5><div id="${pKey}AdServ"></div></div>
+                </div>
                 <h3 class="results-subtitle">📥 Returning Performance</h3>
                 <div class="side-stats">
                     <div class="side-card deuce-side"><h5 class="side-title">🟢 Deuce</h5><div id="${pKey}DeuceRet"></div></div>
@@ -352,7 +360,6 @@ function generateAllResultsViewsHTML() {
                     <div class="stat-card"><div class="stat-label">Ad Ret (A)</div><div class="stat-value" id="${pKey}ssA"></div></div>
                 </div>
             </div>
-             ${i === 3 ? `<div class="text-center" style="margin-top: 1rem;"><button class="tennis-btn" onclick="generatePdf()">Save as PDF</button></div>` : ''}
         </div>`;
     });
     
@@ -380,8 +387,11 @@ function calculateAllStats() {
 
     ['team1', 'team2'].forEach(teamKey => {
         const teamTotals = totals[teamKey];
+        const opponentTeamKey = teamKey === 'team1' ? 'team2' : 'team1';
+
         teamTotals.ret1stWon = teamTotals.ret2ndWon = teamTotals.ret1stTotal = teamTotals.ret2ndTotal = 0;
         teamTotals.ssServing = teamTotals.ssReturning = 0;
+
         matchData.teams[teamKey].forEach(pKey => {
             const pTotals = totals[pKey];
             teamTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
@@ -391,23 +401,36 @@ function calculateAllStats() {
             teamTotals.ssServing += pTotals.ssMisses.S + pTotals.ssMisses.N;
             teamTotals.ssReturning += pTotals.ssMisses.D + pTotals.ssMisses.A;
         });
-        teamTotals.retTotalWon = teamTotals.ret1stWon + teamTotals.ret2ndWon;
-        teamTotals.retTotal = teamTotals.ret1stTotal + teamTotals.ret2ndTotal;
+
+        const opponentTotals = totals[opponentTeamKey];
+        opponentTotals.ret1stWon = opponentTotals.ret2ndWon = opponentTotals.ret1stTotal = opponentTotals.ret2ndTotal = 0;
+        matchData.teams[opponentTeamKey].forEach(pKey => {
+            const pTotals = totals[pKey];
+            opponentTotals.ret1stWon += pTotals.retDeuceFirstWon + pTotals.retAdFirstWon;
+            opponentTotals.ret1stTotal += pTotals.retDeuceFirstTotal + pTotals.retAdFirstTotal;
+            opponentTotals.ret2ndWon += pTotals.retDeuceSecondWon + pTotals.retAdSecondWon;
+            opponentTotals.ret2ndTotal += pTotals.retDeuceSecondTotal + pTotals.retAdSecondTotal;
+        });
+
+        teamTotals.serv1stTotal = opponentTotals.ret1stTotal;
+        teamTotals.serv1stWon = teamTotals.serv1stTotal - opponentTotals.ret1stWon;
+        teamTotals.serv2ndTotal = opponentTotals.ret2ndTotal;
+        teamTotals.serv2ndWon = teamTotals.serv2ndTotal - opponentTotals.ret2ndWon;
+
+        teamTotals.serv1stWonPct = teamTotals.serv1stTotal ? Math.round(teamTotals.serv1stWon * 100 / teamTotals.serv1stTotal) : 0;
+        teamTotals.serv2ndWonPct = teamTotals.serv2ndTotal ? Math.round(teamTotals.serv2ndWon * 100 / teamTotals.serv2ndTotal) : 0;
 
         teamTotals.ret1stWonPct = teamTotals.ret1stTotal ? Math.round(teamTotals.ret1stWon * 100 / teamTotals.ret1stTotal) : 0;
         teamTotals.ret2ndWonPct = teamTotals.ret2ndTotal ? Math.round(teamTotals.ret2ndWon * 100 / teamTotals.ret2ndTotal) : 0;
-        teamTotals.retTotalWonPct = teamTotals.retTotal ? Math.round(teamTotals.retTotalWon * 100 / teamTotals.retTotal) : 0;
+
+        teamTotals.pointsWon = teamTotals.ret1stWon + teamTotals.ret2ndWon + teamTotals.serv1stWon + teamTotals.serv2ndWon;
     });
     
-    totals.totalPoints = totals.team1.retTotal + totals.team2.retTotal;
-    
-    totals.team1.pointsWon = totals.team1.retTotalWon;
-    totals.team2.pointsWon = totals.team2.retTotalWon;
+    totals.totalPoints = totals.team1.ret1stTotal + totals.team1.ret2ndTotal + totals.team2.ret1stTotal + totals.team2.ret2ndTotal;
     
     totals.team1.pointsWonPct = totals.totalPoints ? Math.round(totals.team1.pointsWon * 100 / totals.totalPoints) : 0;
     totals.team2.pointsWonPct = totals.totalPoints ? Math.round(totals.team2.pointsWon * 100 / totals.totalPoints) : 0;
-
-    totals.totalSSMisses = totals.team1.ssServing + totals.team1.ssReturning + totals.team2.ssServing + totals.team2.ssReturning;
+    
     totals.scores = matchData.scores;
 
     return totals;
@@ -419,17 +442,16 @@ function populateAllResultsViews() {
     // Populate Match Summary (View 0)
     document.getElementById('finalScoreDisplay').innerHTML = `🔵 ${calc.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${calc.scores.team2.join('-')}`;
     document.getElementById('matchDetailsDisplay').textContent = `${matchData.location} • ${matchData.surface} • ${matchData.date}`;
-    document.getElementById('totalPoints').textContent = calc.totalPoints;
     document.getElementById('team1PointsWon').textContent = `${calc.team1.pointsWon} (${calc.team1.pointsWonPct}%)`;
     document.getElementById('team2PointsWon').textContent = `${calc.team2.pointsWon} (${calc.team2.pointsWonPct}%)`;
-    document.getElementById('totalSSMisses').textContent = calc.totalSSMisses;
     
     // Populate Team Views (View 1 and 2)
     ['team1', 'team2'].forEach(teamKey => {
         const teamStats = calc[teamKey];
+        document.getElementById(`${teamKey}Serv1st`).innerHTML = `${teamStats.serv1stWonPct}%<small>${teamStats.serv1stWon}/${teamStats.serv1stTotal}</small>`;
+        document.getElementById(`${teamKey}Serv2nd`).innerHTML = `${teamStats.serv2ndWonPct}%<small>${teamStats.serv2ndWon}/${teamStats.serv2ndTotal}</small>`;
         document.getElementById(`${teamKey}Ret1st`).innerHTML = `${teamStats.ret1stWonPct}%<small>${teamStats.ret1stWon}/${teamStats.ret1stTotal}</small>`;
         document.getElementById(`${teamKey}Ret2nd`).innerHTML = `${teamStats.ret2ndWonPct}%<small>${teamStats.ret2ndWon}/${teamStats.ret2ndTotal}</small>`;
-        document.getElementById(`${teamKey}RetTotal`).innerHTML = `${teamStats.retTotalWonPct}%<small>${teamStats.retTotalWon}/${teamStats.retTotal}</small>`;
         document.getElementById(`${teamKey}SSServing`).textContent = teamStats.ssServing;
         document.getElementById(`${teamKey}SSReturning`).textContent = teamStats.ssReturning;
     });
@@ -437,6 +459,24 @@ function populateAllResultsViews() {
     // Populate Player Views (View 3 through 6)
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         const pStats = calc[pKey];
+        const opponentTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
+        
+        let deuceServTotal = 0;
+        let adServTotal = 0;
+        let deuceServWon = 0;
+        let adServWon = 0;
+
+        matchData.teams[opponentTeamKey].forEach(opponentKey => {
+            const opponentStats = calc[opponentKey];
+            deuceServTotal += opponentStats.retDeuceFirstTotal + opponentStats.retDeuceSecondTotal;
+            adServTotal += opponentStats.retAdFirstTotal + opponentStats.retAdSecondTotal;
+            deuceServWon += (opponentStats.retDeuceFirstTotal - opponentStats.retDeuceFirstWon) + (opponentStats.retDeuceSecondTotal - opponentStats.retDeuceSecondWon);
+            adServWon += (opponentStats.retAdFirstTotal - opponentStats.retAdFirstWon) + (opponentStats.retAdSecondTotal - opponentStats.retAdSecondWon);
+        });
+
+        document.getElementById(`${pKey}DeuceServ`).innerHTML = `1st: ${deuceServWon - (calc[pKey].retDeuceFirstTotal - calc[pKey].retDeuceFirstWon)}/${deuceServTotal - calc[pKey].retDeuceFirstTotal}<br>2nd: ${deuceServWon - (calc[pKey].retDeuceSecondTotal - calc[pKey].retDeuceSecondWon)}/${deuceServTotal - calc[pKey].retDeuceSecondTotal}`;
+        document.getElementById(`${pKey}AdServ`).innerHTML = `1st: ${adServWon - (calc[pKey].retAdFirstTotal - calc[pKey].retAdFirstWon)}/${adServTotal - calc[pKey].retAdFirstTotal}<br>2nd: ${adServWon - (calc[pKey].retAdSecondTotal - calc[pKey].retAdSecondWon)}/${adServTotal - calc[pKey].retAdSecondTotal}`;
+
         document.getElementById(`${pKey}DeuceRet`).innerHTML = `1st: ${pStats.retDeuceFirstWon}/${pStats.retDeuceFirstTotal}<br>2nd: ${pStats.retDeuceSecondWon}/${pStats.retDeuceSecondTotal}`;
         document.getElementById(`${pKey}AdRet`).innerHTML = `1st: ${pStats.retAdFirstWon}/${pStats.retAdFirstTotal}<br>2nd: ${pStats.retAdSecondWon}/${pStats.retAdSecondTotal}`;
         document.getElementById(`${pKey}ssS`).textContent = pStats.ssMisses.S;
@@ -446,7 +486,48 @@ function populateAllResultsViews() {
     });
 }
 
-
 function generatePdf() {
-    alert("This feature is coming soon!");
+    if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+        alert("PDF generation library is not loaded.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const elements = document.querySelectorAll('.results-view');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    
+    // 1. Add the special class to the body to apply our PDF styles
+    document.body.classList.add('pdf-export-mode');
+
+    let processedElements = 0;
+
+    elements.forEach((element, index) => {
+        html2canvas(element, {
+            scale: 2, // Improves image quality
+            useCORS: true,
+            // Ensure white background as some browsers default to transparent
+            backgroundColor: '#ffffff' 
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            if (index > 0) {
+                pdf.addPage();
+            }
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
+            processedElements++;
+            
+            if (processedElements === elements.length) {
+                // 2. IMPORTANT: Remove the class to return the page to normal
+                document.body.classList.remove('pdf-export-mode');
+                
+                // 3. Save the finished PDF
+                pdf.save(`doubles-stats-${matchData.date || 'match'}.pdf`);
+            }
+        });
+    });
 }
