@@ -1,4 +1,4 @@
-// Tony's Doubles Tracker JavaScript (Rewritten v5.1 - Bug Fixes & Match History)
+// Tony's Doubles Tracker JavaScript (Rewritten v5.2 - Bug Fixes)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -32,7 +32,6 @@ function startNewMatch() {
     matchData = JSON.parse(JSON.stringify(initialMatchData));
     matchData.id = Date.now();
     
-    // Reset input fields to defaults
     document.getElementById('player1').value = "Player 1";
     document.getElementById('player2').value = "Player 2";
     document.getElementById('player3').value = "Player 3";
@@ -44,7 +43,6 @@ function startNewMatch() {
 }
 
 function showSection(sectionId) {
-    // If we are about to track, collect the info from the form first
     if (sectionId === 'match-tracker' && currentView === 'match-info') {
         collectMatchInfo();
     }
@@ -57,7 +55,6 @@ function showSection(sectionId) {
     const activeButton = document.querySelector(`.tennis-nav-btn[onclick="showSection('${sectionId}')"]`);
     if (activeButton) activeButton.classList.add('active');
     
-    // After showing the section, run appropriate render/update functions
     if (sectionId === 'match-tracker') updateAllDisplays();
     if (sectionId === 'results') renderResults();
     if (sectionId === 'saved-matches') renderSavedMatchesList();
@@ -213,10 +210,23 @@ function updateReturnStringsDisplay() {
         }
     }
     const currentGamePoints = matchData.pointHistory.slice(lastGameBreak + 1);
+    
+    // Correctly filter points for the CURRENT returners on display
+    const deuceReturner = matchData.returners.deuce;
+    const adReturner = matchData.returners.ad;
+    
     const strings = { deuce: { first: '', second: '' }, ad: { first: '', second: '' } };
+
     currentGamePoints.forEach(p => {
-        if (p.type === 'return') strings[p.side][p.serve] += p.outcome;
+        if (p.type === 'return') {
+            if (p.returner === deuceReturner && p.side === 'deuce') {
+                strings.deuce[p.serve] += p.outcome;
+            } else if (p.returner === adReturner && p.side === 'ad') {
+                strings.ad[p.serve] += p.outcome;
+            }
+        }
     });
+
     document.getElementById('deuce_first_return_str').textContent = strings.deuce.first || "-";
     document.getElementById('deuce_second_return_str').textContent = strings.deuce.second || "-";
     document.getElementById('ad_first_return_str').textContent = strings.ad.first || "-";
@@ -361,26 +371,20 @@ function generateAllResultsViewsHTML() {
     let html = `
     <div class="results-view" id="results-view-0">
         <div class="view-title">📊 Match Summary</div>
-        <div class="match-summary" id="summary-content">
-            </div>
-        <div class="tennis-btn-group" style="margin-top:1rem;">
+        <div class="match-summary" id="summary-content"></div>
+        <div class="tennis-btn-group" style="margin-top:1rem; flex-wrap: wrap;">
             <button class="tennis-btn" onclick="saveCurrentMatch()">💾 Save Match</button>
             <button class="tennis-btn" onclick="generatePdf()">📄 Save as PDF</button>
+            <button class="tennis-btn" onclick="startNewMatch()">✨ New Match</button>
         </div>
     </div>`;
 
     ['team1', 'team2'].forEach((teamKey, i) => {
-        html += `<div class="results-view" id="results-view-${i+1}">
-            <div class="view-title" id="${teamKey}-title"></div>
-            <div class="team-card team-${i+1}" id="${teamKey}-results-card"></div>
-        </div>`;
+        html += `<div class="results-view" id="results-view-${i+1}"><div class="view-title" id="${teamKey}-title"></div><div class="team-card team-${i+1}" id="${teamKey}-results-card"></div></div>`;
     });
 
     ['player1', 'player2', 'player3', 'player4'].forEach((pKey, i) => {
-        html += `<div class="results-view" id="results-view-${i+3}">
-             <div class="view-title" id="${pKey}-title"></div>
-             <div class="player-card team-${i < 2 ? 1 : 2}" id="${pKey}-results-card"></div>
-        </div>`;
+        html += `<div class="results-view" id="results-view-${i+3}"><div class="view-title" id="${pKey}-title"></div><div class="player-card team-${i < 2 ? 1 : 2}" id="${pKey}-results-card"></div></div>`;
     });
     return html;
 }
@@ -456,7 +460,6 @@ function populateAllResultsViews() {
     const allStats = calculateAllStats();
     const matchStats = allStats.match;
 
-    // --- Populate Match Summary ---
     document.getElementById('summary-content').innerHTML = `
         <h3 class="results-subtitle">🏆 Final Score</h3>
         <div class="final-score">🔵 ${matchData.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${matchData.scores.team2.join('-')}</div>
@@ -473,7 +476,6 @@ function populateAllResultsViews() {
         </div>
     `;
 
-    // --- Populate Team & Player Views ---
     const numSets = matchData.scores.team1.length;
     const periods = ['match', ...Array.from({length: numSets}, (_, i) => `set${i}`)];
     
