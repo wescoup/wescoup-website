@@ -180,3 +180,38 @@ body.pdf-export-mode .team-title-blue,
 body.pdf-export-mode .team-title-red {
     color: #0056b3;
 }
+
+/* --- Results Table Styles --- */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.results-table th, .results-table td {
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.results-table thead {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: #FFE135;
+}
+
+.results-table td:first-child {
+    font-weight: bold;
+    text-align: left;
+}
+
+/* PDF-specific table styles */
+body.pdf-export-mode .results-table th, 
+body.pdf-export-mode .results-table td {
+    border: 1px solid #ccc;
+}
+
+body.pdf-export-mode .results-table thead {
+    background-color: #e9ecef;
+    color: #333;
+}
