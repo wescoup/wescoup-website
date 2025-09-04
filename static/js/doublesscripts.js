@@ -1,4 +1,4 @@
-// Tony's Doubles Tracker JavaScript (Rewritten v5 - Match History)
+// Tony's Doubles Tracker JavaScript (Rewritten v5.1 - Bug Fixes & Match History)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -24,23 +24,27 @@ const initialMatchData = {
 function initializeTracker() {
     document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
     loadAllMatches();
-    startNewMatch(); // Always start with a fresh match
+    startNewMatch();
     initializeSwipeHandlers();
 }
 
 function startNewMatch() {
     matchData = JSON.parse(JSON.stringify(initialMatchData));
-    matchData.id = Date.now(); // Unique ID for each new match
-    showSection('match-info');
-    // Reset inputs
+    matchData.id = Date.now();
+    
+    // Reset input fields to defaults
     document.getElementById('player1').value = "Player 1";
     document.getElementById('player2').value = "Player 2";
     document.getElementById('player3').value = "Player 3";
     document.getElementById('player4').value = "Player 4";
     document.getElementById('location').value = "Local Court";
+    document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
+
+    showSection('match-info');
 }
 
 function showSection(sectionId) {
+    // If we are about to track, collect the info from the form first
     if (sectionId === 'match-tracker' && currentView === 'match-info') {
         collectMatchInfo();
     }
@@ -53,6 +57,8 @@ function showSection(sectionId) {
     const activeButton = document.querySelector(`.tennis-nav-btn[onclick="showSection('${sectionId}')"]`);
     if (activeButton) activeButton.classList.add('active');
     
+    // After showing the section, run appropriate render/update functions
+    if (sectionId === 'match-tracker') updateAllDisplays();
     if (sectionId === 'results') renderResults();
     if (sectionId === 'saved-matches') renderSavedMatchesList();
 }
@@ -137,6 +143,13 @@ function getAbbrev(playerKey) {
     return '';
 }
 
+function getInitial(playerKey) {
+    if (matchData && matchData.players[playerKey]) {
+        return matchData.players[playerKey].charAt(0).toUpperCase();
+    }
+    return '';
+}
+
 function updateServerDropdown() {
     const select = document.getElementById('currentServer');
     select.innerHTML = '';
@@ -154,42 +167,39 @@ function updateReturnerDisplay() {
     document.getElementById('adReturnerName').textContent = matchData.players[matchData.returners.ad];
 }
 
-// --- POINT & RETURN TRACKING ---
+// --- POINT TRACKING ---
 function recordReturn(court, serveType, won) {
-    const returnerKey = matchData.returners[court];
-    const outcome = won ? '1' : '0';
-    const currentSetIndex = matchData.scores.team1.length - 1;
-
     matchData.pointHistory.push({
-        setIndex: currentSetIndex,
+        setIndex: matchData.scores.team1.length - 1,
         server: matchData.currentServer,
-        returner: returnerKey,
+        returner: matchData.returners[court],
         serve: serveType,
         side: court,
-        outcome: outcome,
+        outcome: won ? '1' : '0',
         type: 'return',
-        // Preserve state for undo
         returnerHistory: JSON.parse(JSON.stringify(matchData.returnerHistory))
     });
     updateReturnStringsDisplay();
 }
 
+function recordSecondShotMiss(playerKey) {
+    matchData.pointHistory.push({
+        setIndex: matchData.scores.team1.length - 1,
+        playerKey: playerKey,
+        position: getPlayerPosition(playerKey),
+        type: 'secondShotMiss'
+    });
+    updateSecondShotDisplay();
+}
+
 function undoLastPoint() {
     if (matchData.pointHistory.length === 0) return;
-    const lastPoint = matchData.pointHistory.pop();
-    
-    // If it was a miss, we need to find the point it was associated with to correctly decrement the counter.
-    // For simplicity here, we assume miss tracking is independent. Let's just undo the last action.
-    if (lastPoint.type === 'secondShotMiss') {
-        // This is a simplified undo. A more robust system would link misses to points.
-    }
-    
+    matchData.pointHistory.pop();
     updateAllDisplays();
 }
 
 function gameComplete() {
-    const currentSetIndex = matchData.scores.team1.length - 1;
-    matchData.pointHistory.push({ setIndex: currentSetIndex, type: 'gameComplete' });
+    matchData.pointHistory.push({ setIndex: matchData.scores.team1.length - 1, type: 'gameComplete' });
     updateReturnStringsDisplay();
 }
 
@@ -213,7 +223,7 @@ function updateReturnStringsDisplay() {
     document.getElementById('ad_second_return_str').textContent = strings.ad.second || "-";
 }
 
-// --- SECOND SHOT TRACKING ---
+// --- SECOND SHOT DISPLAY ---
 function getPlayerPosition(playerKey) {
     if (!matchData || !matchData.currentServer) return '';
     if (playerKey === matchData.currentServer) return 'S';
@@ -223,18 +233,6 @@ function getPlayerPosition(playerKey) {
     const serverPartner = matchData.teams[serverTeam].find(p => p !== matchData.currentServer);
     if (playerKey === serverPartner) return 'N';
     return '?';
-}
-
-function recordSecondShotMiss(playerKey) {
-    const position = getPlayerPosition(playerKey);
-    const currentSetIndex = matchData.scores.team1.length - 1;
-    matchData.pointHistory.push({
-        setIndex: currentSetIndex,
-        playerKey: playerKey,
-        position: position,
-        type: 'secondShotMiss'
-    });
-    updateSecondShotDisplay();
 }
 
 function updateSecondShotDisplay() {
@@ -261,8 +259,7 @@ function saveCurrentMatch() {
         allMatches.push(JSON.parse(JSON.stringify(matchData)));
     }
     localStorage.setItem('doublesMatches', JSON.stringify(allMatches));
-    alert('Match saved!');
-    renderSavedMatchesList(); // Refresh list after saving
+    alert(`Match "${matchData.date}" saved!`);
 }
 
 function loadAllMatches() {
@@ -270,20 +267,18 @@ function loadAllMatches() {
     if (saved) allMatches = JSON.parse(saved);
 }
 
-function loadMatch(id) {
+function activateMatch(id) {
     const matchToLoad = allMatches.find(m => m.id === id);
     if (matchToLoad) {
         matchData = JSON.parse(JSON.stringify(matchToLoad));
         
-        // Repopulate Match Info tab
-        ['player1', 'player2', 'player3', 'player4', 'location', 'surface', 'date'].forEach(key => {
-            const el = document.getElementById(key === 'date' ? 'matchDate' : key);
-            if (el) el.value = matchData[key] || matchData.players[key] || '';
+        ['player1', 'player2', 'player3', 'player4', 'location', 'surface'].forEach(key => {
+            const el = document.getElementById(key);
+            if (el) el.value = matchData.players[key] || matchData[key];
         });
+        document.getElementById('matchDate').value = matchData.date;
 
-        // Make it the active match and go to tracker
         showSection('match-tracker');
-        updateAllDisplays();
     }
 }
 
@@ -291,30 +286,30 @@ function deleteMatch(id) {
     if (confirm('Are you sure you want to delete this match?')) {
         allMatches = allMatches.filter(m => m.id !== id);
         localStorage.setItem('doublesMatches', JSON.stringify(allMatches));
-        renderSavedMatchesList(); // Refresh the list
+        renderSavedMatchesList();
     }
 }
 
 function renderSavedMatchesList() {
     const container = document.getElementById('saved-matches-list');
     if (allMatches.length === 0) {
-        container.innerHTML = '<p style="text-align:center;">No saved matches yet.</p>';
+        container.innerHTML = '<p style="text-align:center;">No saved matches yet. Complete a match and save it from the Results tab.</p>';
         return;
     }
     
     let html = '';
-    [...allMatches].reverse().forEach(match => { // Show newest first
+    [...allMatches].reverse().forEach(match => {
         const t1p1 = match.players.player1;
         const t1p2 = match.players.player2;
         const t2p1 = match.players.player3;
         const t2p2 = match.players.player4;
         const score = `${match.scores.team1.join('-')} | ${match.scores.team2.join('-')}`;
         html += `<div class="stat-card" style="margin-bottom: 1rem; text-align: left;">
-            <p><b>Date:</b> ${match.date} (${match.location})</p>
-            <p><b>Teams:</b> ${t1p1}/${t1p2} vs ${t2p1}/${t2p2}</p>
-            <p><b>Score:</b> ${score}</p>
+            <p style="font-weight: bold; font-size: 1.1rem;">${match.date} at ${match.location}</p>
+            <p><b>Teams:</b> ${t1p1} & ${t1p2} vs ${t2p1} & ${t2p2}</p>
+            <p><b>Final Score:</b> ${score}</p>
             <div class="tennis-btn-group" style="margin-top: 1rem;">
-                <button class="tennis-btn" onclick="loadMatch(${match.id})">Load & Continue</button>
+                <button class="tennis-btn" onclick="activateMatch(${match.id})">Load & Continue Tracking</button>
                 <button class="tennis-btn" onclick="deleteMatch(${match.id})">Delete</button>
             </div>
         </div>`;
@@ -323,7 +318,6 @@ function renderSavedMatchesList() {
 }
 
 // --- RESULTS RENDERING & CALCULATION ---
-// ... (All functions from here down are for the Results tab)
 function renderResults() {
     const container = document.getElementById('results');
     container.innerHTML = `
@@ -363,42 +357,170 @@ function initializeSwipeHandlers() {
     });
 }
 
-// HTML structure generation (remains largely the same)
 function generateAllResultsViewsHTML() {
-    // This function is now much simpler, it just creates the containers
     let html = `
     <div class="results-view" id="results-view-0">
         <div class="view-title">📊 Match Summary</div>
-        <div class="match-summary" id="summary-content"></div>
+        <div class="match-summary" id="summary-content">
+            </div>
         <div class="tennis-btn-group" style="margin-top:1rem;">
             <button class="tennis-btn" onclick="saveCurrentMatch()">💾 Save Match</button>
             <button class="tennis-btn" onclick="generatePdf()">📄 Save as PDF</button>
         </div>
     </div>`;
+
     ['team1', 'team2'].forEach((teamKey, i) => {
-        html += `<div class="results-view" id="results-view-${i+1}"><div class="view-title">${i===0 ? '🔵' : '🔴'} Team Stats</div><div id="${teamKey}-results-card"></div></div>`;
+        html += `<div class="results-view" id="results-view-${i+1}">
+            <div class="view-title" id="${teamKey}-title"></div>
+            <div class="team-card team-${i+1}" id="${teamKey}-results-card"></div>
+        </div>`;
     });
+
     ['player1', 'player2', 'player3', 'player4'].forEach((pKey, i) => {
-        html += `<div class="results-view" id="results-view-${i+3}"><div class="view-title">👤 Player Stats</div><div id="${pKey}-results-card"></div></div>`;
+        html += `<div class="results-view" id="results-view-${i+3}">
+             <div class="view-title" id="${pKey}-title"></div>
+             <div class="player-card team-${i < 2 ? 1 : 2}" id="${pKey}-results-card"></div>
+        </div>`;
     });
     return html;
 }
 
-// The main calculation engine
 function calculateAllStats() {
-    // ... (This function remains the same as the previous version)
+    const numSets = matchData.scores.team1.length;
+    const stats = {}; 
+
+    for (let i = -1; i < numSets; i++) {
+        const key = i === -1 ? 'match' : `set${i}`;
+        const periodStats = stats[key] = {
+            team1: {}, team2: {}, player1: {}, player2: {}, player3: {}, player4: {}
+        };
+        const pointsInPeriod = i === -1 ? matchData.pointHistory : matchData.pointHistory.filter(p => p.setIndex === i);
+        
+        ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+            const pStats = periodStats[pKey] = {
+                retDeuceFirstWon: 0, retDeuceFirstTotal: 0, retDeuceSecondWon: 0, retDeuceSecondTotal: 0,
+                retAdFirstWon: 0, retAdFirstTotal: 0, retAdSecondWon: 0, retAdSecondTotal: 0,
+                ssMisses: { S: 0, N: 0, D: 0, A: 0 }
+            };
+            pointsInPeriod.filter(p => p.type === 'return' && p.returner === pKey).forEach(p => {
+                if (p.side === 'deuce' && p.serve === 'first') { pStats.retDeuceFirstTotal++; if (p.outcome === '1') pStats.retDeuceFirstWon++; }
+                if (p.side === 'deuce' && p.serve === 'second') { pStats.retDeuceSecondTotal++; if (p.outcome === '1') pStats.retDeuceSecondWon++; }
+                if (p.side === 'ad' && p.serve === 'first') { pStats.retAdFirstTotal++; if (p.outcome === '1') pStats.retAdFirstWon++; }
+                if (p.side === 'ad' && p.serve === 'second') { pStats.retAdSecondTotal++; if (p.outcome === '1') pStats.retAdSecondWon++; }
+            });
+            pointsInPeriod.filter(p => p.type === 'secondShotMiss' && p.playerKey === pKey).forEach(p => pStats.ssMisses[p.position]++);
+        });
+
+        ['team1', 'team2'].forEach(teamKey => {
+            const tStats = periodStats[teamKey];
+            tStats.ret1stWon = 0; tStats.ret1stTotal = 0; tStats.ret2ndWon = 0; tStats.ret2ndTotal = 0;
+            tStats.ssServing = 0; tStats.ssReturning = 0;
+
+            matchData.teams[teamKey].forEach(pKey => {
+                const pStats = periodStats[pKey];
+                tStats.ret1stWon += pStats.retDeuceFirstWon + pStats.retAdFirstWon;
+                tStats.ret1stTotal += pStats.retDeuceFirstTotal + pStats.retAdFirstTotal;
+                tStats.ret2ndWon += pStats.retDeuceSecondWon + pStats.retAdSecondWon;
+                tStats.ret2ndTotal += pStats.retDeuceSecondTotal + pStats.retAdSecondTotal;
+                tStats.ssServing += pStats.ssMisses.S + pStats.ssMisses.N;
+                tStats.ssReturning += pStats.ssMisses.D + pStats.ssMisses.A;
+            });
+        });
+        
+        ['team1', 'team2'].forEach(teamKey => {
+             const tStats = periodStats[teamKey];
+             const oppStats = periodStats[teamKey === 'team1' ? 'team2' : 'team1'];
+             tStats.serv1stTotal = oppStats.ret1stTotal;
+             tStats.serv1stWon = tStats.serv1stTotal - oppStats.ret1stWon;
+             tStats.serv2ndTotal = oppStats.ret2ndTotal;
+             tStats.serv2ndWon = tStats.serv2ndTotal - oppStats.ret2ndWon;
+             tStats.serv1stInPct = (tStats.serv1stTotal + tStats.serv2ndTotal) > 0 ? (tStats.serv1stTotal / (tStats.serv1stTotal + tStats.serv2ndTotal)) * 100 : 0;
+             tStats.serv1stWonPct = tStats.serv1stTotal > 0 ? (tStats.serv1stWon / tStats.serv1stTotal) * 100 : 0;
+             tStats.serv2ndWonPct = tStats.serv2ndTotal > 0 ? (tStats.serv2ndWon / tStats.serv2ndTotal) * 100 : 0;
+             tStats.ret1stWonPct = tStats.ret1stTotal > 0 ? (tStats.ret1stWon / tStats.ret1stTotal) * 100 : 0;
+             tStats.ret2ndWonPct = tStats.ret2ndTotal > 0 ? (tStats.ret2ndWon / tStats.ret2ndTotal) * 100 : 0;
+        });
+    }
+
+    const matchStats = stats['match'];
+    const totalPoints = matchStats.team1.serv1stTotal + matchStats.team1.serv2ndTotal + matchStats.team2.serv1stTotal + matchStats.team2.serv2ndTotal;
+    matchStats.team1.pointsWon = matchStats.team1.serv1stWon + matchStats.team1.serv2ndWon + matchStats.team1.ret1stWon + matchStats.team1.ret2ndWon;
+    matchStats.team2.pointsWon = matchStats.team2.serv1stWon + matchStats.team2.serv2ndWon + matchStats.team2.ret1stWon + matchStats.team2.ret2ndWon;
+    matchStats.team1.pointsWonPct = totalPoints > 0 ? (matchStats.team1.pointsWon / totalPoints) * 100 : 0;
+    matchStats.team2.pointsWonPct = totalPoints > 0 ? (matchStats.team2.pointsWon / totalPoints) * 100 : 0;
+    
+    return stats;
 }
 
-// The main population engine
 function populateAllResultsViews() {
-    // ... (This function remains the same as the previous version)
+    const allStats = calculateAllStats();
+    const matchStats = allStats.match;
+
+    // --- Populate Match Summary ---
+    document.getElementById('summary-content').innerHTML = `
+        <h3 class="results-subtitle">🏆 Final Score</h3>
+        <div class="final-score">🔵 ${matchData.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${matchData.scores.team2.join('-')}</div>
+        <div class="match-details">${matchData.location} • ${matchData.surface} • ${matchData.date}</div>
+        <h3 class="results-subtitle">Players</h3>
+        <div class="stats-grid" style="grid-template-columns: 1fr 1fr; text-align: left; padding: 0 1rem;">
+            <div><b>🔵 Team 1:</b><br>${matchData.players.player1}<br>${matchData.players.player2}</div>
+            <div><b>🔴 Team 2:</b><br>${matchData.players.player3}<br>${matchData.players.player4}</div>
+        </div>
+        <h3 class="results-subtitle">Points Won</h3>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">${getAbbrev('player1')}/${getAbbrev('player2')}</div><div class="stat-value">${matchStats.team1.pointsWon} (${matchStats.team1.pointsWonPct.toFixed(0)}%)</div></div>
+            <div class="stat-card"><div class="stat-label">${getAbbrev('player3')}/${getAbbrev('player4')}</div><div class="stat-value">${matchStats.team2.pointsWon} (${matchStats.team2.pointsWonPct.toFixed(0)}%)</div></div>
+        </div>
+    `;
+
+    // --- Populate Team & Player Views ---
+    const numSets = matchData.scores.team1.length;
+    const periods = ['match', ...Array.from({length: numSets}, (_, i) => `set${i}`)];
+    
+    ['team1', 'team2'].forEach((teamKey, i) => {
+        document.getElementById(`${teamKey}-title`).innerHTML = `${i===0 ? '🔵' : '🔴'} ${matchData.players[matchData.teams[teamKey][0]]} & ${matchData.players[matchData.teams[teamKey][1]]}`;
+        let table = `<table class="results-table"><thead><tr><th>Serving</th><th>1st In %</th><th>1st Won %</th><th>2nd Won %</th></tr></thead><tbody>`;
+        periods.forEach((p, i) => table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${allStats[p][teamKey].serv1stInPct.toFixed(0)}%</td><td>${allStats[p][teamKey].serv1stWonPct.toFixed(0)}%</td><td>${allStats[p][teamKey].serv2ndWonPct.toFixed(0)}%</td></tr>`);
+        table += `</tbody><thead><tr><th>Returning</th><th>vs 1st</th><th>vs 2nd</th><th></th></tr></thead><tbody>`;
+        periods.forEach((p, i) => table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${allStats[p][teamKey].ret1stWonPct.toFixed(0)}%</td><td>${allStats[p][teamKey].ret2ndWonPct.toFixed(0)}%</td><td></td></tr>`);
+        table += `</tbody><thead><tr><th>2nd Shot Misses</th><th>Serving</th><th>Returning</th><th></th></tr></thead><tbody>`;
+        periods.forEach((p, i) => table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${allStats[p][teamKey].ssServing}</td><td>${allStats[p][teamKey].ssReturning}</td><td></td></tr>`);
+        table += `</tbody></table>`;
+        document.getElementById(`${teamKey}-results-card`).innerHTML = table;
+    });
+
+    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+        document.getElementById(`${pKey}-title`).innerHTML = `👤 ${matchData.players[pKey]}`;
+        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Set</th><th colspan="2">Deuce Side (1st/2nd)</th><th colspan="2">Ad Side (1st/2nd)</th></tr></thead><tbody>`;
+        for(let i=0; i < numSets; i++) {
+             const setStats = allStats[`set${i}`];
+             const oppTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
+             const deuceReturner = matchData.returnerHistory[oppTeamKey].deuce;
+             const adReturner = matchData.returnerHistory[oppTeamKey].ad;
+             const s_d1_w = setStats[deuceReturner].retDeuceFirstTotal - setStats[deuceReturner].retDeuceFirstWon;
+             const s_d2_w = setStats[deuceReturner].retDeuceSecondTotal - setStats[deuceReturner].retDeuceSecondWon;
+             const s_a1_w = setStats[adReturner].retAdFirstTotal - setStats[adReturner].retAdFirstWon;
+             const s_a2_w = setStats[adReturner].retAdSecondTotal - setStats[adReturner].retAdSecondWon;
+            table += `<tr><td>Set ${i+1}</td><td>${s_d1_w}/${setStats[deuceReturner].retDeuceFirstTotal}</td><td>${s_d2_w}/${setStats[deuceReturner].retDeuceSecondTotal}</td><td>${s_a1_w}/${setStats[adReturner].retAdFirstTotal}</td><td>${s_a2_w}/${setStats[adReturner].retAdSecondTotal}</td></tr>`;
+        }
+        table += `</tbody></table><h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Set</th><th colspan="2">Deuce Side (1st/2nd)</th><th colspan="2">Ad Side (1st/2nd)</th></tr></thead><tbody>`;
+        for(let i=0; i < numSets; i++) {
+            const s = allStats[`set${i}`][pKey];
+            table += `<tr><td>Set ${i+1}</td><td>${s.retDeuceFirstWon}/${s.retDeuceFirstTotal}</td><td>${s.retDeuceSecondWon}/${s.retDeuceSecondTotal}</td><td>${s.retAdFirstWon}/${s.retAdFirstTotal}</td><td>${s.retAdSecondWon}/${s.retAdSecondTotal}</td></tr>`;
+        }
+        table += `</tbody></table><h3 class="results-subtitle">🎯 2nd Shot Misses</h3><table class="results-table"><thead><tr><th>Set</th><th>Server</th><th>Net</th><th>Deuce Ret</th><th>Ad Ret</th></tr></thead><tbody>`;
+        for(let i=0; i < numSets; i++) {
+            const s = allStats[`set${i}`][pKey];
+            table += `<tr><td>Set ${i+1}</td><td>${s.ssMisses.S}</td><td>${s.ssMisses.N}</td><td>${s.ssMisses.D}</td><td>${s.ssMisses.A}</td></tr>`;
+        }
+        table += `</tbody></table>`;
+        document.getElementById(`${pKey}-results-card`).innerHTML = table;
+    });
 }
 
-// PDF Generation
 function generatePdf() {
     if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
-        alert("PDF generation library is not loaded.");
-        return;
+        alert("PDF generation library is not loaded."); return;
     }
 
     const { jsPDF } = window.jspdf;
@@ -406,11 +528,9 @@ function generatePdf() {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const margin = 10;
     
-    const p1Init = matchData.players.player1.charAt(0);
-    const p2Init = matchData.players.player2.charAt(0);
-    const p3Init = matchData.players.player3.charAt(0);
-    const p4Init = matchData.players.player4.charAt(0);
-    const filename = `${matchData.date}-D-${p1Init}${p2Init}-${p3Init}${p4Init}-stats.pdf`;
+    const p1 = getInitial('player1'); const p2 = getInitial('player2');
+    const p3 = getInitial('player3'); const p4 = getInitial('player4');
+    const filename = `${matchData.date}-D-${p1}${p2}-${p3}${p4}.pdf`;
 
     pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Doubles Tracker", pdfWidth / 2, margin, { align: 'center' });
     pdf.setFontSize(10).setTextColor(0, 0, 255).textWithLink('https://www.wescoup.com/tonys-tennis-page', pdfWidth / 2, margin + 5, { align: 'center', url: 'https://www.wescoup.com/tonys-tennis-page' });
@@ -421,19 +541,13 @@ function generatePdf() {
     const elements = document.querySelectorAll('.results-view');
     
     elements.forEach((element, index) => {
-        promise = promise.then(() => html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: '#ffffff',
-            windowWidth: 800 
-        })).then(canvas => {
+        promise = promise.then(() => html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 }))
+        .then(canvas => {
             const imgData = canvas.toDataURL('image/png');
             const imgProps = pdf.getImageProperties(imgData);
             const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            
             if (index > 0) pdf.addPage();
-            const yPos = index === 0 ? margin + 10 : margin;
-            pdf.addImage(imgData, 'PNG', 0, yPos, pdfWidth, imgHeight);
+            pdf.addImage(imgData, 'PNG', 0, index === 0 ? margin + 10 : margin, pdfWidth, imgHeight);
         });
     });
 
