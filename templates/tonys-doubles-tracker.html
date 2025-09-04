@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Tony's Doubles Tracker - Wescoup.com</title>
 
-    <!-- Mobile app-like experience -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,15 +22,14 @@
             <p class="subtitle-text">Return-based doubles match analysis</p>
         </div>
 
-        <!-- Navigation -->
         <div class="tennis-nav">
             <button class="tennis-nav-btn active" onclick="showSection('match-info')">Match Info</button>
             <button class="tennis-nav-btn" onclick="showSection('match-tracker')">Track Match</button>
             <button class="tennis-nav-btn" onclick="showSection('results')">Results</button>
+            <button class="tennis-nav-btn" onclick="showSection('saved-matches')">Saved Matches</button>
             <button class="tennis-nav-btn" onclick="window.location.href='/tonys-tennis-page'">Back</button>
         </div>
 
-        <!-- Match Info Section -->
         <div id="match-info" class="tennis-section active">
             <h2 class="section-title">Enter Match Information</h2>
             
@@ -40,11 +38,11 @@
                     <h3 class="team-title-blue">🔵 Team 1</h3>
                     <div class="tennis-form-group">
                         <label for="player1">Player 1:</label>
-                        <input type="text" id="player1" placeholder="Player 1 name" value="P1">
+                        <input type="text" id="player1" placeholder="Player 1 name" value="Player 1">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player2">Player 2:</label>
-                        <input type="text" id="player2" placeholder="Player 2 name" value="P2">
+                        <input type="text" id="player2" placeholder="Player 2 name" value="Player 2">
                     </div>
                 </div>
                 
@@ -52,11 +50,11 @@
                     <h3 class="team-title-red">🔴 Team 2</h3>
                     <div class="tennis-form-group">
                         <label for="player3">Player 3:</label>
-                        <input type="text" id="player3" placeholder="Player 3 name" value="P3">
+                        <input type="text" id="player3" placeholder="Player 3 name" value="Player 3">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player4">Player 4:</label>
-                        <input type="text" id="player4" placeholder="Player 4 name" value="P4">
+                        <input type="text" id="player4" placeholder="Player 4 name" value="Player 4">
                     </div>
                 </div>
             </div>
@@ -82,11 +80,9 @@
             </div>
         </div>
 
-        <!-- Match Tracker Section -->
         <div id="match-tracker" class="tennis-section">
             <h2 class="section-title">Track Your Match</h2>
             
-            <!-- Score -->
             <div class="stats-grid score-grid">
                 <div class="stat-card">
                     <div class="stat-label" id="team1NameScore">P1/P2</div>
@@ -114,7 +110,6 @@
                 </div>
             </div>
 
-            <!-- Server & Returner Control -->
             <div class="stat-card control-card">
                 <div class="server-row">
                     <div>
@@ -132,7 +127,6 @@
                 </div>
             </div>
 
-            <!-- Returner-Based Tracking -->
             <div class="returner-grid">
                 <div class="stat-card returner-card deuce-side-border">
                     <div class="stat-label">🟢 Deuce Returner</div>
@@ -143,14 +137,12 @@
                         <div class="tennis-btn-group compact">
                             <button class="tennis-btn" onclick="recordReturn('deuce', 'first', true)">Win</button>
                             <button class="tennis-btn" onclick="recordReturn('deuce', 'first', false)">Loss</button>
-                            <button class="tennis-btn" onclick="undoReturn('deuce', 'first')">Undo</button>
                         </div>
                         <label class="stat-label">2nd Serve Return</label>
                         <div class="return-string-display" id="deuce_second_return_str">-</div>
                         <div class="tennis-btn-group compact">
                             <button class="tennis-btn" onclick="recordReturn('deuce', 'second', true)">Win</button>
                             <button class="tennis-btn" onclick="recordReturn('deuce', 'second', false)">Loss</button>
-                            <button class="tennis-btn" onclick="undoReturn('deuce', 'second')">Undo</button>
                         </div>
                     </div>
                 </div>
@@ -164,20 +156,17 @@
                         <div class="tennis-btn-group compact">
                             <button class="tennis-btn" onclick="recordReturn('ad', 'first', true)">Win</button>
                             <button class="tennis-btn" onclick="recordReturn('ad', 'first', false)">Loss</button>
-                            <button class="tennis-btn" onclick="undoReturn('ad', 'first')">Undo</button>
                         </div>
                         <label class="stat-label">2nd Serve Return</label>
                         <div class="return-string-display" id="ad_second_return_str">-</div>
                         <div class="tennis-btn-group compact">
                             <button class="tennis-btn" onclick="recordReturn('ad', 'second', true)">Win</button>
                             <button class="tennis-btn" onclick="recordReturn('ad', 'second', false)">Loss</button>
-                            <button class="tennis-btn" onclick="undoReturn('ad', 'second')">Undo</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Second Shot Tracking -->
             <div class="stat-card second-shot-card">
                 <h3 class="second-shot-title">🎯 Second Shot Miss</h3>
                 <div id="currentPositions" class="positions-display"></div>
@@ -186,15 +175,22 @@
                     <button id="p2_ss" onclick="recordSecondShotMiss('player2')" class="tennis-btn team-1-bg">P2-N</button>
                     <button id="p3_ss" onclick="recordSecondShotMiss('player3')" class="tennis-btn team-2-bg">P3-D</button>
                     <button id="p4_ss" onclick="recordSecondShotMiss('player4')" class="tennis-btn team-2-bg">P4-A</button>
-                    <button onclick="undoSecondShotMiss()" class="tennis-btn">↶ Undo</button>
                 </div>
                 <div class="ss-miss-tally" id="ssMissTally"></div>
             </div>
+            
+            <div class="text-center" style="margin-top: 2rem;">
+                <button onclick="undoLastPoint()" class="tennis-btn">↩️ Undo Last Point</button>
+            </div>
         </div>
 
-        <!-- Results Section -->
         <div id="results" class="tennis-section">
-            <!-- Dynamically generated -->
+            </div>
+
+        <div id="saved-matches" class="tennis-section">
+            <h2 class="section-title">Saved Match History</h2>
+            <div id="saved-matches-list">
+                </div>
         </div>
     </div>
 
