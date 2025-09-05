@@ -38,11 +38,11 @@
                     <h3 class="team-title-blue">🔵 Team 1</h3>
                     <div class="tennis-form-group">
                         <label for="player1">Player 1:</label>
-                        <input type="text" id="player1" placeholder="Player 1 name" value="Player 1">
+                        <input type="text" id="player1" placeholder="Player 1 name" value="P1">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player2">Player 2:</label>
-                        <input type="text" id="player2" placeholder="Player 2 name" value="Player 2">
+                        <input type="text" id="player2" placeholder="Player 2 name" value="P2">
                     </div>
                 </div>
                 
@@ -50,11 +50,11 @@
                     <h3 class="team-title-red">🔴 Team 2</h3>
                     <div class="tennis-form-group">
                         <label for="player3">Player 3:</label>
-                        <input type="text" id="player3" placeholder="Player 3 name" value="Player 3">
+                        <input type="text" id="player3" placeholder="Player 3 name" value="P3">
                     </div>
                     <div class="tennis-form-group">
                         <label for="player4">Player 4:</label>
-                        <input type="text" id="player4" placeholder="Player 4 name" value="Player 4">
+                        <input type="text" id="player4" placeholder="Player 4 name" value="P4">
                     </div>
                 </div>
             </div>
@@ -120,9 +120,9 @@
                         <label class="stat-label">Returner Sides</label>
                         <button class="tennis-btn" onclick="changeReturners()">Switch</button>
                     </div>
-                    <div>
-                        <label class="stat-label">End of Game</label>
+                    <div class="tennis-btn-group" style="align-self: flex-end;">
                         <button class="tennis-btn" onclick="gameComplete()">Complete</button>
+                        <button onclick="undoLastPoint()" class="tennis-btn">↩️</button>
                     </div>
                 </div>
             </div>
@@ -169,7 +169,6 @@
 
             <div class="stat-card second-shot-card">
                 <h3 class="second-shot-title">🎯 Second Shot Miss</h3>
-                <div id="currentPositions" class="positions-display"></div>
                 <div class="tennis-btn-group">
                     <button id="p1_ss" onclick="recordSecondShotMiss('player1')" class="tennis-btn team-1-bg">P1-S</button>
                     <button id="p2_ss" onclick="recordSecondShotMiss('player2')" class="tennis-btn team-1-bg">P2-N</button>
@@ -177,10 +176,6 @@
                     <button id="p4_ss" onclick="recordSecondShotMiss('player4')" class="tennis-btn team-2-bg">P4-A</button>
                 </div>
                 <div class="ss-miss-tally" id="ssMissTally"></div>
-            </div>
-            
-            <div class="text-center" style="margin-top: 2rem;">
-                <button onclick="undoLastPoint()" class="tennis-btn">↩️ Undo Last Point</button>
             </div>
         </div>
 
