@@ -215,3 +215,121 @@ body.pdf-export-mode .results-table thead {
     background-color: #e9ecef;
     color: #333;
 }
+
+/* --- Tony's Tennis Page Specific Styles --- */
+.tennis-body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #ffffff;
+    padding: 1rem;
+}
+
+.tennis-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.tennis-header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+    color: #FFE135;
+}
+
+.tennis-header p {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.tennis-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.tennis-tools {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .tennis-tools {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.tool-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tool-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.tool-card h3 {
+    font-size: 1.5rem;
+    color: #FFE135;
+    margin-bottom: 0.5rem;
+}
+
+.tool-card p {
+    font-size: 1rem;
+    opacity: 0.9;
+    line-height: 1.6;
+    min-height: 80px;
+}
+
+.tool-link {
+    display: inline-block;
+    background: #FFE135;
+    color: #1e3c72;
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.tool-link:hover {
+    background-color: #fff;
+}
+
+.resource-card {
+    text-align: center;
+    margin-top: 2.5rem;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.resource-card h3 {
+    color: #FFE135;
+    margin-top: 0;
+}
+
+.tool-link.secondary {
+    background: transparent;
+    border: 2px solid #FFE135;
+    color: #FFE135;
+}
+
+.tool-link.secondary:hover {
+    background: #FFE135;
+    color: #1e3c72;
+}
+
+.tennis-back-link {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+}
