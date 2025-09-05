@@ -1,4 +1,4 @@
-// Tony's Doubles Tracker JavaScript (Rewritten v5.2 - Bug Fixes)
+// Tony's Doubles Tracker JavaScript (Rewritten v6 - Final Polish)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -11,7 +11,7 @@ const totalResultsViews = 7;
 // A clean slate for a new match, preserving structure
 const initialMatchData = {
     id: null,
-    players: { player1: 'Player 1', player2: 'Player 2', player3: 'Player 3', player4: 'Player 4' },
+    players: { player1: 'P1', player2: 'P2', player3: 'P3', player4: 'P4' },
     teams: { team1: ['player1', 'player2'], team2: ['player3', 'player4'] },
     location: 'Local Court',
     surface: 'Hard',
@@ -32,10 +32,11 @@ function startNewMatch() {
     matchData = JSON.parse(JSON.stringify(initialMatchData));
     matchData.id = Date.now();
     
-    document.getElementById('player1').value = "Player 1";
-    document.getElementById('player2').value = "Player 2";
-    document.getElementById('player3').value = "Player 3";
-    document.getElementById('player4').value = "Player 4";
+    // Set default player names to P1, P2, etc.
+    document.getElementById('player1').value = "P1";
+    document.getElementById('player2').value = "P2";
+    document.getElementById('player3').value = "P3";
+    document.getElementById('player4').value = "P4";
     document.getElementById('location').value = "Local Court";
     document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
 
@@ -211,7 +212,6 @@ function updateReturnStringsDisplay() {
     }
     const currentGamePoints = matchData.pointHistory.slice(lastGameBreak + 1);
     
-    // Correctly filter points for the CURRENT returners on display
     const deuceReturner = matchData.returners.deuce;
     const adReturner = matchData.returners.ad;
     
@@ -250,14 +250,16 @@ function updateSecondShotDisplay() {
     let tally = { player1:0, player2:0, player3:0, player4:0 };
     matchData.pointHistory.filter(p => p.type === 'secondShotMiss').forEach(p => tally[p.playerKey]++);
     
+    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+        const btn = document.getElementById(`p${pKey.slice(-1)}_ss`);
+        if (btn) btn.textContent = `${getAbbrev(pKey)}-${getPlayerPosition(pKey)}`;
+    });
+    
     let tallyHTML = '';
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         if (tally[pKey] > 0) tallyHTML += `<span>${getAbbrev(pKey)}: ${tally[pKey]}</span>`;
     });
     document.getElementById('ssMissTally').innerHTML = tallyHTML || '<span>No misses yet</span>';
-    
-    const positions = ['player1', 'player2', 'player3', 'player4'].map(pKey => `${getAbbrev(pKey)}(${getPlayerPosition(pKey)})`).join(' | ');
-    document.getElementById('currentPositions').textContent = positions;
 }
 
 // --- LOCAL STORAGE & MATCH MANAGEMENT ---
@@ -493,18 +495,42 @@ function populateAllResultsViews() {
 
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         document.getElementById(`${pKey}-title`).innerHTML = `👤 ${matchData.players[pKey]}`;
-        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Set</th><th colspan="2">Deuce Side (1st/2nd)</th><th colspan="2">Ad Side (1st/2nd)</th></tr></thead><tbody>`;
+        
+        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Overall</th><th>1st In %</th><th>1st Won %</th><th>2nd Won %</th></tr></thead><tbody>`;
+        periods.forEach((p, i) => {
+            const playerStats = allStats[p][pKey];
+            const oppTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
+            const oppStats = allStats[p][oppTeamKey];
+            
+            // Player's serving performance is the inverse of the opponent's returning performance
+            const servTotal = oppStats.ret1stTotal + oppStats.ret2ndTotal;
+            const serv1stTotal = oppStats.ret1stTotal;
+            const serv1stWon = serv1stTotal - oppStats.ret1stWon;
+            const serv2ndWon = (oppStats.ret2ndTotal - oppStats.ret2ndWon);
+
+            const s1In = servTotal > 0 ? (serv1stTotal / servTotal) * 100 : 0;
+            const s1Won = serv1stTotal > 0 ? (serv1stWon / serv1stTotal) * 100 : 0;
+            const s2Won = (oppStats.ret2ndTotal) > 0 ? (serv2ndWon / oppStats.ret2ndTotal) * 100 : 0;
+
+            table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${s1In.toFixed(0)}%</td><td>${s1Won.toFixed(0)}%</td><td>${s2Won.toFixed(0)}%</td></tr>`;
+        });
+
+        table += `</tbody></table><table class="results-table"><thead><tr><th>By Side</th><th colspan="2">Deuce Side (1st/2nd)</th><th colspan="2">Ad Side (1st/2nd)</th></tr></thead><tbody>`;
         for(let i=0; i < numSets; i++) {
              const setStats = allStats[`set${i}`];
              const oppTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
-             const deuceReturner = matchData.returnerHistory[oppTeamKey].deuce;
-             const adReturner = matchData.returnerHistory[oppTeamKey].ad;
-             const s_d1_w = setStats[deuceReturner].retDeuceFirstTotal - setStats[deuceReturner].retDeuceFirstWon;
-             const s_d2_w = setStats[deuceReturner].retDeuceSecondTotal - setStats[deuceReturner].retDeuceSecondWon;
-             const s_a1_w = setStats[adReturner].retAdFirstTotal - setStats[adReturner].retAdFirstWon;
-             const s_a2_w = setStats[adReturner].retAdSecondTotal - setStats[adReturner].retAdSecondWon;
-            table += `<tr><td>Set ${i+1}</td><td>${s_d1_w}/${setStats[deuceReturner].retDeuceFirstTotal}</td><td>${s_d2_w}/${setStats[deuceReturner].retDeuceSecondTotal}</td><td>${s_a1_w}/${setStats[adReturner].retAdFirstTotal}</td><td>${s_a2_w}/${setStats[adReturner].retAdSecondTotal}</td></tr>`;
+             // This needs to be calculated based on WHO was returning on that side.
+             const deuceReturnerKey = matchData.returnerHistory[oppTeamKey].deuce;
+             const adReturnerKey = matchData.returnerHistory[oppTeamKey].ad;
+
+             const s_d1_w = setStats[deuceReturnerKey].retDeuceFirstTotal - setStats[deuceReturnerKey].retDeuceFirstWon;
+             const s_d2_w = setStats[deuceReturnerKey].retDeuceSecondTotal - setStats[deuceReturnerKey].retDeuceSecondWon;
+             const s_a1_w = setStats[adReturnerKey].retAdFirstTotal - setStats[adReturnerKey].retAdFirstWon;
+             const s_a2_w = setStats[adReturnerKey].retAdSecondTotal - setStats[adReturnerKey].retAdSecondWon;
+
+            table += `<tr><td>Set ${i+1}</td><td>${s_d1_w}/${setStats[deuceReturnerKey].retDeuceFirstTotal}</td><td>${s_d2_w}/${setStats[deuceReturnerKey].retDeuceSecondTotal}</td><td>${s_a1_w}/${setStats[adReturnerKey].retAdFirstTotal}</td><td>${s_a2_w}/${setStats[adReturnerKey].retAdSecondTotal}</td></tr>`;
         }
+
         table += `</tbody></table><h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Set</th><th colspan="2">Deuce Side (1st/2nd)</th><th colspan="2">Ad Side (1st/2nd)</th></tr></thead><tbody>`;
         for(let i=0; i < numSets; i++) {
             const s = allStats[`set${i}`][pKey];
@@ -530,8 +556,8 @@ function generatePdf() {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const margin = 10;
     
-    const p1 = getInitial('player1'); const p2 = getInitial('player2');
-    const p3 = getInitial('player3'); const p4 = getInitial('player4');
+    const p1 = getAbbrev('player1'); const p2 = getAbbrev('player2');
+    const p3 = getAbbrev('player3'); const p4 = getAbbrev('player4');
     const filename = `${matchData.date}-D-${p1}${p2}-${p3}${p4}.pdf`;
 
     pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Doubles Tracker", pdfWidth / 2, margin, { align: 'center' });
@@ -545,11 +571,11 @@ function generatePdf() {
     elements.forEach((element, index) => {
         promise = promise.then(() => html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 }))
         .then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
+            const imgData = canvas.toDataURL('image/jpeg', 0.92); // Use JPG compression
             const imgProps = pdf.getImageProperties(imgData);
             const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
             if (index > 0) pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, index === 0 ? margin + 10 : margin, pdfWidth, imgHeight);
+            pdf.addImage(imgData, 'JPEG', 0, index === 0 ? margin + 10 : margin, pdfWidth, imgHeight);
         });
     });
 
