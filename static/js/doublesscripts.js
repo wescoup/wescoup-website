@@ -519,7 +519,6 @@ function populateAllResultsViews() {
         for(let i=0; i < numSets; i++) {
              const setStats = allStats[`set${i}`];
              const oppTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
-             // This needs to be calculated based on WHO was returning on that side.
              const deuceReturnerKey = matchData.returnerHistory[oppTeamKey].deuce;
              const adReturnerKey = matchData.returnerHistory[oppTeamKey].ad;
 
@@ -556,8 +555,8 @@ function generatePdf() {
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const margin = 10;
     
-    const p1 = getAbbrev('player1'); const p2 = getAbbrev('player2');
-    const p3 = getAbbrev('player3'); const p4 = getAbbrev('player4');
+    const p1 = getInitial('player1'); const p2 = getInitial('player2');
+    const p3 = getInitial('player3'); const p4 = getInitial('player4');
     const filename = `${matchData.date}-D-${p1}${p2}-${p3}${p4}.pdf`;
 
     pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Doubles Tracker", pdfWidth / 2, margin, { align: 'center' });
