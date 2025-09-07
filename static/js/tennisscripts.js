@@ -186,7 +186,6 @@ function updateReturnStringsDisplay() {
     
     const strings = { deuce: { first: '', second: '' }, ad: { first: '', second: '' } };
     
-    // This logic ensures that only points where the CURRENT returner was actually returning are shown.
     currentGamePoints.forEach(p => {
         if (p.type === 'return' && p.returner === currentReturner) {
             strings[p.side][p.serve] += p.outcome;
