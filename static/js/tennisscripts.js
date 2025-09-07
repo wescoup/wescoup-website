@@ -1,4 +1,4 @@
-// Tony's Tennis Tracker JavaScript (Rewritten v2 - Feature Parity with Doubles)
+// Tony's Tennis Tracker JavaScript (Rewritten v2.1 - Bug Fixes)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -182,10 +182,15 @@ function updateReturnStringsDisplay() {
         }
     }
     const currentGamePoints = matchData.pointHistory.slice(lastGameBreak + 1);
+    const currentReturner = matchData.currentServer === 'player1' ? 'player2' : 'player1';
     
     const strings = { deuce: { first: '', second: '' }, ad: { first: '', second: '' } };
+    
+    // This logic ensures that only points where the CURRENT returner was actually returning are shown.
     currentGamePoints.forEach(p => {
-        if (p.type === 'return') strings[p.side][p.serve] += p.outcome;
+        if (p.type === 'return' && p.returner === currentReturner) {
+            strings[p.side][p.serve] += p.outcome;
+        }
     });
 
     document.getElementById('deuce_first_return_str').textContent = strings.deuce.first || "-";
@@ -198,7 +203,6 @@ function updateReturnStringsDisplay() {
 function updateSecondShotDisplay() {
     if (currentView !== 'match-tracker') return;
     const serverKey = matchData.currentServer;
-    const returnerKey = serverKey === 'player1' ? 'player2' : 'player1';
     
     document.getElementById('p1_ss').textContent = `${getAbbrev('player1')}-${'player1' === serverKey ? 'S' : 'R'}`;
     document.getElementById('p2_ss').textContent = `${getAbbrev('player2')}-${'player2' === serverKey ? 'S' : 'R'}`;
@@ -365,7 +369,9 @@ function calculateAllStats() {
         
         ['player1', 'player2'].forEach(pKey => {
              const pStats = periodStats[pKey];
-             const oppStats = periodStats[pKey === 'player1' ? 'player2' : 'player1'];
+             const oppKey = pKey === 'player1' ? 'player2' : 'player1';
+             const oppStats = periodStats[oppKey];
+
              pStats.ret1stTotal = pStats.retDeuceFirstTotal + pStats.retAdFirstTotal;
              pStats.ret1stWon = pStats.retDeuceFirstWon + pStats.retAdFirstWon;
              pStats.ret2ndTotal = pStats.retDeuceSecondTotal + pStats.retAdSecondTotal;
@@ -385,9 +391,9 @@ function calculateAllStats() {
     }
 
     const matchStats = stats['match'];
-    const totalPoints = matchStats.player1.serv1stTotal + matchStats.player1.serv2ndTotal + matchStats.player2.serv1stTotal + matchStats.player2.serv2ndTotal;
-    matchStats.player1.pointsWon = matchStats.player1.serv1stWon + matchStats.player1.serv2ndWon + matchStats.player1.ret1stWon + matchStats.player1.ret2ndWon;
-    matchStats.player2.pointsWon = matchStats.player2.serv1stWon + matchStats.player2.serv2ndWon + matchStats.player2.ret1stWon + matchStats.player2.ret2ndWon;
+    const totalPoints = (matchStats.player1.serv1stTotal || 0) + (matchStats.player1.serv2ndTotal || 0) + (matchStats.player2.serv1stTotal || 0) + (matchStats.player2.serv2ndTotal || 0);
+    matchStats.player1.pointsWon = (matchStats.player1.serv1stWon || 0) + (matchStats.player1.serv2ndWon || 0) + (matchStats.player1.ret1stWon || 0) + (matchStats.player1.ret2ndWon || 0);
+    matchStats.player2.pointsWon = (matchStats.player2.serv1stWon || 0) + (matchStats.player2.serv2ndWon || 0) + (matchStats.player2.ret1stWon || 0) + (matchStats.player2.ret2ndWon || 0);
     matchStats.player1.pointsWonPct = totalPoints > 0 ? (matchStats.player1.pointsWon / totalPoints) * 100 : 0;
     matchStats.player2.pointsWonPct = totalPoints > 0 ? (matchStats.player2.pointsWon / totalPoints) * 100 : 0;
     
