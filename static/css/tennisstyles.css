@@ -111,7 +111,20 @@
 .tennis-btn-group.compact .tennis-btn { padding: 0.5rem 0.8rem; font-size: 0.9rem; }
 
 /* --- Specific Component Styles --- */
-.server-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; align-items: end; }
+/* This rule keeps the flexible desktop layout for both trackers */
+.server-row { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+    gap: 1rem; 
+    align-items: end; 
+}
+
+/* This new rule specifically targets the singles tracker's layout on mobile */
+@media (max-width: 768px) {
+    #match-tracker .control-card .server-row {
+        grid-template-columns: 2fr 1fr;
+    }
+}
 .server-dropdown { width: 100%; padding: 0.7rem; border-radius: 8px; font-weight: bold; }
 .return-section { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .return-string-display { min-height: 2.5rem; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 0.5rem; font-family: monospace; word-break: break-all; margin-bottom: 0.5rem; }
