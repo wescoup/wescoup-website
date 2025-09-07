@@ -121,8 +121,8 @@
 
 /* This new rule specifically targets the singles tracker's layout on mobile */
 @media (max-width: 768px) {
-    #match-tracker .control-card .server-row {
-        grid-template-columns: 2fr 1fr;
+    body:not(.doubles-tracker-body) #match-tracker .control-card .server-row {
+        grid-template-columns: 2fr 1fr 1fr;
     }
 }
 .server-dropdown { width: 100%; padding: 0.7rem; border-radius: 8px; font-weight: bold; }
