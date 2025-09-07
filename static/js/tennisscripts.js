@@ -352,35 +352,35 @@ function calculateAllStats() {
         const pointsInPeriod = i === -1 ? matchData.pointHistory : matchData.pointHistory.filter(p => p.setIndex === i);
         
         ['player1', 'player2'].forEach(pKey => {
-            const pStats = periodStats[pKey] = {
+            periodStats[pKey] = {
                 retDeuceFirstWon: 0, retDeuceFirstTotal: 0, retDeuceSecondWon: 0, retDeuceSecondTotal: 0,
                 retAdFirstWon: 0, retAdFirstTotal: 0, retAdSecondWon: 0, retAdSecondTotal: 0,
                 ssMisses: { S: 0, R: 0 }
             };
             pointsInPeriod.filter(p => p.type === 'return' && p.returner === pKey).forEach(p => {
-                if (p.side === 'deuce' && p.serve === 'first') { pStats.retDeuceFirstTotal++; if (p.outcome === '1') pStats.retDeuceFirstWon++; }
-                if (p.side === 'deuce' && p.serve === 'second') { pStats.retDeuceSecondTotal++; if (p.outcome === '1') pStats.retDeuceSecondWon++; }
-                if (p.side === 'ad' && p.serve === 'first') { pStats.retAdFirstTotal++; if (p.outcome === '1') pStats.retAdFirstWon++; }
-                if (p.side === 'ad' && p.serve === 'second') { pStats.retAdSecondTotal++; if (p.outcome === '1') pStats.retAdSecondWon++; }
+                if (p.side === 'deuce' && p.serve === 'first') { periodStats[pKey].retDeuceFirstTotal++; if (p.outcome === '1') periodStats[pKey].retDeuceFirstWon++; }
+                if (p.side === 'deuce' && p.serve === 'second') { periodStats[pKey].retDeuceSecondTotal++; if (p.outcome === '1') periodStats[pKey].retDeuceSecondWon++; }
+                if (p.side === 'ad' && p.serve === 'first') { periodStats[pKey].retAdFirstTotal++; if (p.outcome === '1') periodStats[pKey].retAdFirstWon++; }
+                if (p.side === 'ad' && p.serve === 'second') { periodStats[pKey].retAdSecondTotal++; if (p.outcome === '1') periodStats[pKey].retAdSecondWon++; }
             });
-            pointsInPeriod.filter(p => p.type === 'secondShotMiss' && p.playerKey === pKey).forEach(p => pStats.ssMisses[p.position]++);
+            pointsInPeriod.filter(p => p.type === 'secondShotMiss' && p.playerKey === pKey).forEach(p => periodStats[pKey].ssMisses[p.position]++);
         });
         
         ['player1', 'player2'].forEach(pKey => {
              const pStats = periodStats[pKey];
-             const oppKey = pKey === 'player1' ? 'player2' : 'player1';
-             const oppStats = periodStats[oppKey];
+             const servedPoints = pointsInPeriod.filter(p => p.type === 'return' && p.server === pKey);
 
+             pStats.serv1stTotal = servedPoints.filter(p => p.serve === 'first').length;
+             pStats.serv2ndTotal = servedPoints.filter(p => p.serve === 'second').length;
+             
+             pStats.serv1stWon = servedPoints.filter(p => p.serve === 'first' && p.outcome === '0').length;
+             pStats.serv2ndWon = servedPoints.filter(p => p.serve === 'second' && p.outcome === '0').length;
+             
              pStats.ret1stTotal = pStats.retDeuceFirstTotal + pStats.retAdFirstTotal;
              pStats.ret1stWon = pStats.retDeuceFirstWon + pStats.retAdFirstWon;
              pStats.ret2ndTotal = pStats.retDeuceSecondTotal + pStats.retAdSecondTotal;
              pStats.ret2ndWon = pStats.retDeuceSecondWon + pStats.retAdSecondWon;
 
-             pStats.serv1stTotal = oppStats.ret1stTotal;
-             pStats.serv1stWon = pStats.serv1stTotal - oppStats.ret1stWon;
-             pStats.serv2ndTotal = oppStats.ret2ndTotal;
-             pStats.serv2ndWon = pStats.serv2ndTotal - oppStats.ret2ndWon;
-             
              pStats.serv1stInPct = (pStats.serv1stTotal + pStats.serv2ndTotal) > 0 ? (pStats.serv1stTotal / (pStats.serv1stTotal + pStats.serv2ndTotal)) * 100 : 0;
              pStats.serv1stWonPct = pStats.serv1stTotal > 0 ? (pStats.serv1stWon / pStats.serv1stTotal) * 100 : 0;
              pStats.serv2ndWonPct = pStats.serv2ndTotal > 0 ? (pStats.serv2ndWon / pStats.serv2ndTotal) * 100 : 0;
