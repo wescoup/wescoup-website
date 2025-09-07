@@ -1,4 +1,4 @@
-// Tony's Tennis Tracker JavaScript (Rewritten v2.1 - Bug Fixes)
+// Tony's Tennis Tracker JavaScript (Rewritten v2.2 - Final Bug Fixes)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
