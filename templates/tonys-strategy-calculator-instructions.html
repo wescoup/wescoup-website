@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Strategy Calculator Instructions
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <h1 class="text-center my-4">Strategy Calculator Instructions</h1>
+
+    <div class="instructions-content">
+        <h2>What Is This?</h2>
+        <p>This tool helps you find the optimal strategy when you're in a situation with a few choices, and your opponent is doing the same. It uses a concept called 'Nash Equilibrium' to tell you how often you should pick each of your options to get the best results over time. This prevents your opponent from predicting your moves.</p>
+
+        <h2 class="mt-4">Example: The Serve & Return</h2>
+        <p>Let's imagine a common tennis scenario.</p>
+        <ul>
+            <li><strong>Player 1 (The Server)</strong> can serve either <strong>"Out Wide"</strong> or <strong>"Down the T"</strong>.</li>
+            <li><strong>Player 2 (The Returner)</strong> can anticipate the serve and cover either the <strong>"Wide"</strong> side or the <strong>"T"</strong>.</li>
+        </ul>
+        <p>Your job is to input the server's estimated win percentage for each of the four possible outcomes.</p>
+
+        <div class="example-grid">
+            <div class="grid-cell header"></div>
+            <div class="grid-cell header">Returner Covers Wide</div>
+            <div class="grid-cell header">Returner Covers T</div>
+            <div class="grid-cell header">Server Serves Wide</div>
+            <div class="grid-cell">Server wins <strong>45%</strong></div>
+            <div class="grid-cell">Server wins <strong>70%</strong></div>
+            <div class="grid-cell header">Server Serves T</div>
+            <div class="grid-cell">Server wins <strong>65%</strong></div>
+            <div class="grid-cell">Server wins <strong>30%</strong></div>
+        </div>
+
+        <p class="mt-3">After entering these percentages into the calculator, it will tell you the optimal, unpredictable strategy for both the server and the returner.</p>
+
+        <div class="text-center mt-4">
+            <a href="/tonys-strategy-calculator" class="btn btn-primary btn-lg">Go to the Calculator</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
