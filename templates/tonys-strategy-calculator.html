@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Tony's Strategy Calculator
+{% endblock %}
+
+{% block extra_js %}
+    <script src="/static/js/strategyscripts.js"></script>
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <h1 class="text-center my-4">Tony's Strategy Calculator</h1>
+    <p class="text-center text-muted">Enter Player 1's win percentages for each scenario.</p>
+
+    <div class="strategy-grid">
+        <div class="grid-cell header"></div>
+        <div class="grid-cell header">Player 2: Option 1</div>
+        <div class="grid-cell header">Player 2: Option 2</div>
+
+        <div class="grid-cell header">Player 1: Option 1</div>
+        <div class="grid-cell">
+            <input type="number" id="p1_o1_vs_p2_o1" class="form-control" placeholder="e.g., 45">
+        </div>
+        <div class="grid-cell">
+            <input type="number" id="p1_o1_vs_p2_o2" class="form-control" placeholder="e.g., 70">
+        </div>
+
+        <div class="grid-cell header">Player 1: Option 2</div>
+        <div class="grid-cell">
+            <input type="number" id="p1_o2_vs_p2_o1" class="form-control" placeholder="e.g., 65">
+        </div>
+        <div class="grid-cell">
+            <input type="number" id="p1_o2_vs_p2_o2" class="form-control" placeholder="e.g., 30">
+        </div>
+    </div>
+
+    <div class="text-center my-4">
+        <button id="calculate-btn" class="btn btn-primary btn-lg">Calculate Strategy</button>
+    </div>
+
+    <div id="results-container" class="results-container" style="display: none;">
+        <hr>
+        <h2 class="text-center">Optimal Strategy</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="result-card">
+                    <h3>Player 1's Plan</h3>
+                    <p id="p1-strategy"></p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="result-card">
+                    <h3>Player 2's Plan</h3>
+                    <p id="p2-strategy"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
