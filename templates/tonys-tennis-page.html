@@ -1,43 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tony's Tennis Page - Wescoup.com</title>
-    <link rel="stylesheet" href="/static/css/tennisstyles.css">
-</head>
-<body class="tennis-body">
-    <div class="tennis-header">
-        <h1>🎾 Tony's Tennis Page</h1>
-        <p>Track, analyze, and improve your tennis game</p>
-    </div>
-    <div class="tennis-container">
-        <div class="tennis-tools">
+{% extends "layout.html" %}
+
+{% block title %}
+    Tony's Tennis Page
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <h1 class="text-center my-4">Tony's Tennis Tools</h1>
+    <div class="row">
+        <div class="col-md-6">
             <div class="tool-card">
-                <span class="tool-icon">👤</span>
-                <h3>Tony's Tennis Tracker</h3>
-                <p>The ultimate tool for singles match analysis. Track return performance and second shot misses to pinpoint exactly where you can improve.</p>
-                <a href="/tonys-tennis-tracker" class="tool-link">Track Singles Match</a>
-            </div>
-            <div class="tool-card">
-                <span class="tool-icon">👥</span>
-                <h3>Tony's Doubles Tracker</h3>
-                <p>Gain a competitive edge in doubles with detailed team stats, return tracking, and analysis of all four players on the court.</p>
-                <a href="/tonys-doubles-tracker" class="tool-link">Track Doubles Match</a>
+                <h2>Tony's Tennis Tracker</h2>
+                <p>Track your singles match stats to identify strengths and weaknesses in your game.</p>
+                <a href="/tonys-tennis-tracker" class="btn btn-primary">Track Match</a>
             </div>
         </div>
-        
-        <div class="resource-card">
-            <h3>Gain a Competitive Edge</h3>
-            <p>
-                Most players focus on serves and returns, but there's one shot that truly separates winners from the rest...
-            </p>
-            <a href="/second-shot" class="tool-link secondary">🔍 Discover the Hidden Key to Success</a>
+        <div class="col-md-6">
+            <div class="tool-card">
+                <h2>Tony's Doubles Tracker</h2>
+                <p>Track your doubles match stats, focusing on team dynamics and performance.</p>
+                <a href="/tonys-doubles-tracker" class="btn btn-primary">Track Doubles</a>
+            </div>
         </div>
-        
-        <div style="text-align: center; margin-top: 3rem;">
-            <a href="/" class="tennis-back-link">← Back to Home</a>
+        <div class="col-md-6">
+            <div class="tool-card">
+                <h2>Tony's Strategy Calculator</h2>
+                <p>Determine your optimal strategy in tennis, pickleball, or any game of wits. This tool helps you make the best decisions when facing a thinking opponent.</p>
+                <a href="/tonys-strategy-calculator-instructions" class="btn btn-secondary">Instructions</a>
+                <a href="/tonys-strategy-calculator" class="btn btn-primary">Optimal Play</a>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
