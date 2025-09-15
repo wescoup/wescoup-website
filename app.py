@@ -27,5 +27,15 @@ def second_shot():
 def tonys_tennis_tracker_20():
     return render_template('tonys-tennis-tracker-20.html')
 
+@app.route("/tonys-strategy-calculator")
+def tonys_strategy_calculator():
+    """Show Tony's Strategy Calculator page"""
+    return render_template("tonys-strategy-calculator.html")
+
+@app.route("/tonys-strategy-calculator-instructions")
+def tonys_strategy_calculator_instructions():
+    """Show Tony's Strategy Calculator instructions page"""
+    return render_template("tonys-strategy-calculator-instructions.html")
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
