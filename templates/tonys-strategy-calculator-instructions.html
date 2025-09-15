@@ -1,42 +1,71 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-{% block title %}
-    Strategy Calculator Instructions
-{% endblock %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 
-{% block main %}
-<div class="container">
-    <h1 class="text-center my-4">Strategy Calculator Instructions</h1>
+    <link href="/static/css/styles.css" rel="stylesheet">
+    <link href="/static/css/tennisstyles.css" rel="stylesheet">
 
-    <div class="instructions-content">
-        <h2>What Is This?</h2>
-        <p>This tool helps you find the optimal strategy when you're in a situation with a few choices, and your opponent is doing the same. It uses a concept called 'Nash Equilibrium' to tell you how often you should pick each of your options to get the best results over time. This prevents your opponent from predicting your moves.</p>
-
-        <h2 class="mt-4">Example: The Serve & Return</h2>
-        <p>Let's imagine a common tennis scenario.</p>
-        <ul>
-            <li><strong>Player 1 (The Server)</strong> can serve either <strong>"Out Wide"</strong> or <strong>"Down the T"</strong>.</li>
-            <li><strong>Player 2 (The Returner)</strong> can anticipate the serve and cover either the <strong>"Wide"</strong> side or the <strong>"T"</strong>.</li>
-        </ul>
-        <p>Your job is to input the server's estimated win percentage for each of the four possible outcomes.</p>
-
-        <div class="example-grid">
-            <div class="grid-cell header"></div>
-            <div class="grid-cell header">Returner Covers Wide</div>
-            <div class="grid-cell header">Returner Covers T</div>
-            <div class="grid-cell header">Server Serves Wide</div>
-            <div class="grid-cell">Server wins <strong>45%</strong></div>
-            <div class="grid-cell">Server wins <strong>70%</strong></div>
-            <div class="grid-cell header">Server Serves T</div>
-            <div class="grid-cell">Server wins <strong>65%</strong></div>
-            <div class="grid-cell">Server wins <strong>30%</strong></div>
+    <title>Wescoup Website: Strategy Calculator Instructions</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">WESCOUP</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar">
+                <ul class="navbar-nav ms-auto mb-2 mb-md-0">
+                    <li class="nav-item"><a class="nav-link" href="/tonys-tennis-page">Tony's Tennis Page</a></li>
+                </ul>
+            </div>
         </div>
+    </nav>
 
-        <p class="mt-3">After entering these percentages into the calculator, it will tell you the optimal, unpredictable strategy for both the server and the returner.</p>
+    <main class="container-fluid py-5 text-center">
+        <div class="container">
+            <h1 class="text-center my-4">Strategy Calculator Instructions</h1>
 
-        <div class="text-center mt-4">
-            <a href="/tonys-strategy-calculator" class="btn btn-primary btn-lg">Go to the Calculator</a>
+            <div class="instructions-content">
+                <h2>What Is This?</h2>
+                <p>This tool helps you find the optimal strategy when you're in a situation with a few choices, and your opponent is doing the same. It uses a concept called 'Nash Equilibrium' to tell you how often you should pick each of your options to get the best results over time. This prevents your opponent from predicting your moves.</p>
+
+                <h2 class="mt-4">Example: The Serve & Return</h2>
+                <p>Let's imagine a common tennis scenario.</p>
+                <ul>
+                    <li><strong>Player 1 (The Server)</strong> can serve either <strong>"Out Wide"</strong> or <strong>"Down the T"</strong>.</li>
+                    <li><strong>Player 2 (The Returner)</strong> can anticipate the serve and cover either the <strong>"Wide"</strong> side or the <strong>"T"</strong>.</li>
+                </ul>
+                <p>Your job is to input the server's estimated win percentage for each of the four possible outcomes.</p>
+
+                <div class="example-grid">
+                    <div class="grid-cell header"></div>
+                    <div class="grid-cell header">Returner Covers Wide</div>
+                    <div class="grid-cell header">Returner Covers T</div>
+                    <div class="grid-cell header">Server Serves Wide</div>
+                    <div class="grid-cell">Server wins <strong>45%</strong></div>
+                    <div class="grid-cell">Server wins <strong>70%</strong></div>
+                    <div class="grid-cell header">Server Serves T</div>
+                    <div class="grid-cell">Server wins <strong>65%</strong></div>
+                    <div class="grid-cell">Server wins <strong>30%</strong></div>
+                </div>
+
+                <p class="mt-3">After entering these percentages into the calculator, it will tell you the optimal, unpredictable strategy for both the server and the returner.</p>
+
+                <div class="text-center mt-4">
+                    <a href="/tonys-strategy-calculator" class="btn btn-primary btn-lg">Go to the Calculator</a>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-{% endblock %}
+    </main>
+
+    <footer class="mb-5 small text-center text-muted">
+        Another Wescoup Creation
+    </footer>
+</body>
+</html>
