@@ -111,20 +111,17 @@
 .tennis-btn-group.compact .tennis-btn { padding: 0.5rem 0.8rem; font-size: 0.9rem; }
 
 /* --- Specific Component Styles --- */
-/* This rule keeps the flexible desktop layout for both trackers */
-.server-row { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
-    gap: 1rem; 
-    align-items: end; 
+.server-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    align-items: end;
 }
 
-/* Singles tracker specific layout - always use 2 columns since it only has 2 elements */
 .tennis-tracker-body:not(.doubles-tracker-body) .server-row {
     grid-template-columns: 2fr 1fr;
 }
 
-/* Mobile layout for singles tracker */
 @media (max-width: 768px) {
     .tennis-tracker-body:not(.doubles-tracker-body) .server-row {
         grid-template-columns: 2fr 1fr;
@@ -178,7 +175,7 @@ body.pdf-export-mode .text-center button {
 }
 
 body.pdf-export-mode .results-view {
-    display: block !important; /* Ensure all views are visible for capture */
+    display: block !important;
     background: white;
     color: #333;
 }
@@ -223,8 +220,7 @@ body.pdf-export-mode .team-title-red {
     text-align: left;
 }
 
-/* PDF-specific table styles */
-body.pdf-export-mode .results-table th, 
+body.pdf-export-mode .results-table th,
 body.pdf-export-mode .results-table td {
     border: 1px solid #ccc;
 }
@@ -273,7 +269,7 @@ body.pdf-export-mode .results-table thead {
     .tennis-tools {
         grid-template-columns: 1fr 1fr;
     }
-}
+} /* <--- THIS IS THE MISSING BRACKET THAT WAS ADDED */
 
 .tool-card {
     background: rgba(255, 255, 255, 0.1);
