@@ -37,5 +37,10 @@ def tonys_strategy_calculator_instructions():
     """Show Tony's Strategy Calculator instructions page"""
     return render_template("tonys-strategy-calculator-instructions.html")
 
+@app.route("/testpage")
+def testpage():
+    """Show the test page"""
+    return render_template("testpage.html")
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
