@@ -461,3 +461,94 @@ body.pdf-export-mode .results-table thead {
     font-size: 1.8rem;
     vertical-align: middle;
 }
+
+/* --- Strategy Calculator Styles --- */
+
+.strategy-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 20px auto;
+    max-width: 800px;
+}
+
+.strategy-grid .grid-cell {
+    background-color: #2c3e50;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ecf0f1;
+}
+
+.strategy-grid .grid-cell.header {
+    background-color: #34495e;
+    font-weight: bold;
+    text-align: center;
+}
+
+.strategy-grid .form-control {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border: none;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.results-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #34495e;
+    border-radius: 8px;
+}
+
+.result-card {
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #ecf0f1;
+}
+
+.result-card h3 {
+    color: #f1c40f;
+    margin-bottom: 15px;
+}
+
+.result-card p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+/* --- Instructions Page Styles --- */
+.instructions-content {
+    max-width: 800px;
+    margin: auto;
+    background-color: #34495e;
+    padding: 30px;
+    border-radius: 8px;
+    color: #ecf0f1;
+}
+
+.example-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5px;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.example-grid .grid-cell {
+    background-color: #2c3e50;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.example-grid .grid-cell.header {
+    background-color: #466380;
+    font-weight: bold;
+}
