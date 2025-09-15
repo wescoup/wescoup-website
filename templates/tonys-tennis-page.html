@@ -5,30 +5,43 @@
 {% endblock %}
 
 {% block main %}
-<div class="container">
-    <h1 class="text-center my-4">Tony's Tennis Tools</h1>
-    <div class="row">
-        <div class="col-md-6">
+<div class="tennis-body">
+    <div class="tennis-container">
+        <div class="tennis-header">
+            <h1>🎾 Tony's Tennis Tools</h1>
+            <p>Advanced tennis tracking and strategy tools</p>
+        </div>
+        
+        <div class="tennis-tools">
             <div class="tool-card">
-                <h2>Tony's Tennis Tracker</h2>
+                <span class="tool-icon">🎾</span>
+                <h3>Tony's Tennis Tracker</h3>
                 <p>Track your singles match stats to identify strengths and weaknesses in your game.</p>
-                <a href="/tonys-tennis-tracker" class="btn btn-primary">Track Match</a>
+                <a href="/tonys-tennis-tracker" class="tool-link">Track Match</a>
             </div>
-        </div>
-        <div class="col-md-6">
+            
             <div class="tool-card">
-                <h2>Tony's Doubles Tracker</h2>
+                <span class="tool-icon">🏓</span>
+                <h3>Tony's Doubles Tracker</h3>
                 <p>Track your doubles match stats, focusing on team dynamics and performance.</p>
-                <a href="/tonys-doubles-tracker" class="btn btn-primary">Track Doubles</a>
+                <a href="/tonys-doubles-tracker" class="tool-link">Track Doubles</a>
+            </div>
+            
+            <div class="tool-card">
+                <span class="tool-icon">🧠</span>
+                <h3>Tony's Strategy Calculator</h3>
+                <p>Determine your optimal strategy in tennis, pickleball, or any game of wits. This tool helps you make the best decisions when facing a thinking opponent.</p>
+                <div style="margin-top: 1rem;">
+                    <a href="/tonys-strategy-calculator-instructions" class="tool-link secondary">Instructions</a>
+                    <a href="/tonys-strategy-calculator" class="tool-link" style="margin-left: 0.5rem;">Optimal Play</a>
+                </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="tool-card">
-                <h2>Tony's Strategy Calculator</h2>
-                <p>Determine your optimal strategy in tennis, pickleball, or any game of wits. This tool helps you make the best decisions when facing a thinking opponent.</p>
-                <a href="/tonys-strategy-calculator-instructions" class="btn btn-secondary">Instructions</a>
-                <a href="/tonys-strategy-calculator" class="btn btn-primary">Optimal Play</a>
-            </div>
+        
+        <div class="resource-card">
+            <h3>📚 Tennis Strategy Resources</h3>
+            <p>Learn about the critical importance of the second shot in tennis</p>
+            <a href="/second-shot" class="tool-link secondary">The Hidden Key to Tennis Success</a>
         </div>
     </div>
 </div>
