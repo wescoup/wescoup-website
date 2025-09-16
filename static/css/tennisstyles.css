@@ -457,8 +457,8 @@ body.pdf-export-mode .results-table thead {
     font-size: 1.8rem;
     vertical-align: middle;
 }
-
-/* --- Strategy Calculator Styles --- */
+/*
+/* --- Strategy Calculator Styles --- 
 
 .strategy-grid {
     display: grid;
@@ -519,7 +519,7 @@ body.pdf-export-mode .results-table thead {
     line-height: 1.6;
 }
 
-/* --- Instructions Page Styles --- */
+/* --- Instructions Page Styles --- 
 .instructions-content {
     max-width: 800px;
     margin: auto;
@@ -548,3 +548,4 @@ body.pdf-export-mode .results-table thead {
     background-color: #466380;
     font-weight: bold;
 }
+*/
