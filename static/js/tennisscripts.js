@@ -68,7 +68,7 @@ function collectMatchInfo() {
 
 function updateAllDisplays() {
     if (currentView !== 'match-tracker') return;
-    updateServerDropdown();
+    updateServerButton();
     updateScoreDisplay();
     updateSecondShotDisplay();
     updateReturnStringsDisplay();
@@ -105,11 +105,18 @@ function updateScoreDisplay() {
 }
 
 // --- SERVER & RETURNER ---
-function updateServer() {
-    matchData.currentServer = document.getElementById('currentServer').value;
+function toggleServer() {
+    matchData.currentServer = matchData.currentServer === 'player1' ? 'player2' : 'player1';
     updateAllDisplays();
 }
 
+function updateServerButton() {
+    const serverName = matchData.players[matchData.currentServer] || 'P1';
+    const btn = document.getElementById('server-toggle-btn');
+    if (btn) {
+        btn.textContent = `Server: ${serverName}`;
+    }
+}
 function getAbbrev(playerKey) {
     if (matchData && matchData.players[playerKey]) {
         return matchData.players[playerKey].substring(0, 3);
@@ -122,18 +129,6 @@ function getInitial(playerKey) {
         return matchData.players[playerKey].charAt(0).toUpperCase();
     }
     return '';
-}
-
-function updateServerDropdown() {
-    const select = document.getElementById('currentServer');
-    select.innerHTML = '';
-    ['player1', 'player2'].forEach(pKey => {
-        const option = document.createElement('option');
-        option.value = pKey;
-        option.textContent = matchData.players[pKey];
-        select.appendChild(option);
-    });
-    select.value = matchData.currentServer;
 }
 
 // --- POINT TRACKING ---
