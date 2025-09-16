@@ -70,8 +70,21 @@ function updateAllDisplays() {
     if (currentView !== 'match-tracker') return;
     updateServerButton();
     updateScoreDisplay();
+    updateReturnerDisplay(); // <-- ADD THIS LINE
     updateSecondShotDisplay();
     updateReturnStringsDisplay();
+}
+
+// ADD THIS ENTIRE NEW FUNCTION
+function updateReturnerDisplay() {
+    const serverKey = matchData.currentServer;
+    const returnerKey = serverKey === 'player1' ? 'player2' : 'player1';
+    const returnerName = matchData.players[returnerKey];
+    
+    const returnerDisplay = document.getElementById('currentReturner');
+    if (returnerDisplay) {
+        returnerDisplay.textContent = returnerName;
+    }
 }
 
 // --- SCORE & SET ---
