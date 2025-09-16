@@ -1,5 +1,13 @@
 /* Tony's Tennis Page & Trackers - Refactored Styles v2 */
 
+/* Add this to the top */
+.tennis-body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #ffffff;
+    padding: 1rem;
+}
+
 /* --- General & Body --- */
 .tennis-tracker-body {
     font-family: Arial, sans-serif;
