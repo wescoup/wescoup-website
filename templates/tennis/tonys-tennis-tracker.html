@@ -142,6 +142,15 @@
             </div>
 
             <div class="stat-card second-shot-card">
+                <h3 class="second-shot-title">😩 Unforced Error</h3>
+                <div class="tennis-btn-group">
+                    <button id="p1_ue" onclick="recordUnforcedError('player1')" class="tennis-btn team-1-bg">P1</button>
+                    <button id="p2_ue" onclick="recordUnforcedError('player2')" class="tennis-btn team-2-bg">P2</button>
+                </div>
+                <div class="ss-miss-tally" id="ueTally"></div>
+            </div>
+
+            <div class="stat-card second-shot-card">
                 <h3 class="second-shot-title">🎯 Second Shot Miss</h3>
                 <div class="tennis-btn-group">
                     <button id="p1_ss" onclick="recordSecondShotMiss('player1')" class="tennis-btn team-1-bg">P1-S</button>
@@ -160,6 +169,10 @@
                 </div>
         </div>
     </div>
+
+    <script src="/static/js/tennisscripts.js"></script>
+</body>
+</html>
 
     <script src="/static/js/tennisscripts.js"></script>
 </body>
