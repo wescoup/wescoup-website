@@ -127,7 +127,7 @@ function updateServerButton() {
     const serverName = matchData.players[matchData.currentServer] || 'P1';
     const btn = document.getElementById('server-toggle-btn');
     if (btn) {
-        btn.textContent = `Server: ${serverName}`;
+        btn.textContent = `${serverName}`;
     }
 }
 function getAbbrev(playerKey) {
