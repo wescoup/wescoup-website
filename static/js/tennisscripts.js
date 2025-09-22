@@ -1,4 +1,4 @@
-// Tony's Tennis Tracker JavaScript (Rewritten v2.2 - Final Bug Fixes)
+// Tony's Tennis Tracker JavaScript (Rewritten v3.0 - Unforced Errors Update)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -16,7 +16,7 @@ const initialMatchData = {
     surface: 'Hard',
     date: new Date().toISOString().split('T')[0],
     scores: { player1: [0], player2: [0] },
-    pointHistory: []
+    pointHistory: [] // Now tracks returns, second shots, and unforced errors
 };
 
 function initializeTracker() {
@@ -70,12 +70,12 @@ function updateAllDisplays() {
     if (currentView !== 'match-tracker') return;
     updateServerButton();
     updateScoreDisplay();
-    updateReturnerDisplay(); // <-- ADD THIS LINE
+    updateReturnerDisplay();
     updateSecondShotDisplay();
+    updateUnforcedErrorDisplay(); // <-- NEW
     updateReturnStringsDisplay();
 }
 
-// ADD THIS ENTIRE NEW FUNCTION
 function updateReturnerDisplay() {
     const serverKey = matchData.currentServer;
     const returnerKey = serverKey === 'player1' ? 'player2' : 'player1';
@@ -130,16 +130,10 @@ function updateServerButton() {
         btn.textContent = `${serverName}`;
     }
 }
+
 function getAbbrev(playerKey) {
     if (matchData && matchData.players[playerKey]) {
         return matchData.players[playerKey].substring(0, 3);
-    }
-    return '';
-}
-
-function getInitial(playerKey) {
-    if (matchData && matchData.players[playerKey]) {
-        return matchData.players[playerKey].charAt(0).toUpperCase();
     }
     return '';
 }
@@ -157,6 +151,16 @@ function recordReturn(court, serveType, won) {
         type: 'return'
     });
     updateReturnStringsDisplay();
+}
+
+// --- NEW UNFORCED ERROR TRACKING ---
+function recordUnforcedError(playerKey) {
+    matchData.pointHistory.push({
+        setIndex: matchData.scores.player1.length - 1,
+        playerKey: playerKey,
+        type: 'unforcedError'
+    });
+    updateUnforcedErrorDisplay();
 }
 
 function recordSecondShotMiss(playerKey) {
@@ -206,7 +210,23 @@ function updateReturnStringsDisplay() {
     document.getElementById('ad_second_return_str').textContent = strings.ad.second || "-";
 }
 
-// --- SECOND SHOT DISPLAY ---
+// --- NEW UNFORCED ERROR DISPLAY ---
+function updateUnforcedErrorDisplay() {
+    if (currentView !== 'match-tracker') return;
+    
+    document.getElementById('p1_ue').textContent = getAbbrev('player1');
+    document.getElementById('p2_ue').textContent = getAbbrev('player2');
+
+    let tally = { player1:0, player2:0 };
+    matchData.pointHistory.filter(p => p.type === 'unforcedError').forEach(p => tally[p.playerKey]++);
+    
+    let tallyHTML = '';
+    ['player1', 'player2'].forEach(pKey => {
+        if (tally[pKey] > 0) tallyHTML += `<span>${getAbbrev(pKey)}: ${tally[pKey]}</span>`;
+    });
+    document.getElementById('ueTally').innerHTML = tallyHTML || '<span>No errors yet</span>';
+}
+
 function updateSecondShotDisplay() {
     if (currentView !== 'match-tracker') return;
     const serverKey = matchData.currentServer;
@@ -363,7 +383,8 @@ function calculateAllStats() {
             periodStats[pKey] = {
                 retDeuceFirstWon: 0, retDeuceFirstTotal: 0, retDeuceSecondWon: 0, retDeuceSecondTotal: 0,
                 retAdFirstWon: 0, retAdFirstTotal: 0, retAdSecondWon: 0, retAdSecondTotal: 0,
-                ssMisses: { S: 0, R: 0 }
+                ssMisses: { S: 0, R: 0 },
+                unforcedErrors: 0 // <-- NEW
             };
             pointsInPeriod.filter(p => p.type === 'return' && p.returner === pKey).forEach(p => {
                 if (p.side === 'deuce' && p.serve === 'first') { periodStats[pKey].retDeuceFirstTotal++; if (p.outcome === '1') periodStats[pKey].retDeuceFirstWon++; }
@@ -372,6 +393,7 @@ function calculateAllStats() {
                 if (p.side === 'ad' && p.serve === 'second') { periodStats[pKey].retAdSecondTotal++; if (p.outcome === '1') periodStats[pKey].retAdSecondWon++; }
             });
             pointsInPeriod.filter(p => p.type === 'secondShotMiss' && p.playerKey === pKey).forEach(p => periodStats[pKey].ssMisses[p.position]++);
+            periodStats[pKey].unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length; // <-- NEW
         });
         
         ['player1', 'player2'].forEach(pKey => {
@@ -442,6 +464,14 @@ function populateAllResultsViews() {
             const s = allStats[`set${i}`][pKey];
             table += `<tr><td>Set ${i+1}</td><td>${s.retDeuceFirstWon}/${s.retDeuceFirstTotal}</td><td>${s.retDeuceSecondWon}/${s.retDeuceSecondTotal}</td><td>${s.retAdFirstWon}/${s.retAdFirstTotal}</td><td>${s.retAdSecondWon}/${s.retAdSecondTotal}</td></tr>`;
         }
+        // NEW Unforced Error Table
+        table += `</tbody></table><h3 class="results-subtitle">😩 Unforced Errors</h3><table class="results-table"><thead><tr><th>Set</th><th>Total</th></tr></thead><tbody>`;
+        for(let i=0; i < numSets; i++) {
+            const s = allStats[`set${i}`][pKey];
+            table += `<tr><td>Set ${i+1}</td><td>${s.unforcedErrors}</td></tr>`;
+        }
+        table += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].unforcedErrors}</b></td></tr>`;
+
         table += `</tbody></table><h3 class="results-subtitle">🎯 2nd Shot Misses</h3><table class="results-table"><thead><tr><th>Set</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
         for(let i=0; i < numSets; i++) {
             const s = allStats[`set${i}`][pKey];
