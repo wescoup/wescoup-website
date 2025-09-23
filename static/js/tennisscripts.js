@@ -1,4 +1,4 @@
-// Tony's Tennis Tracker JavaScript (Rewritten v3.0 - Unforced Errors Update)
+// Tony's Tennis Tracker JavaScript (Rewritten v3.1 - Per-Set UE/SSM Tracking)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -36,6 +36,7 @@ function startNewMatch() {
     document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
 
     showSection('match-info');
+    updateAllDisplays();
 }
 
 function showSection(sectionId) {
@@ -67,12 +68,12 @@ function collectMatchInfo() {
 }
 
 function updateAllDisplays() {
-    if (currentView !== 'match-tracker') return;
+    if (currentView !== 'match-tracker' || !matchData.players) return;
     updateServerButton();
     updateScoreDisplay();
     updateReturnerDisplay();
     updateSecondShotDisplay();
-    updateUnforcedErrorDisplay(); // <-- NEW
+    updateUnforcedErrorDisplay();
     updateReturnStringsDisplay();
 }
 
@@ -105,7 +106,7 @@ function adjustSet(change) {
             matchData.scores.player2.pop();
         }
     }
-    updateScoreDisplay();
+    updateAllDisplays();
 }
 
 function updateScoreDisplay() {
@@ -153,7 +154,6 @@ function recordReturn(court, serveType, won) {
     updateReturnStringsDisplay();
 }
 
-// --- NEW UNFORCED ERROR TRACKING ---
 function recordUnforcedError(playerKey) {
     matchData.pointHistory.push({
         setIndex: matchData.scores.player1.length - 1,
@@ -210,21 +210,24 @@ function updateReturnStringsDisplay() {
     document.getElementById('ad_second_return_str').textContent = strings.ad.second || "-";
 }
 
-// --- NEW UNFORCED ERROR DISPLAY ---
+// --- MODIFIED: UNFORCED ERROR & SECOND SHOT DISPLAYS (Per-Set) ---
 function updateUnforcedErrorDisplay() {
     if (currentView !== 'match-tracker') return;
     
     document.getElementById('p1_ue').textContent = getAbbrev('player1');
     document.getElementById('p2_ue').textContent = getAbbrev('player2');
 
+    const currentSetIndex = matchData.scores.player1.length - 1;
     let tally = { player1:0, player2:0 };
-    matchData.pointHistory.filter(p => p.type === 'unforcedError').forEach(p => tally[p.playerKey]++);
+    matchData.pointHistory
+        .filter(p => p.type === 'unforcedError' && p.setIndex === currentSetIndex)
+        .forEach(p => tally[p.playerKey]++);
     
     let tallyHTML = '';
     ['player1', 'player2'].forEach(pKey => {
         if (tally[pKey] > 0) tallyHTML += `<span>${getAbbrev(pKey)}: ${tally[pKey]}</span>`;
     });
-    document.getElementById('ueTally').innerHTML = tallyHTML || '<span>No errors yet</span>';
+    document.getElementById('ueTally').innerHTML = tallyHTML || '<span>No errors this set</span>';
 }
 
 function updateSecondShotDisplay() {
@@ -234,15 +237,19 @@ function updateSecondShotDisplay() {
     document.getElementById('p1_ss').textContent = `${getAbbrev('player1')}-${'player1' === serverKey ? 'S' : 'R'}`;
     document.getElementById('p2_ss').textContent = `${getAbbrev('player2')}-${'player2' === serverKey ? 'S' : 'R'}`;
 
+    const currentSetIndex = matchData.scores.player1.length - 1;
     let tally = { player1:0, player2:0 };
-    matchData.pointHistory.filter(p => p.type === 'secondShotMiss').forEach(p => tally[p.playerKey]++);
+    matchData.pointHistory
+        .filter(p => p.type === 'secondShotMiss' && p.setIndex === currentSetIndex)
+        .forEach(p => tally[p.playerKey]++);
     
     let tallyHTML = '';
     ['player1', 'player2'].forEach(pKey => {
         if (tally[pKey] > 0) tallyHTML += `<span>${getAbbrev(pKey)}: ${tally[pKey]}</span>`;
     });
-    document.getElementById('ssMissTally').innerHTML = tallyHTML || '<span>No misses yet</span>';
+    document.getElementById('ssMissTally').innerHTML = tallyHTML || '<span>No misses this set</span>';
 }
+
 
 // --- LOCAL STORAGE & MATCH MANAGEMENT ---
 function saveCurrentMatch() {
@@ -266,10 +273,11 @@ function activateMatch(id) {
     if (matchToLoad) {
         matchData = JSON.parse(JSON.stringify(matchToLoad));
         
-        ['player1', 'player2', 'location', 'surface'].forEach(key => {
-            const el = document.getElementById(key);
-            if (el) el.value = matchData.players[key] || matchData[key];
+        ['player1', 'player2'].forEach(pKey => {
+            document.getElementById(pKey).value = matchData.players[pKey];
         });
+        document.getElementById('location').value = matchData.location;
+        document.getElementById('surface').value = matchData.surface;
         document.getElementById('matchDate').value = matchData.date;
 
         showSection('match-tracker');
@@ -384,7 +392,7 @@ function calculateAllStats() {
                 retDeuceFirstWon: 0, retDeuceFirstTotal: 0, retDeuceSecondWon: 0, retDeuceSecondTotal: 0,
                 retAdFirstWon: 0, retAdFirstTotal: 0, retAdSecondWon: 0, retAdSecondTotal: 0,
                 ssMisses: { S: 0, R: 0 },
-                unforcedErrors: 0 // <-- NEW
+                unforcedErrors: 0
             };
             pointsInPeriod.filter(p => p.type === 'return' && p.returner === pKey).forEach(p => {
                 if (p.side === 'deuce' && p.serve === 'first') { periodStats[pKey].retDeuceFirstTotal++; if (p.outcome === '1') periodStats[pKey].retDeuceFirstWon++; }
@@ -393,7 +401,7 @@ function calculateAllStats() {
                 if (p.side === 'ad' && p.serve === 'second') { periodStats[pKey].retAdSecondTotal++; if (p.outcome === '1') periodStats[pKey].retAdSecondWon++; }
             });
             pointsInPeriod.filter(p => p.type === 'secondShotMiss' && p.playerKey === pKey).forEach(p => periodStats[pKey].ssMisses[p.position]++);
-            periodStats[pKey].unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length; // <-- NEW
+            periodStats[pKey].unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length;
         });
         
         ['player1', 'player2'].forEach(pKey => {
@@ -464,7 +472,6 @@ function populateAllResultsViews() {
             const s = allStats[`set${i}`][pKey];
             table += `<tr><td>Set ${i+1}</td><td>${s.retDeuceFirstWon}/${s.retDeuceFirstTotal}</td><td>${s.retDeuceSecondWon}/${s.retDeuceSecondTotal}</td><td>${s.retAdFirstWon}/${s.retAdFirstTotal}</td><td>${s.retAdSecondWon}/${s.retAdSecondTotal}</td></tr>`;
         }
-        // NEW Unforced Error Table
         table += `</tbody></table><h3 class="results-subtitle">😩 Unforced Errors</h3><table class="results-table"><thead><tr><th>Set</th><th>Total</th></tr></thead><tbody>`;
         for(let i=0; i < numSets; i++) {
             const s = allStats[`set${i}`][pKey];
