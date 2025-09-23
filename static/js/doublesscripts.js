@@ -1,4 +1,4 @@
-// Tony's Doubles Tracker JavaScript (Rewritten v6 - Final Polish)
+// Tony's Doubles Tracker JavaScript (Rewritten v6.1 - Per-Set SSM Tracking)
 
 document.addEventListener('DOMContentLoaded', initializeTracker);
 
@@ -104,7 +104,7 @@ function adjustSet(change) {
             matchData.scores.team2.pop();
         }
     }
-    updateScoreDisplay();
+    updateAllDisplays();
 }
 
 function updateScoreDisplay() {
@@ -233,7 +233,7 @@ function updateReturnStringsDisplay() {
     document.getElementById('ad_second_return_str').textContent = strings.ad.second || "-";
 }
 
-// --- SECOND SHOT DISPLAY ---
+// --- MODIFIED: SECOND SHOT DISPLAY (Per-Set) ---
 function getPlayerPosition(playerKey) {
     if (!matchData || !matchData.currentServer) return '';
     if (playerKey === matchData.currentServer) return 'S';
@@ -247,8 +247,12 @@ function getPlayerPosition(playerKey) {
 
 function updateSecondShotDisplay() {
     if (currentView !== 'match-tracker') return;
+    
+    const currentSetIndex = matchData.scores.team1.length - 1;
     let tally = { player1:0, player2:0, player3:0, player4:0 };
-    matchData.pointHistory.filter(p => p.type === 'secondShotMiss').forEach(p => tally[p.playerKey]++);
+    matchData.pointHistory
+        .filter(p => p.type === 'secondShotMiss' && p.setIndex === currentSetIndex)
+        .forEach(p => tally[p.playerKey]++);
     
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         const btn = document.getElementById(`p${pKey.slice(-1)}_ss`);
@@ -259,8 +263,9 @@ function updateSecondShotDisplay() {
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         if (tally[pKey] > 0) tallyHTML += `<span>${getAbbrev(pKey)}: ${tally[pKey]}</span>`;
     });
-    document.getElementById('ssMissTally').innerHTML = tallyHTML || '<span>No misses yet</span>';
+    document.getElementById('ssMissTally').innerHTML = tallyHTML || '<span>No misses this set</span>';
 }
+
 
 // --- LOCAL STORAGE & MATCH MANAGEMENT ---
 function saveCurrentMatch() {
@@ -284,10 +289,11 @@ function activateMatch(id) {
     if (matchToLoad) {
         matchData = JSON.parse(JSON.stringify(matchToLoad));
         
-        ['player1', 'player2', 'player3', 'player4', 'location', 'surface'].forEach(key => {
-            const el = document.getElementById(key);
-            if (el) el.value = matchData.players[key] || matchData[key];
+        ['player1', 'player2', 'player3', 'player4'].forEach(key => {
+            document.getElementById(key).value = matchData.players[key];
         });
+        document.getElementById('location').value = matchData.location;
+        document.getElementById('surface').value = matchData.surface;
         document.getElementById('matchDate').value = matchData.date;
 
         showSection('match-tracker');
