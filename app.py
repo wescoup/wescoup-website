@@ -37,6 +37,11 @@ def tonys_strategy_calculator_instructions():
     """Show Tony's Strategy Calculator instructions page"""
     return render_template("tennis/tonys-strategy-calculator-instructions.html")
 
+@app.route("/tonys-tracker-instructions")
+def tonys_tracker_instructions():
+    """Show the instructions page for the tennis trackers"""
+    return render_template("tennis/tonys-tracker-instructions.html")
+
 @app.route("/testpage")
 def testpage():
     """Show the test page"""
