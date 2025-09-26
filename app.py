@@ -42,6 +42,10 @@ def tonys_tracker_instructions():
     """Show the instructions page for the tennis trackers"""
     return render_template("tennis/tonys-tracker-instructions.html")
 
+@app.route('/tonys-pickleball-tools')
+def tonys_pickleball_tools():
+    return render_template('pickleball/tonys-pickleball-tools.html')
+
 @app.route("/testpage")
 def testpage():
     """Show the test page"""
