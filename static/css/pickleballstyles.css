@@ -1,0 +1,27 @@
+/* Tony's Pickleball Page & Trackers - Styles v1 */
+
+.tennis-body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #004643 0%, #0c7c59 100%);
+    color: #ffffff;
+    padding: 1rem;
+}
+
+.tool-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tool-card h2 {
+    color: #f9bc60;
+}
