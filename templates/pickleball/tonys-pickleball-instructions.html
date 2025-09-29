@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Gemini, this is a copy of tonys-tennis-instructions. It needs to be updated for pickleball instructions. -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,50 +55,35 @@
 </head>
 <body class="instructions-body">
     <div class="instructions-container">
-        <h1>Tony’s Tennis Pickleball Tracking Instructions</h1>
+        <h1>Tony’s Pickleball Tracking Instructions</h1>
 
         <h2>Core Tracking</h2>
         <ul>
             <li>
                 <strong>Return of Serve</strong>
-                Tracking is based on the return of serve. For every serve, first or second, log whether the returner (or returning team) won or lost the point. The trackers will automatically calculate serving percentages based on this data.
+                Tracking is based on the return of serve. For every serve, log whether the returner won or lost the point. The tracker will automatically update the score based on this data.
             </li>
             <li>
                 <strong>Undo Last Point</strong>
-                Made a mistake? This button will remove the very last action you recorded.
-            </li>
-            <li>
-                <strong>Game Complete</strong>
-                Press this after each game to reset the return-of-serve tallies for the next game.
-            </li>
-            <li>
-                <strong>Game Scoring</strong>
-                Game scoring is not dynamic. This is on purpose. One, it is easy to miss points when tracking matches. Two, players frequently play the wrong score within a game.
+                Made a mistake? This button will remove the very last action you recorded, including the score change.
             </li>
         </ul>
 
         <h2>Singles-Specific Tracking</h2>
         <ul>
             <li>
-                <strong>Unforced Errors & Second Shot Misses</strong>
-                Use these buttons to log unforced errors and second shot misses. (For an unforced error on a second shot, add 1 to both tallies.) The tallies for these are automatically reset at the start of each new set.
+                <strong>Unforced Errors & Third Shot Misses</strong>
+                Use these buttons to log unforced errors and third shot misses. The tallies for these are automatically reset at the start of each new game.
+            </li>
+            <li>
+                <strong>Dynamic Scoring</strong>
+                Unlike the tennis trackers, the game score is updated dynamically as you track points.
             </li>
         </ul>
 
         <h2>Doubles-Specific Tracking</h2>
-        <ul>
-            <li>
-                <strong>Server & Returner Positions</strong>
-                <ul class="nested-list">
-                    <li>Use the dropdown menu to select the current server for each game.</li>
-                    <li>Use the "Switch" button to correctly position the returning players or to update their positions if they change returning positions between sets.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Second Shot Misses</strong>
-                The buttons for second shot misses are labeled with the player's position (S for Server, N for Net, D for Deuce Returner, A for Ad Returner). This helps you track who is missing and from where on the court. This tally also resets at the beginning of each new set.
-            </li>
-        </ul>
+        <p>Doubles tracking is a future feature.</p>
+
         <div class="text-center mt-4">
              <a href="/tonys-pickleball-tools" class="btn btn-primary">← Back to Tony's Pickleball Tools</a>
         </div>
