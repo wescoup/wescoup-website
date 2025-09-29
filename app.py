@@ -50,13 +50,18 @@ def tonys_pickleball_tools():
 def tonys_pickleball_tracker():
     return render_template('pickleball/tonys-pickleball-tracker.html')
 
-@app.route('/tonys-pickleball-doubles-tracker')
-def tonys_pickleball_doubles_tracker():
-    return render_template('pickleball/tonys-pickleball-doubles-tracker.html')
-
 @app.route("/tonys-pickleball-instructions")
 def tonys_pickleball_instructions():
     """Show the instructions page for the pickleball trackers"""
+    return render_template("pickleball/tonys-pickleball-instructions.html")
+
+@app.route("/tonys-pickleball-doubles-tracker")
+def tonys_pickleball_doubles_tracker():
+    return render_template('pickleball/tonys-pickleball-doubles-tracker.html')
+
+@app.route("/tonys-pickleball-doubles-instructions")
+def tonys_pickleball_doubles_instructions():
+    """Show the instructions page for the pickleball doubles tracker"""
     return render_template("pickleball/tonys-pickleball-instructions.html")
 
 @app.route("/testpage")
