@@ -222,14 +222,17 @@ function updateReturnStringsDisplay() {
     const strings = { deuce: '', ad: '' };
     
     currentGamePoints.forEach(p => {
-        if (p.type === 'return') {
-            strings[p.side] += p.outcome;
+        if (p.type === 'return' && p.returner === matchData.returners.deuce) {
+            strings.deuce += p.outcome === '1' ? 'W' : 'L';
+        } else if (p.type === 'return' && p.returner === matchData.returners.ad) {
+            strings.ad += p.outcome === '1' ? 'W' : 'L';
         }
     });
 
     document.getElementById('deuce_return_str').textContent = strings.deuce || "-";
     document.getElementById('ad_return_str').textContent = strings.ad || "-";
 }
+
 
 // --- DOUBLES-SPECIFIC DISPLAYS ---
 function getPlayerPosition(playerKey) {
@@ -432,7 +435,8 @@ function calculateAllStats() {
                 thirdFourthShotMisses: { S: 0, N: 0, D: 0, A: 0 },
                 unforcedErrors: 0,
                 pointsWon: 0,
-                pointsTotal: 0
+                pointsTotal: 0,
+                servDeuceWon: 0, servDeuceTotal: 0, servAdWon: 0, servAdTotal: 0
             };
 
             const servePoints = pointsInPeriod.filter(p => p.type === 'return' && p.server === pKey);
@@ -444,6 +448,11 @@ function calculateAllStats() {
             returnPoints.forEach(p => {
                 if (p.side === 'deuce') { periodStats[pKey].retDeuceTotal++; if (p.outcome === '1') periodStats[pKey].retDeuceWon++; }
                 if (p.side === 'ad') { periodStats[pKey].retAdTotal++; if (p.outcome === '1') periodStats[pKey].retAdWon++; }
+            });
+            
+            servePoints.forEach(p => {
+                if (p.side === 'deuce') { periodStats[pKey].servDeuceTotal++; if (p.outcome === '0') periodStats[pKey].servDeuceWon++; }
+                if (p.side === 'ad') { periodStats[pKey].servAdTotal++; if (p.outcome === '0') periodStats[pKey].servAdWon++; }
             });
 
             pointsInPeriod.filter(p => p.type === 'thirdFourthShotMiss' && p.playerKey === pKey).forEach(p => periodStats[pKey].thirdFourthShotMisses[p.position]++);
@@ -462,6 +471,8 @@ function calculateAllStats() {
                 const pStats = periodStats[pKey];
                 tStats.retWon += pStats.retDeuceWon + pStats.retAdWon;
                 tStats.retTotal += pStats.retDeuceTotal + pStats.retAdTotal;
+                tStats.servWon += pStats.servDeuceWon + pStats.servAdWon;
+                tStats.servTotal += pStats.servDeuceTotal + pStats.servAdTotal;
                 tStats.thirdFourthServing += pStats.thirdFourthShotMisses.S + pStats.thirdFourthShotMisses.N;
                 tStats.thirdFourthReturning += pStats.thirdFourthShotMisses.D + pStats.thirdFourthShotMisses.A;
                 tStats.unforcedErrors += pStats.unforcedErrors;
@@ -469,14 +480,7 @@ function calculateAllStats() {
                 tStats.pointsTotal += pStats.pointsTotal;
             });
             tStats.retWonPct = tStats.retTotal > 0 ? (tStats.retWon / tStats.retTotal) * 100 : 0;
-        });
-        
-        ['team1', 'team2'].forEach(teamKey => {
-             const tStats = periodStats[teamKey];
-             const oppStats = periodStats[teamKey === 'team1' ? 'team2' : 'team1'];
-             tStats.servTotal = oppStats.retTotal;
-             tStats.servWon = tStats.servTotal - oppStats.retWon;
-             tStats.servWonPct = tStats.servTotal > 0 ? (tStats.servWon / tStats.servTotal) * 100 : 0;
+            tStats.servWonPct = tStats.servTotal > 0 ? (tStats.servWon / tStats.servTotal) * 100 : 0;
         });
     }
 
@@ -534,7 +538,6 @@ function populateAllResultsViews() {
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         document.getElementById(`${pKey}-title`).innerHTML = `👤 ${matchData.players[pKey]}`;
         const pStatsMatch = allStats.match[pKey];
-        const playerIsTeam1 = matchData.teams.team1.includes(pKey);
         
         let table = `<h3 class="results-subtitle">Overall Stats</h3><table class="results-table"><thead><tr><th>Stat</th><th>Total</th><th>Percentage</th></tr></thead><tbody>
         <tr><td>Points Won</td><td>${pStatsMatch.pointsWon}</td><td>${(pStatsMatch.pointsWon / pStatsMatch.pointsTotal * 100).toFixed(0)}%</td></tr>
@@ -548,6 +551,23 @@ function populateAllResultsViews() {
         for(let i=0; i < numGames; i++) {
             const s = allStats[`game${i}`][pKey];
             table += `<tr><td>Game ${i+1}</td><td>${s.servWonPct.toFixed(0)}%</td><td>${s.retWonPct.toFixed(0)}%</td><td>${s.unforcedErrors}</td><td>${s.thirdFourthShotMisses.S + s.thirdFourthShotMisses.N + s.thirdFourthShotMisses.D + s.thirdFourthShotMisses.A}</td></tr>`;
+        }
+        table += `</tbody></table>`;
+        
+        table += `<h3 class="results-subtitle">Serving Side Breakdown</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
+        for(let i=0; i < numGames; i++) {
+             const s = allStats[`game${i}`][pKey];
+             const deucePct = s.servDeuceTotal > 0 ? (s.servDeuceWon / s.servDeuceTotal) * 100 : 0;
+             const adPct = s.servAdTotal > 0 ? (s.servAdWon / s.servAdTotal) * 100 : 0;
+             table += `<tr><td>Game ${i+1}</td><td>${deucePct.toFixed(0)}% (${s.servDeuceWon}/${s.servDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.servAdWon}/${s.servAdTotal})</td></tr>`;
+        }
+
+        table += `</tbody></table><h3 class="results-subtitle">Returning Side Breakdown</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
+        for(let i=0; i < numGames; i++) {
+            const s = allStats[`game${i}`][pKey];
+            const deucePct = s.retDeuceTotal > 0 ? (s.retDeuceWon / s.retDeuceTotal) * 100 : 0;
+            const adPct = s.retAdTotal > 0 ? (s.retAdWon / s.retAdTotal) * 100 : 0;
+            table += `<tr><td>Game ${i+1}</td><td>${deucePct.toFixed(0)}% (${s.retDeuceWon}/${s.retDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.retAdWon}/${s.retAdTotal})</td></tr>`;
         }
         table += `</tbody></table>`;
         document.getElementById(`${pKey}-results-card`).innerHTML = table;
