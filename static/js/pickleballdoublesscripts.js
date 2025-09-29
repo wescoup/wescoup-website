@@ -372,6 +372,8 @@ function renderResults() {
             ${generateAllResultsViewsHTML()}
         </div>
     `;
+    populateAllResultsViews();
+    showResultsView(0);
 }
 
 function showResultsView(index) {
@@ -438,7 +440,11 @@ function calculateAllStats() {
                 thirdFourthShotMisses: { S: 0, N: 0, D: 0, A: 0 },
                 unforcedErrors: 0,
                 pointsWon: 0,
-                pointsTotal: 0
+                pointsTotal: 0,
+                servWon: 0,
+                retWon: 0,
+                servWonPct: 0,
+                retWonPct: 0
             };
 
             const servePoints = pointsInPeriod.filter(p => p.type === 'return' && p.server === pKey);
@@ -459,6 +465,13 @@ function calculateAllStats() {
 
             pointsInPeriod.filter(p => p.type === 'thirdFourthShotMiss' && p.playerKey === pKey).forEach(p => periodStats[pKey].thirdFourthShotMisses[p.position]++);
             periodStats[pKey].unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length;
+            
+            periodStats[pKey].servWon = periodStats[pKey].servDeuceWon + periodStats[pKey].servAdWon;
+            periodStats[pKey].servTotal = periodStats[pKey].servDeuceTotal + periodStats[pKey].servAdTotal;
+            periodStats[pKey].retWon = periodStats[pKey].retDeuceWon + periodStats[pKey].retAdWon;
+            periodStats[pKey].retTotal = periodStats[pKey].retDeuceTotal + periodStats[pKey].retAdTotal;
+            periodStats[pKey].servWonPct = periodStats[pKey].servTotal > 0 ? (periodStats[pKey].servWon / periodStats[pKey].servTotal) * 100 : 0;
+            periodStats[pKey].retWonPct = periodStats[pKey].retTotal > 0 ? (periodStats[pKey].retWon / periodStats[pKey].retTotal) * 100 : 0;
         });
 
         ['team1', 'team2'].forEach(teamKey => {
@@ -543,11 +556,13 @@ function populateAllResultsViews() {
         
         // Correctly handle division by zero for percentage calculations
         const pointsWonPct = pStatsMatch.pointsTotal > 0 ? (pStatsMatch.pointsWon / pStatsMatch.pointsTotal * 100).toFixed(0) : 0;
+        const servWonPct = pStatsMatch.servTotal > 0 ? (pStatsMatch.servWon / pStatsMatch.servTotal * 100).toFixed(0) : 0;
+        const retWonPct = pStatsMatch.retTotal > 0 ? (pStatsMatch.retWon / pStatsMatch.retTotal * 100).toFixed(0) : 0;
         
         let table = `<h3 class="results-subtitle">Overall Stats</h3><table class="results-table"><thead><tr><th>Stat</th><th>Total</th><th>Percentage</th></tr></thead><tbody>
         <tr><td>Points Won</td><td>${pStatsMatch.pointsWon}</td><td>${pointsWonPct}%</td></tr>
-        <tr><td>Serves Won</td><td>${pStatsMatch.servWon}</td><td>${pStatsMatch.servWonPct.toFixed(0)}%</td></tr>
-        <tr><td>Returns Won</td><td>${pStatsMatch.retWon}</td><td>${pStatsMatch.retWonPct.toFixed(0)}%</td></tr>
+        <tr><td>Serves Won</td><td>${pStatsMatch.servWon}</td><td>${servWonPct}%</td></tr>
+        <tr><td>Returns Won</td><td>${pStatsMatch.retWon}</td><td>${retWonPct}%</td></tr>
         <tr><td>Unforced Errors</td><td>${pStatsMatch.unforcedErrors}</td><td>-</td></tr>
         <tr><td>3rd/4th Shot Misses</td><td>${pStatsMatch.thirdFourthShotMisses.S + pStatsMatch.thirdFourthShotMisses.N + pStatsMatch.thirdFourthShotMisses.D + pStatsMatch.thirdFourthShotMisses.A}</td><td>-</td></tr>
         </tbody></table>`;
