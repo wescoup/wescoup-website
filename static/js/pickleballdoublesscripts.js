@@ -54,7 +54,11 @@ function showSection(sectionId) {
     if (activeButton) activeButton.classList.add('active');
     
     if (sectionId === 'match-tracker') updateAllDisplays();
-    if (sectionId === 'results') renderResults();
+    if (sectionId === 'results') {
+        renderResults();
+        populateAllResultsViews();
+        showResultsView(0);
+    }
     if (sectionId === 'saved-matches') renderSavedMatchesList();
 }
 
