@@ -380,6 +380,7 @@ function calculateAllStats() {
         ['player1', 'player2'].forEach(pKey => {
             periodStats[pKey] = {
                 retDeuceWon: 0, retDeuceTotal: 0, retAdWon: 0, retAdTotal: 0,
+                servDeuceWon: 0, servDeuceTotal: 0, servAdWon: 0, servAdTotal: 0,
                 thirdShotMisses: { S: 0, R: 0 },
                 unforcedErrors: 0,
                 pointsWon: 0,
@@ -396,6 +397,11 @@ function calculateAllStats() {
                 if (p.side === 'deuce') { periodStats[pKey].retDeuceTotal++; if (p.outcome === '1') periodStats[pKey].retDeuceWon++; }
                 if (p.side === 'ad') { periodStats[pKey].retAdTotal++; if (p.outcome === '1') periodStats[pKey].retAdWon++; }
             });
+            
+            servePoints.forEach(p => {
+                if (p.side === 'deuce') { periodStats[pKey].servDeuceTotal++; if (p.outcome === '0') periodStats[pKey].servDeuceWon++; }
+                if (p.side === 'ad') { periodStats[pKey].servAdTotal++; if (p.outcome === '0') periodStats[pKey].servAdWon++; }
+            });
 
             pointsInPeriod.filter(p => p.type === 'thirdShotMiss' && p.playerKey === pKey).forEach(p => periodStats[pKey].thirdShotMisses[p.position]++);
             periodStats[pKey].unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length;
@@ -403,10 +409,9 @@ function calculateAllStats() {
 
         ['player1', 'player2'].forEach(pKey => {
             const pStats = periodStats[pKey];
-            const oppStats = periodStats[pKey === 'player1' ? 'player2' : 'player1'];
             
-            pStats.servTotal = oppStats.retDeuceTotal + oppStats.retAdTotal;
-            pStats.servWon = pStats.servTotal - (oppStats.retDeuceWon + oppStats.retAdWon);
+            pStats.servTotal = pStats.servDeuceTotal + pStats.servAdTotal;
+            pStats.servWon = pStats.servDeuceWon + pStats.servAdWon;
             pStats.servWonPct = pStats.servTotal > 0 ? (pStats.servWon / pStats.servTotal) * 100 : 0;
             
             pStats.retTotal = pStats.retDeuceTotal + pStats.retAdTotal;
@@ -453,11 +458,14 @@ function populateAllResultsViews() {
     
     ['player1', 'player2'].forEach((pKey, i) => {
         document.getElementById(`${pKey}-title`).innerHTML = `${i===0 ? '🔵' : '🔴'} ${matchData.players[pKey]}`;
-        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Game</th><th colspan="2">Serve Won %</th></tr></thead><tbody>`;
+        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
         periods.forEach((p, i) => {
             const s = allStats[p][pKey];
-            table += `<tr><td>${p === 'match' ? 'Match' : `Game ${i+1}`}</td><td>${s.servWonPct.toFixed(0)}%</td></tr>`;
+            const deucePct = s.servDeuceTotal > 0 ? (s.servDeuceWon / s.servDeuceTotal) * 100 : 0;
+            const adPct = s.servAdTotal > 0 ? (s.servAdWon / s.servAdTotal) * 100 : 0;
+            table += `<tr><td>${p === 'match' ? 'Match' : `Game ${i+1}`}</td><td>${deucePct.toFixed(0)}% (${s.servDeuceWon}/${s.servDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.servAdWon}/${s.servAdTotal})</td></tr>`;
         });
+
         table += `</tbody></table><h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
         periods.forEach((p, i) => {
             const s = allStats[p][pKey];
@@ -471,7 +479,7 @@ function populateAllResultsViews() {
             table += `<tr><td>Game ${i+1}</td><td>${s.unforcedErrors}</td></tr>`;
         }
         table += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].unforcedErrors}</b></td></tr>`;
-        table += `</tbody></table><h3 class="results-subtitle">🎯 Third Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
+        table += `</tbody></table><h3 class="results-subtitle">🎯 Third/Fourth Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
         for(let i=0; i < numGames; i++) {
             const s = allStats[`game${i}`][pKey];
             table += `<tr><td>Game ${i+1}</td><td>${s.thirdShotMisses.S}</td><td>${s.thirdShotMisses.R}</td></tr>`;
