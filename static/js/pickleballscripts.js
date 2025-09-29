@@ -456,15 +456,15 @@ function populateAllResultsViews() {
     
     ['player1', 'player2'].forEach((pKey, i) => {
         document.getElementById(`${pKey}-title`).innerHTML = `${i===0 ? '🔵' : '🔴'} ${matchData.players[pKey]}`;
-        let table += `</tbody></table><h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Game</th><th colspan="2">Serve Won %</th></tr></thead><tbody>`;
-        periods.forEach((p, i) => {
-            const s = allStats[p][pKey];
-            table += `<tr><td>${p === 'match' ? 'Match' : `Game ${i+1}`}</td><td>${s.servWonPct.toFixed(0)}%</td></tr>`;
-        });
-        table = `<h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Game</th><th colspan="2">Return Won %</th></tr></thead><tbody>`;
+        let table = `<h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Game</th><th colspan="2">Return Won %</th></tr></thead><tbody>`;
         periods.forEach((p, i) => {
             const s = allStats[p][pKey];
             table += `<tr><td>${p === 'match' ? 'Match' : `Game ${i+1}`}</td><td>${s.retWonPct.toFixed(0)}%</td></tr>`;
+        });
+        table += `</tbody></table><h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Game</th><th colspan="2">Serve Won %</th></tr></thead><tbody>`;
+        periods.forEach((p, i) => {
+            const s = allStats[p][pKey];
+            table += `<tr><td>${p === 'match' ? 'Match' : `Game ${i+1}`}</td><td>${s.servWonPct.toFixed(0)}%</td></tr>`;
         });
         table += `</tbody></table><h3 class="results-subtitle">😩 Unforced Errors</h3><table class="results-table"><thead><tr><th>Game</th><th>Total</th></tr></thead><tbody>`;
         for(let i=0; i < numGames; i++) {
@@ -472,7 +472,7 @@ function populateAllResultsViews() {
             table += `<tr><td>Game ${i+1}</td><td>${s.unforcedErrors}</td></tr>`;
         }
         table += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].unforcedErrors}</b></td></tr>`;
-        table += `</tbody></table><h3 class="results-subtitle">🎯 Third Shot / Fourth Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
+        table += `</tbody></table><h3 class="results-subtitle">🎯 Third Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
         for(let i=0; i < numGames; i++) {
             const s = allStats[`game${i}`][pKey];
             table += `<tr><td>Game ${i+1}</td><td>${s.thirdShotMisses.S}</td><td>${s.thirdShotMisses.R}</td></tr>`;
