@@ -496,6 +496,9 @@ function calculateAllStats() {
 
 function populateAllResultsViews() {
     const allStats = calculateAllStats();
+    const numGames = matchData.scores.team1.length;
+    const periods = ['match', ...Array.from({length: numGames}, (_, i) => `game${i}`)];
+
     const matchStats = allStats.match;
 
     document.getElementById('summary-content').innerHTML = `
@@ -519,9 +522,6 @@ function populateAllResultsViews() {
         </div>
     `;
 
-    const numGames = matchData.scores.team1.length;
-    const periods = ['match', ...Array.from({length: numGames}, (_, i) => `game${i}`)];
-    
     ['team1', 'team2'].forEach((teamKey, i) => {
         document.getElementById(`${teamKey}-title`).innerHTML = `${i===0 ? '🔵' : '🔴'} ${matchData.players[matchData.teams[teamKey][0]]} & ${matchData.players[matchData.teams[teamKey][1]]}`;
         
@@ -541,7 +541,7 @@ function populateAllResultsViews() {
         document.getElementById(`${pKey}-title`).innerHTML = `👤 ${matchData.players[pKey]}`;
         const pStatsMatch = allStats.match[pKey];
         
-        // Check for division by zero before calculating percentage
+        // Correctly handle division by zero for percentage calculations
         const pointsWonPct = pStatsMatch.pointsTotal > 0 ? (pStatsMatch.pointsWon / pStatsMatch.pointsTotal * 100).toFixed(0) : 0;
         
         let table = `<h3 class="results-subtitle">Overall Stats</h3><table class="results-table"><thead><tr><th>Stat</th><th>Total</th><th>Percentage</th></tr></thead><tbody>
