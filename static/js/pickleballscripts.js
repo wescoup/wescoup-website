@@ -472,7 +472,7 @@ function populateAllResultsViews() {
             table += `<tr><td>Game ${i+1}</td><td>${s.unforcedErrors}</td></tr>`;
         }
         table += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].unforcedErrors}</b></td></tr>`;
-        table += `</tbody></table><h3 class="results-subtitle">🎯 Third Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
+        table += `</tbody></table><h3 class="results-subtitle">🎯 Third Shot / Fourth Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
         for(let i=0; i < numGames; i++) {
             const s = allStats[`game${i}`][pKey];
             table += `<tr><td>Game ${i+1}</td><td>${s.thirdShotMisses.S}</td><td>${s.thirdShotMisses.R}</td></tr>`;
