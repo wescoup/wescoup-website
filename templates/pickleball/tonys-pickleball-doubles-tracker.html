@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!-- Gemini, I created tonys-pickleball-doubles-tracker using tonys-tennis-tracker. Please revise for doubles pickleball. -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tony's Pickleball Doubles Tracker - Wescoup.com</title>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Doubles Tracker">
+    <meta name="theme-color" content="#1e3c72">
+    
+    <link rel="stylesheet" href="/static/css/tennisstyles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="tennis-tracker-body">
+    <div class="tennis-tracker-container">
+        <div class="tennis-tracker-header">
+            <h1>🎾 Tony's Doubles Tracker</h1>
+            <p class="subtitle-text">Return-based doubles match analysis</p>
+        </div>
+
+        <div class="tennis-nav">
+            <button class="tennis-nav-btn active" onclick="showSection('match-info')">Match Info</button>
+            <button class="tennis-nav-btn" onclick="showSection('match-tracker')">Track Match</button>
+            <button class="tennis-nav-btn" onclick="showSection('results')">Results</button>
+            <button class="tennis-nav-btn" onclick="showSection('saved-matches')">Saved Matches</button>
+            <button class="tennis-nav-btn" onclick="window.location.href='/tonys-pickleball-tools'">Tony's Pickleball Tools</button>
+        </div>
+
+        <div id="match-info" class="tennis-section active">
+            <h2 class="section-title">Enter Match Information</h2>
+            
+            <div class="team-setup-grid">
+                <div class="team-card team-1-bg">
+                    <h3 class="team-title-blue">🔵 Team 1</h3>
+                    <div class="tennis-form-group">
+                        <label for="player1">Player 1:</label>
+                        <input type="text" id="player1" placeholder="Player 1 name" value="P1">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player2">Player 2:</label>
+                        <input type="text" id="player2" placeholder="Player 2 name" value="P2">
+                    </div>
+                </div>
+                
+                <div class="team-card team-2-bg">
+                    <h3 class="team-title-red">🔴 Team 2</h3>
+                    <div class="tennis-form-group">
+                        <label for="player3">Player 3:</label>
+                        <input type="text" id="player3" placeholder="Player 3 name" value="P3">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player4">Player 4:</label>
+                        <input type="text" id="player4" placeholder="Player 4 name" value="P4">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tennis-form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" placeholder="Court location" value="Local Court">
+            </div>
+            
+            <div class="tennis-form-group">
+                <label for="surface">Surface:</label>
+                <select id="surface">
+                    <option value="Hard">Hard</option>
+                    <option value="Clay">Clay</option>
+                    <option value="Grass">Grass</option>
+                    <option value="Indoor">Indoor</option>
+                </select>
+            </div>
+            
+            <div class="tennis-form-group">
+                <label for="matchDate">Date:</label>
+                <input type="date" id="matchDate">
+            </div>
+        </div>
+        <!-- Gemini, this div needs to track points rather than games. Refer to tonys-pickleball-tracker. -->
+        <div id="match-tracker" class="tennis-section">
+            <h2 class="section-title">Track Your Match</h2>
+            
+            <div class="stats-grid score-grid">
+                <div class="stat-card">
+                    <div class="stat-label" id="team1NameScore">P1/P2</div>
+                    <div class="stat-value" id="team1Score">0</div>
+                    <div class="tennis-btn-group">
+                        <button class="tennis-btn" onclick="adjustGames('team1', 1)">+</button>
+                        <button class="tennis-btn" onclick="adjustGames('team1', -1)">-</button>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Game</div>
+                    <div class="stat-value" id="currentSet">1</div>
+                    <div class="tennis-btn-group">
+                        <button class="tennis-btn" onclick="adjustSet(1)">+</button>
+                        <button class="tennis-btn" onclick="adjustSet(-1)">-</button>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="team2NameScore">P3/P4</div>
+                    <div class="stat-value" id="team2Score">0</div>
+                    <div class="tennis-btn-group">
+                        <button class="tennis-btn" onclick="adjustGames('team2', 1)">+</button>
+                        <button class="tennis-btn" onclick="adjustGames('team2', -1)">-</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card control-card">
+                <div class="server-row">
+                    <div>
+                        <label class="stat-label">Current Server</label>
+                        <select id="currentServer" onchange="updateServer()" class="server-dropdown"></select>
+                    </div>
+                    <div>
+                        <label class="stat-label">Returner Sides</label>
+                        <button class="tennis-btn" onclick="changeReturners()">Switch</button>
+                    </div>
+                    <div class="tennis-btn-group" style="align-self: flex-end;">
+                        <button class="tennis-btn" onclick="gameComplete()">Complete</button>
+                        <button onclick="undoLastPoint()" class="tennis-btn">↩️ Undo Last Point</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Gemini, I removed the second serve.
+            <div class="returner-grid">
+                <div class="stat-card returner-card deuce-side-border">
+                    <div class="stat-label">🟢 Deuce Returner</div>
+                    <div class="stat-value" id="deuceReturnerName">P3</div>
+                    <div class="return-section">
+                        <label class="stat-label">Serve Return</label>
+                        <div class="return-string-display" id="deuce_first_return_str">-</div>
+                        <div class="tennis-btn-group compact">
+                            <button class="tennis-btn" onclick="recordReturn('deuce', 'first', true)">Win</button>
+                            <button class="tennis-btn" onclick="recordReturn('deuce', 'first', false)">Loss</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card returner-card ad-side-border">
+                    <div class="stat-label">🟣 Ad Returner</div>
+                    <div class="stat-value" id="adReturnerName">P4</div>
+                    <div class="return-section">
+                        <label class="stat-label">Serve Return</label>
+                        <div class="return-string-display" id="ad_first_return_str">-</div>
+                        <div class="tennis-btn-group compact">
+                            <button class="tennis-btn" onclick="recordReturn('ad', 'first', true)">Win</button>
+                            <button class="tennis-btn" onclick="recordReturn('ad', 'first', false)">Loss</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Gemini, third and fourth shot misses for pickleball. -->
+            <div class="stat-card second-shot-card">
+                <h3 class="second-shot-title">🎯 Thir Shot / Fourth Shot Miss</h3>
+                <div class="tennis-btn-group">
+                    <button id="p1_ss" onclick="recordSecondShotMiss('player1')" class="tennis-btn team-1-bg">P1-S</button>
+                    <button id="p2_ss" onclick="recordSecondShotMiss('player2')" class="tennis-btn team-1-bg">P2-N</button>
+                    <button id="p3_ss" onclick="recordSecondShotMiss('player3')" class="tennis-btn team-2-bg">P3-D</button>
+                    <button id="p4_ss" onclick="recordSecondShotMiss('player4')" class="tennis-btn team-2-bg">P4-A</button>
+                </div>
+                <div class="ss-miss-tally" id="ssMissTally"></div>
+            </div>
+        </div>
+
+        <div id="results" class="tennis-section">
+            </div>
+
+        <div id="saved-matches" class="tennis-section">
+            <h2 class="section-title">Saved Match History</h2>
+            <div id="saved-matches-list">
+                </div>
+        </div>
+    </div>
+    <!-- Gemini, pickleballdoublesscripts.js -->
+    <script src="/static/js/doublesscripts.js"></script>
+</body>
+</html>
