@@ -372,8 +372,6 @@ function renderResults() {
             ${generateAllResultsViewsHTML()}
         </div>
     `;
-    populateAllResultsViews();
-    showResultsView(0);
 }
 
 function showResultsView(index) {
@@ -489,7 +487,7 @@ function calculateAllStats() {
     }
 
     const matchStats = stats['match'];
-    const totalPoints = matchStats.team1.pointsTotal + matchStats.team2.pointsTotal;
+    const totalPoints = (matchStats.team1.pointsTotal || 0) + (matchStats.team2.pointsTotal || 0);
     matchStats.team1.pointsWonPct = totalPoints > 0 ? (matchStats.team1.pointsWon / totalPoints) * 100 : 0;
     matchStats.team2.pointsWonPct = totalPoints > 0 ? (matchStats.team2.pointsWon / totalPoints) * 100 : 0;
     
