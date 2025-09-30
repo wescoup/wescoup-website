@@ -57,7 +57,11 @@ function showSection(sectionId) {
     if (activeButton) activeButton.classList.add('active');
     
     if (sectionId === 'match-tracker') updateAllDisplays();
-    if (sectionId === 'results') renderResults();
+    if (sectionId === 'results') {
+        renderResults();
+        populateAllResultsViews();
+        showResultsView(0);
+    }
     if (sectionId === 'saved-matches') renderSavedMatchesList();
 }
 
@@ -152,17 +156,13 @@ function recordReturn(court, won) {
 
     const gameIndex = matchData.scores.player1.length - 1;
     
-    if (matchData.scoringType === 'rally') {
-        if (won) {
-            matchData.scores[returner][gameIndex]++;
-        } else {
-            matchData.scores[matchData.currentServer][gameIndex]++;
-        }
-    } else if (matchData.scoringType === 'sideout') {
-        if (won) {
+    if (won) {
+        matchData.scores[returner][gameIndex]++;
+        toggleServer();
+    } else {
+        matchData.scores[matchData.currentServer][gameIndex]++;
+        if (matchData.scoringType === 'sideout') {
             toggleServer();
-        } else {
-            matchData.scores[matchData.currentServer][gameIndex]++;
         }
     }
     updateAllDisplays();
@@ -192,17 +192,15 @@ function undoLastPoint() {
     const lastPoint = matchData.pointHistory.pop();
     if (lastPoint.type === 'return') {
         const gameIndex = matchData.scores.player1.length - 1;
-        if (matchData.scoringType === 'rally') {
-            if (lastPoint.outcome === '1') {
-                matchData.scores[lastPoint.returner][gameIndex] = Math.max(0, matchData.scores[lastPoint.returner][gameIndex] - 1);
-            } else {
-                matchData.scores[lastPoint.server][gameIndex] = Math.max(0, matchData.scores[lastPoint.server][gameIndex] - 1);
+        if (lastPoint.outcome === '1') {
+            matchData.scores[lastPoint.returner][gameIndex] = Math.max(0, matchData.scores[lastPoint.returner][gameIndex] - 1);
+            if (matchData.scoringType === 'rally') {
+                 toggleServer();
             }
-        } else if (matchData.scoringType === 'sideout') {
-            if (lastPoint.outcome === '1') {
-                toggleServer();
-            } else {
-                matchData.scores[lastPoint.server][gameIndex] = Math.max(0, matchData.scores[lastPoint.server][gameIndex] - 1);
+        } else {
+            matchData.scores[lastPoint.server][gameIndex] = Math.max(0, matchData.scores[lastPoint.server][gameIndex] - 1);
+            if (matchData.scoringType === 'sideout') {
+                 toggleServer();
             }
         }
     }
@@ -404,50 +402,49 @@ function calculateAllStats() {
         const pointsInPeriod = i === -1 ? matchData.pointHistory : matchData.pointHistory.filter(p => p.gameIndex === i);
         
         ['player1', 'player2'].forEach(pKey => {
-            periodStats[pKey] = {
+            const playerStats = periodStats[pKey] = {
                 retDeuceWon: 0, retDeuceTotal: 0, retAdWon: 0, retAdTotal: 0,
                 servDeuceWon: 0, servDeuceTotal: 0, servAdWon: 0, servAdTotal: 0,
                 thirdShotMisses: { S: 0, R: 0 },
                 unforcedErrors: 0,
                 pointsWon: 0,
-                pointsTotal: 0
+                pointsTotal: 0,
+                servWon: 0,
+                retWon: 0,
+                servWonPct: 0,
+                retWonPct: 0
             };
 
             const servePoints = pointsInPeriod.filter(p => p.type === 'return' && p.server === pKey);
             const returnPoints = pointsInPeriod.filter(p => p.type === 'return' && p.returner === pKey);
 
-            periodStats[pKey].pointsWon = servePoints.filter(p => p.outcome === '0').length + returnPoints.filter(p => p.outcome === '1').length;
-            periodStats[pKey].pointsTotal = servePoints.length + returnPoints.length;
+            playerStats.pointsWon = servePoints.filter(p => p.outcome === '0').length + returnPoints.filter(p => p.outcome === '1').length;
+            playerStats.pointsTotal = servePoints.length + returnPoints.length;
 
             returnPoints.forEach(p => {
-                if (p.side === 'deuce') { periodStats[pKey].retDeuceTotal++; if (p.outcome === '1') periodStats[pKey].retDeuceWon++; }
-                if (p.side === 'ad') { periodStats[pKey].retAdTotal++; if (p.outcome === '1') periodStats[pKey].retAdWon++; }
+                if (p.side === 'deuce') { playerStats.retDeuceTotal++; if (p.outcome === '1') playerStats.retDeuceWon++; }
+                if (p.side === 'ad') { playerStats.retAdTotal++; if (p.outcome === '1') playerStats.retAdWon++; }
             });
             
             servePoints.forEach(p => {
-                if (p.side === 'deuce') { periodStats[pKey].servDeuceTotal++; if (p.outcome === '0') periodStats[pKey].servDeuceWon++; }
-                if (p.side === 'ad') { periodStats[pKey].servAdTotal++; if (p.outcome === '0') periodStats[pKey].servAdWon++; }
+                if (p.side === 'deuce') { playerStats.servDeuceTotal++; if (p.outcome === '0') playerStats.servDeuceWon++; }
+                if (p.side === 'ad') { playerStats.servAdTotal++; if (p.outcome === '0') playerStats.servAdWon++; }
             });
 
-            pointsInPeriod.filter(p => p.type === 'thirdShotMiss' && p.playerKey === pKey).forEach(p => periodStats[pKey].thirdShotMisses[p.position]++);
-            periodStats[pKey].unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length;
-        });
-
-        ['player1', 'player2'].forEach(pKey => {
-            const pStats = periodStats[pKey];
+            pointsInPeriod.filter(p => p.type === 'thirdShotMiss' && p.playerKey === pKey).forEach(p => playerStats.thirdShotMisses[p.position]++);
+            playerStats.unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length;
             
-            pStats.servTotal = pStats.servDeuceTotal + pStats.servAdTotal;
-            pStats.servWon = pStats.servDeuceWon + pStats.servAdWon;
-            pStats.servWonPct = pStats.servTotal > 0 ? (pStats.servWon / pStats.servTotal) * 100 : 0;
-            
-            pStats.retTotal = pStats.retDeuceTotal + pStats.retAdTotal;
-            pStats.retWon = pStats.retDeuceWon + pStats.retAdWon;
-            pStats.retWonPct = pStats.retTotal > 0 ? (pStats.retWon / pStats.retTotal) * 100 : 0;
+            playerStats.servWon = playerStats.servDeuceWon + playerStats.servAdWon;
+            playerStats.servTotal = playerStats.servDeuceTotal + playerStats.servAdTotal;
+            playerStats.retWon = playerStats.retDeuceWon + playerStats.retAdWon;
+            playerStats.retTotal = playerStats.retDeuceTotal + playerStats.retAdTotal;
+            playerStats.servWonPct = playerStats.servTotal > 0 ? (playerStats.servWon / playerStats.servTotal) * 100 : 0;
+            playerStats.retWonPct = playerStats.retTotal > 0 ? (playerStats.retWon / playerStats.retTotal) * 100 : 0;
         });
     }
 
     const matchStats = stats['match'];
-    const totalPoints = matchStats.player1.pointsTotal + matchStats.player2.pointsTotal;
+    const totalPoints = (matchStats.player1.pointsTotal || 0) + (matchStats.player2.pointsTotal || 0);
     matchStats.player1.pointsWonPct = totalPoints > 0 ? (matchStats.player1.pointsWon / totalPoints) * 100 : 0;
     matchStats.player2.pointsWonPct = totalPoints > 0 ? (matchStats.player2.pointsWon / totalPoints) * 100 : 0;
     
@@ -456,6 +453,9 @@ function calculateAllStats() {
 
 function populateAllResultsViews() {
     const allStats = calculateAllStats();
+    const numGames = matchData.scores.player1.length;
+    const periods = ['match', ...Array.from({length: numGames}, (_, i) => `game${i}`)];
+
     const matchStats = allStats.match;
 
     document.getElementById('summary-content').innerHTML = `
@@ -479,39 +479,51 @@ function populateAllResultsViews() {
         </div>
     `;
 
-    const numGames = matchData.scores.player1.length;
-    const periods = ['match', ...Array.from({length: numGames}, (_, i) => `game${i}`)];
-    
     ['player1', 'player2'].forEach((pKey, i) => {
         document.getElementById(`${pKey}-title`).innerHTML = `${i===0 ? '🔵' : '🔴'} ${matchData.players[pKey]}`;
-        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
-        periods.forEach((p, i) => {
-            const s = allStats[p][pKey];
+        const pStatsMatch = allStats.match[pKey];
+        
+        // Correctly handle division by zero for percentage calculations
+        const matchServWonPct = pStatsMatch.servTotal > 0 ? (pStatsMatch.servWon / pStatsMatch.servTotal * 100).toFixed(0) : 0;
+        const matchRetWonPct = pStatsMatch.retTotal > 0 ? (pStatsMatch.retWon / pStatsMatch.retTotal * 100).toFixed(0) : 0;
+        
+        let servingTable = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
+        for(let i=0; i < numGames; i++) {
+            const s = allStats[`game${i}`][pKey];
             const deucePct = s.servDeuceTotal > 0 ? (s.servDeuceWon / s.servDeuceTotal) * 100 : 0;
             const adPct = s.servAdTotal > 0 ? (s.servAdWon / s.servAdTotal) * 100 : 0;
-            table += `<tr><td>${p === 'match' ? 'Match' : `Game ${i+1}`}</td><td>${deucePct.toFixed(0)}% (${s.servDeuceWon}/${s.servDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.servAdWon}/${s.servAdTotal})</td></tr>`;
-        });
-
-        table += `</tbody></table><h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
-        periods.forEach((p, i) => {
-            const s = allStats[p][pKey];
+            servingTable += `<tr><td>Game ${i+1}</td><td>${deucePct.toFixed(0)}% (${s.servDeuceWon}/${s.servDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.servAdWon}/${s.servAdTotal})</td></tr>`;
+        }
+        servingTable += `<tr><td><b>Match</b></td><td><b>${matchServWonPct}%</b></td><td><b>${matchRetWonPct}%</b></td></tr>`;
+        servingTable += `</tbody></table>`;
+        
+        let returningTable = `<h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
+        for(let i=0; i < numGames; i++) {
+            const s = allStats[`game${i}`][pKey];
             const deucePct = s.retDeuceTotal > 0 ? (s.retDeuceWon / s.retDeuceTotal) * 100 : 0;
             const adPct = s.retAdTotal > 0 ? (s.retAdWon / s.retAdTotal) * 100 : 0;
-            table += `<tr><td>${p === 'match' ? 'Match' : `Game ${i+1}`}</td><td>${deucePct.toFixed(0)}% (${s.retDeuceWon}/${s.retDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.retAdWon}/${s.retAdTotal})</td></tr>`;
-        });
-        table += `</tbody></table><h3 class="results-subtitle">😩 Unforced Errors</h3><table class="results-table"><thead><tr><th>Game</th><th>Total</th></tr></thead><tbody>`;
+            returningTable += `<tr><td>Game ${i+1}</td><td>${deucePct.toFixed(0)}% (${s.retDeuceWon}/${s.retDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.retAdWon}/${s.retAdTotal})</td></tr>`;
+        }
+        returningTable += `<tr><td><b>Match</b></td><td><b>${matchRetWonPct}%</b></td><td><b>${matchServWonPct}%</b></td></tr>`;
+        returningTable += `</tbody></table>`;
+
+        let ueTable = `<h3 class="results-subtitle">😩 Unforced Errors</h3><table class="results-table"><thead><tr><th>Game</th><th>Total</th></tr></thead><tbody>`;
         for(let i=0; i < numGames; i++) {
             const s = allStats[`game${i}`][pKey];
-            table += `<tr><td>Game ${i+1}</td><td>${s.unforcedErrors}</td></tr>`;
+            ueTable += `<tr><td>Game ${i+1}</td><td>${s.unforcedErrors}</td></tr>`;
         }
-        table += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].unforcedErrors}</b></td></tr>`;
-        table += `</tbody></table><h3 class="results-subtitle">🎯 Third/Fourth Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
+        ueTable += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].unforcedErrors}</b></td></tr>`;
+        ueTable += `</tbody></table>`;
+        
+        let tsmTable = `<h3 class="results-subtitle">🎯 Third/Fourth Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
         for(let i=0; i < numGames; i++) {
             const s = allStats[`game${i}`][pKey];
-            table += `<tr><td>Game ${i+1}</td><td>${s.thirdShotMisses.S}</td><td>${s.thirdShotMisses.R}</td></tr>`;
+            tsmTable += `<tr><td>Game ${i+1}</td><td>${s.thirdShotMisses.S}</td><td>${s.thirdShotMisses.R}</td></tr>`;
         }
-        table += `</tbody></table>`;
-        document.getElementById(`${pKey}-results-card`).innerHTML = table;
+        tsmTable += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].thirdShotMisses.S}</b></td><td><b>${allStats['match'][pKey].thirdShotMisses.R}</b></td></tr>`;
+        tsmTable += `</tbody></table>`;
+        
+        document.getElementById(`${pKey}-results-card`).innerHTML = servingTable + returningTable + ueTable + tsmTable;
     });
 }
 
