@@ -458,6 +458,12 @@ function populateAllResultsViews() {
 
     const matchStats = allStats.match;
 
+    // --- Start of Fix ---
+    const totalPoints = matchStats.player1.pointsWon + matchStats.player2.pointsWon;
+    const p1PointsWonPct = totalPoints > 0 ? (matchStats.player1.pointsWon / totalPoints * 100).toFixed(0) : 0;
+    const p2PointsWonPct = totalPoints > 0 ? (matchStats.player2.pointsWon / totalPoints * 100).toFixed(0) : 0;
+    // --- End of Fix ---
+
     document.getElementById('summary-content').innerHTML = `
         <h3 class="results-subtitle">🏆 Final Score</h3>
         <div class="final-score">🔵 ${matchData.scores.player1.join('-')} &nbsp; | &nbsp; 🔴 ${matchData.scores.player2.join('-')}</div>
@@ -469,13 +475,13 @@ function populateAllResultsViews() {
         </div>
         <h3 class="results-subtitle">Points Won</h3>
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player1')}</div><div class="stat-value">${matchStats.player1.pointsWon} (${matchStats.player1.pointsWonPct.toFixed(0)}%)</div></div>
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player2')}</div><div class="stat-value">${matchStats.player2.pointsWon} (${matchStats.player2.pointsWonPct.toFixed(0)}%)</div></div>
+            <div class="stat-card"><div class="stat-label">${getAbbrev('player1')}</div><div class="stat-value">${matchStats.player1.pointsWon} (${p1PointsWonPct}%)</div></div>
+            <div class="stat-card"><div class="stat-label">${getAbbrev('player2')}</div><div class="stat-value">${matchStats.player2.pointsWon} (${p2PointsWonPct}%)</div></div>
         </div>
         <h3 class="results-subtitle">Unforced Errors</h3>
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player1')}</div><div class="stat-value">${matchStats.player1.unforcedErrors}</div></div>
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player2')}</div><div class="stat-value">${matchStats.player2.unforcedErrors}</div></div>
+            <div class="stat-card"><div class="stat-label">Team 1</div><div class="stat-value">${matchStats.player1.unforcedErrors}</div></div>
+            <div class="stat-card"><div class="stat-label">Team 2</div><div class="stat-value">${matchStats.player2.unforcedErrors}</div></div>
         </div>
     `;
 
