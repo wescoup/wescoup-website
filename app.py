@@ -39,7 +39,7 @@ def tonys_strategy_calculator():
 
 @app.route("/tonys-strategy-calculator-2x2")
 def tonys_strategy_calculator_2x2():
-    """Show Tony's Tennis 2x2 Strategy Calculator page"""
+    """Show Tony's 2x2 Strategy Calculator page"""
     return render_template("tennis/tonys-strategy-calculator-2x2.html")
 
 @app.route("/tonys-tracker-instructions")
