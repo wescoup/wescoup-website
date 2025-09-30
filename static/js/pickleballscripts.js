@@ -14,7 +14,8 @@ const initialMatchData = {
     location: 'Local Court',
     date: new Date().toISOString().split('T')[0],
     scores: { player1: [0], player2: [0] },
-    pointHistory: []
+    pointHistory: [],
+    scoringType: 'rally'
 };
 
 function initializeTracker() {
@@ -32,9 +33,14 @@ function startNewMatch() {
     document.getElementById('player2').value = "P2";
     document.getElementById('location').value = "Local Court";
     document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('scoringType').value = 'rally';
     
     showSection('match-info');
     updateAllDisplays();
+}
+
+function updateScoringType() {
+    matchData.scoringType = document.getElementById('scoringType').value;
 }
 
 function showSection(sectionId) {
@@ -61,6 +67,7 @@ function collectMatchInfo() {
     });
     matchData.location = document.getElementById('location').value.trim() || 'Local Court';
     matchData.date = document.getElementById('matchDate').value;
+    matchData.scoringType = document.getElementById('scoringType').value;
     matchData.currentServer = 'player1';
 }
 
@@ -133,20 +140,30 @@ function getAbbrev(playerKey) {
 // --- POINT & GAME TRACKING ---
 function recordReturn(court, won) {
     const returner = matchData.currentServer === 'player1' ? 'player2' : 'player1';
-    matchData.pointHistory.push({
+    const lastPoint = {
         gameIndex: matchData.scores.player1.length - 1,
         server: matchData.currentServer,
         returner: returner,
         side: court,
         outcome: won ? '1' : '0',
         type: 'return'
-    });
-    // Dynamic scoring based on point outcome
+    };
+    matchData.pointHistory.push(lastPoint);
+
     const gameIndex = matchData.scores.player1.length - 1;
-    if (won) {
-        matchData.scores[returner][gameIndex]++;
-    } else {
-        matchData.scores[matchData.currentServer][gameIndex]++;
+    
+    if (matchData.scoringType === 'rally') {
+        if (won) {
+            matchData.scores[returner][gameIndex]++;
+        } else {
+            matchData.scores[matchData.currentServer][gameIndex]++;
+        }
+    } else if (matchData.scoringType === 'sideout') {
+        if (won) {
+            toggleServer();
+        } else {
+            matchData.scores[matchData.currentServer][gameIndex]++;
+        }
     }
     updateAllDisplays();
 }
@@ -175,10 +192,18 @@ function undoLastPoint() {
     const lastPoint = matchData.pointHistory.pop();
     if (lastPoint.type === 'return') {
         const gameIndex = matchData.scores.player1.length - 1;
-        if (lastPoint.outcome === '1') {
-            matchData.scores[lastPoint.returner][gameIndex] = Math.max(0, matchData.scores[lastPoint.returner][gameIndex] - 1);
-        } else {
-            matchData.scores[lastPoint.server][gameIndex] = Math.max(0, matchData.scores[lastPoint.server][gameIndex] - 1);
+        if (matchData.scoringType === 'rally') {
+            if (lastPoint.outcome === '1') {
+                matchData.scores[lastPoint.returner][gameIndex] = Math.max(0, matchData.scores[lastPoint.returner][gameIndex] - 1);
+            } else {
+                matchData.scores[lastPoint.server][gameIndex] = Math.max(0, matchData.scores[lastPoint.server][gameIndex] - 1);
+            }
+        } else if (matchData.scoringType === 'sideout') {
+            if (lastPoint.outcome === '1') {
+                toggleServer();
+            } else {
+                matchData.scores[lastPoint.server][gameIndex] = Math.max(0, matchData.scores[lastPoint.server][gameIndex] - 1);
+            }
         }
     }
     updateAllDisplays();
@@ -269,6 +294,7 @@ function activateMatch(id) {
         });
         document.getElementById('location').value = matchData.location;
         document.getElementById('matchDate').value = matchData.date;
+        document.getElementById('scoringType').value = matchData.scoringType || 'rally';
 
         showSection('match-tracker');
     }
