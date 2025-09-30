@@ -27,15 +27,15 @@ def second_shot():
 def tonys_tennis_tracker_20():
     return render_template('tennis/tonys-tennis-tracker-20.html')
 
-@app.route("/tonys-strategy-calculator")
-def tonys_strategy_calculator():
-    """Show Tony's Strategy Calculator page"""
-    return render_template("tennis/tonys-strategy-calculator.html")
-
 @app.route("/tonys-strategy-calculator-instructions")
 def tonys_strategy_calculator_instructions():
     """Show Tony's Strategy Calculator instructions page"""
     return render_template("tennis/tonys-strategy-calculator-instructions.html")
+
+@app.route("/tonys-strategy-calculator")
+def tonys_strategy_calculator():
+    """Show Tony's Strategy Calculator page"""
+    return render_template("tennis/tonys-strategy-calculator.html")
 
 @app.route("/tonys-strategy-calculator-2x2")
 def tonys_strategy_calculator_2x2():
