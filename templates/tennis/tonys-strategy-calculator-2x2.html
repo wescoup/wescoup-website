@@ -14,14 +14,15 @@
     <div class="tennis-tracker-container">
         <div class="tennis-tracker-header">
             <h1>🎾 Tony's Strategy Calculator: 2x2</h1>
-            <p class="subtitle-text">Define your options to get an optimal strategy</p>
+            <p class="subtitle-text">Find your optimal strategy in a game of wits.</p>
         </div>
 
         <div class="tennis-nav">
             <button class="tennis-nav-btn active" onclick="showSection('options-setup')">Options</button>
-            <button class="tennis-nav-btn" id="matrix-nav-btn" onclick="showSection('matrix-input')" disabled>Matrix</button>
+            <button class="tennis-nav-btn" id="matrix-nav-btn" onclick="showSection('matrix-input')">Matrix</button>
             <button class="tennis-nav-btn" id="results-nav-btn" onclick="showSection('results')" disabled>Results</button>
-            <button class="tennis-nav-btn" onclick="window.location.href='/tonys-tennis-tools'">Back to Tools</button>
+            <button class="tennis-nav-btn" onclick="showSavedCalcs()">Saved Calcs</button>
+            <button class="tennis-nav-btn" onclick="goBackToTools()">Back to Tools</button>
         </div>
 
         <div id="options-setup" class="tennis-section active">
@@ -60,107 +61,106 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem;">
-                <button class="tennis-btn" onclick="goToMatrix()">Next Step</button>
-            </div>
         </div>
 
         <div id="matrix-input" class="tennis-section">
             <h2 class="section-title">Enter Win Percentages</h2>
-            <p class="subtitle-text">Enter **Player 1's** win percentage for each scenario.</p>
-            <div class="strategy-grid" id="matrix-container">
+            <p class="subtitle-text">Enter **Player 1's** win percentage for each outcome.</p>
+            <div id="matrix-table-container">
                 </div>
-            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem;">
-                <button class="tennis-btn" onclick="calculateAndShowResults()">Calculate Strategy</button>
-            </div>
         </div>
 
         <div id="results" class="tennis-section">
             <h2 class="section-title">Optimal Strategy</h2>
             <div class="results-container" id="results-content">
                 </div>
-            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem;">
-                <button class="tennis-btn" onclick="goToOptions()">Start Over</button>
+            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+                <button class="tennis-btn" onclick="saveCalculation()">💾 Save Calc</button>
+                <button class="tennis-btn" onclick="generatePdf()">📄 Save as PDF</button>
+                <button class="tennis-btn" onclick="startNewCalculation()">✨ New Calc</button>
             </div>
+        </div>
+
+        <div id="saved-calcs" class="tennis-section">
+            <h2 class="section-title">Saved Calculations</h2>
+            <div id="saved-calcs-list">
+                </div>
         </div>
     </div>
     
     <script>
-        const matchData = {
-            players: {
-                player1: { name: 'Player 1', options: ['Serve Wide', 'Serve T'] },
-                player2: { name: 'Player 2', options: ['Cover Wide', 'Cover T'] }
-            },
-            payoffs: [
-                [0, 0],
-                [0, 0]
-            ],
-            optimalStrategy: null
-        };
+        // Global variables for dynamic content
+        let calculationData = {};
+        let allCalculations = [];
+        let currentView = 'options-setup';
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            loadAllCalculations();
+            renderMatrix(); // Render matrix with default values
+            renderSavedCalcsList();
+        }
 
         function showSection(sectionId) {
+            currentView = sectionId;
             document.querySelectorAll('.tennis-section').forEach(s => s.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
             document.querySelectorAll('.tennis-nav-btn').forEach(b => b.classList.remove('active'));
             document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
         }
 
-        function goToOptions() {
-            showSection('options-setup');
-            document.getElementById('matrix-nav-btn').disabled = true;
-            document.getElementById('results-nav-btn').disabled = true;
-        }
-
-        function goToMatrix() {
-            // Collect player names and options
-            matchData.players.player1.name = document.getElementById('player1-name').value;
-            matchData.players.player1.options[0] = document.getElementById('player1-option1').value;
-            matchData.players.player1.options[1] = document.getElementById('player1-option2').value;
-            
-            matchData.players.player2.name = document.getElementById('player2-name').value;
-            matchData.players.player2.options[0] = document.getElementById('player2-option1').value;
-            matchData.players.player2.options[1] = document.getElementById('player2-option2').value;
-            
-            renderMatrix();
-            showSection('matrix-input');
-            document.getElementById('matrix-nav-btn').disabled = false;
+        function goBackToTools() {
+            const referrer = document.referrer;
+            if (referrer.includes('tonys-pickleball-tools')) {
+                window.location.href = '/tonys-pickleball-tools';
+            } else {
+                window.location.href = '/tonys-tennis-tools';
+            }
         }
 
         function renderMatrix() {
-            const matrixContainer = document.getElementById('matrix-container');
-            const p1 = matchData.players.player1;
-            const p2 = matchData.players.player2;
+            const container = document.getElementById('matrix-table-container');
+            const p1Name = document.getElementById('player1-name').value || 'Player 1';
+            const p1Opt1 = document.getElementById('player1-option1').value || 'Serve Wide';
+            const p1Opt2 = document.getElementById('player1-option2').value || 'Serve T';
+            const p2Name = document.getElementById('player2-name').value || 'Player 2';
+            const p2Opt1 = document.getElementById('player2-option1').value || 'Cover Wide';
+            const p2Opt2 = document.getElementById('player2-option2').value || 'Cover T';
             
-            let html = `
-                <div class="grid-cell header"></div>
-                <div class="grid-cell header" colspan="2">Player 2</div>
-                <div class="grid-cell header"></div>
-                <div class="grid-cell header"></div>
-                <div class="grid-cell header"></div>
-                
-                <div class="grid-cell header" colspan="2"></div>
-                <div class="grid-cell header">${p2.options[0]}</div>
-                <div class="grid-cell header">${p2.options[1]}</div>
-                
-                <div class="grid-cell header" rowspan="2">${p1.name}</div>
-                <div class="grid-cell header">${p1.options[0]}</div>
-                <div class="grid-cell">
-                    <input type="number" id="payoff-0-0" class="form-control" value="0">
-                </div>
-                <div class="grid-cell">
-                    <input type="number" id="payoff-0-1" class="form-control" value="0">
-                </div>
-                
-                <div class="grid-cell header">${p1.options[1]}</div>
-                <div class="grid-cell">
-                    <input type="number" id="payoff-1-0" class="form-control" value="0">
-                </div>
-                <div class="grid-cell">
-                    <input type="number" id="payoff-1-1" class="form-control" value="0">
-                </div>
+            const matrixHtml = `
+            <table class="results-table" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <th rowspan="2"></th>
+                        <th colspan="2">🔵 ${p2Name}</th>
+                    </tr>
+                    <tr>
+                        <th>${p2Opt1}</th>
+                        <th>${p2Opt2}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th rowspan="2">🔴 ${p1Name}</th>
+                        <th>${p1Opt1}</th>
+                        <td><input type="number" id="payoff-0-0" class="form-control" value="45"></td>
+                        <td><input type="number" id="payoff-0-1" class="form-control" value="70"></td>
+                    </tr>
+                    <tr>
+                        <th>${p1Opt2}</th>
+                        <td><input type="number" id="payoff-1-0" class="form-control" value="65"></td>
+                        <td><input type="number" id="payoff-1-1" class="form-control" value="30"></td>
+                    </tr>
+                </tbody>
+            </table>
             `;
-            matrixContainer.innerHTML = html;
+            container.innerHTML = matrixHtml;
+        }
+
+        function showSavedCalcs() {
+            renderSavedCalcsList();
+            showSection('saved-calcs');
         }
 
         function calculateAndShowResults() {
@@ -170,24 +170,27 @@
                 [parseFloat(document.getElementById('payoff-1-0').value), parseFloat(document.getElementById('payoff-1-1').value)]
             ];
             
-            // Check for dominance (adapted from strategyscripts.js)
+            // Convert to decimal for calculation
             const A = payoffs[0][0] / 100;
             const B = payoffs[0][1] / 100;
             const C = payoffs[1][0] / 100;
             const D = payoffs[1][1] / 100;
+
+            // Player 2's Payoffs for zero-sum game
             const A_prime = 1 - A;
             const B_prime = 1 - B;
             const C_prime = 1 - C;
             const D_prime = 1 - D;
 
+            // Check for dominance
             if ((A > C && B > D) || (A_prime > B_prime && C_prime > D_prime)) {
                 alert("A pure strategy Nash Equilibrium exists. This calculator is for mixed strategies. Please check your inputs.");
                 return;
             }
             
-            // Calculate Nash Equilibrium probabilities (using formulas from README2.md)
-            let p_num = (1 - D) - (1 - C);
-            let p_den = (1 - A) - (1 - B) - (1 - C) + (1 - D);
+            // Calculate mixed strategy probabilities
+            let p_num = D_prime - C_prime;
+            let p_den = A_prime - B_prime - C_prime + D_prime;
             let p = p_den === 0 ? 0.5 : p_num / p_den;
             p = Math.max(0, Math.min(1, p));
 
@@ -196,14 +199,28 @@
             let q = q_den === 0 ? 0.5 : q_num / q_den;
             q = Math.max(0, Math.min(1, q));
 
-            matchData.optimalStrategy = {
-                player1: {
-                    p1: (p * 100).toFixed(1),
-                    p2: ((1 - p) * 100).toFixed(1)
+            calculationData = {
+                id: Date.now(),
+                players: {
+                    player1: {
+                        name: document.getElementById('player1-name').value || 'Player 1',
+                        options: [document.getElementById('player1-option1').value || 'Serve Wide', document.getElementById('player1-option2').value || 'Serve T']
+                    },
+                    player2: {
+                        name: document.getElementById('player2-name').value || 'Player 2',
+                        options: [document.getElementById('player2-option1').value || 'Cover Wide', document.getElementById('player2-option2').value || 'Cover T']
+                    }
                 },
-                player2: {
-                    q1: (q * 100).toFixed(1),
-                    q2: ((1 - q) * 100).toFixed(1)
+                payoffs: payoffs,
+                optimalStrategy: {
+                    player1: {
+                        p1: (p * 100).toFixed(1),
+                        p2: ((1 - p) * 100).toFixed(1)
+                    },
+                    player2: {
+                        q1: (q * 100).toFixed(1),
+                        q2: ((1 - q) * 100).toFixed(1)
+                    }
                 }
             };
             
@@ -214,24 +231,24 @@
 
         function renderResults() {
             const resultsContainer = document.getElementById('results-content');
-            const p1 = matchData.players.player1;
-            const p2 = matchData.players.player2;
-            const strat = matchData.optimalStrategy;
+            const p1 = calculationData.players.player1;
+            const p2 = calculationData.players.player2;
+            const strat = calculationData.optimalStrategy;
             
-            let html = `
+            const html = `
                 <div class="row">
                     <div class="col-md-6">
                         <div class="result-card">
                             <h3>🔵 ${p1.name}'s Plan</h3>
-                            <p>Play **${p1.options[0]}**: ${strat.player1.p1}% of the time</p>
-                            <p>Play **${p1.options[1]}**: ${strat.player1.p2}% of the time</p>
+                            <p>${p1.options[0]}: ${strat.player1.p1}%</p>
+                            <p>${p1.options[1]}: ${strat.player1.p2}%</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="result-card">
                             <h3>🔴 ${p2.name}'s Plan</h3>
-                            <p>Play **${p2.options[0]}**: ${strat.player2.q1}% of the time</p>
-                            <p>Play **${p2.options[1]}**: ${strat.player2.q2}% of the time</p>
+                            <p>${p2.options[0]}: ${strat.player2.q1}%</p>
+                            <p>${p2.options[1]}: ${strat.player2.q2}%</p>
                         </div>
                     </div>
                 </div>
@@ -239,7 +256,121 @@
             resultsContainer.innerHTML = html;
         }
 
-        showSection('options-setup');
+        function startNewCalculation() {
+            document.getElementById('player1-name').value = 'Player 1';
+            document.getElementById('player1-option1').value = 'Serve Wide';
+            document.getElementById('player1-option2').value = 'Serve T';
+            document.getElementById('player2-name').value = 'Player 2';
+            document.getElementById('player2-option1').value = 'Cover Wide';
+            document.getElementById('player2-option2').value = 'Cover T';
+            renderMatrix();
+            showSection('options-setup');
+            document.getElementById('results-nav-btn').disabled = true;
+        }
+
+        function saveCalculation() {
+            const existingIndex = allCalculations.findIndex(c => c.id === calculationData.id);
+            if (existingIndex > -1) {
+                allCalculations[existingIndex] = calculationData;
+            } else {
+                allCalculations.push(calculationData);
+            }
+            localStorage.setItem('2x2Calcs', JSON.stringify(allCalculations));
+            alert('Calculation saved!');
+            renderSavedCalcsList();
+        }
+
+        function loadAllCalculations() {
+            const saved = localStorage.getItem('2x2Calcs');
+            if (saved) {
+                allCalculations = JSON.parse(saved);
+            }
+        }
+
+        function renderSavedCalcsList() {
+            const container = document.getElementById('saved-calcs-list');
+            if (allCalculations.length === 0) {
+                container.innerHTML = '<p style="text-align:center;">No saved calculations yet.</p>';
+                return;
+            }
+            
+            let html = '';
+            allCalculations.forEach(calc => {
+                const p1Name = calc.players.player1.name;
+                const p2Name = calc.players.player2.name;
+                html += `<div class="stat-card" style="margin-bottom: 1rem; text-align: left;">
+                    <p style="font-weight: bold; font-size: 1.1rem;">${p1Name} vs ${p2Name}</p>
+                    <p><b>P1 Options:</b> ${calc.players.player1.options.join(' & ')}</p>
+                    <p><b>P2 Options:</b> ${calc.players.player2.options.join(' & ')}</p>
+                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                        <button class="tennis-btn" onclick="loadCalc(${calc.id})">Load</button>
+                        <button class="tennis-btn" onclick="deleteCalc(${calc.id})">Delete</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function loadCalc(id) {
+            const calcToLoad = allCalculations.find(c => c.id === id);
+            if (calcToLoad) {
+                calculationData = calcToLoad;
+                document.getElementById('player1-name').value = calcToLoad.players.player1.name;
+                document.getElementById('player1-option1').value = calcToLoad.players.player1.options[0];
+                document.getElementById('player1-option2').value = calcToLoad.players.player1.options[1];
+                document.getElementById('player2-name').value = calcToLoad.players.player2.name;
+                document.getElementById('player2-option1').value = calcToLoad.players.player2.options[0];
+                document.getElementById('player2-option2').value = calcToLoad.players.player2.options[1];
+                renderMatrix();
+                document.getElementById('payoff-0-0').value = calcToLoad.payoffs[0][0];
+                document.getElementById('payoff-0-1').value = calcToLoad.payoffs[0][1];
+                document.getElementById('payoff-1-0').value = calcToLoad.payoffs[1][0];
+                document.getElementById('payoff-1-1').value = calcToLoad.payoffs[1][1];
+                renderResults();
+                showSection('results');
+                document.getElementById('results-nav-btn').disabled = false;
+            }
+        }
+
+        function deleteCalc(id) {
+            if (confirm('Are you sure you want to delete this calculation?')) {
+                allCalculations = allCalculations.filter(c => c.id !== id);
+                localStorage.setItem('2x2Calcs', JSON.stringify(allCalculations));
+                renderSavedCalcsList();
+            }
+        }
+
+        function generatePdf() {
+            if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+                alert("PDF generation library is not loaded."); return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const margin = 10;
+            
+            document.body.classList.add('pdf-export-mode');
+
+            let promise = Promise.resolve();
+            const elements = [document.getElementById('options-setup'), document.getElementById('matrix-input'), document.getElementById('results')];
+            
+            elements.forEach((element, index) => {
+                promise = promise.then(() => html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 }))
+                .then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    if (index > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, index === 0 ? margin + 10 : margin, pdfWidth, imgHeight);
+                });
+            });
+
+            promise.then(() => {
+                document.body.classList.remove('pdf-export-mode');
+                pdf.save(`${calculationData.players.player1.name}-vs-${calculationData.players.player2.name}.pdf`);
+            });
+        }
     </script>
 </body>
 </html>
