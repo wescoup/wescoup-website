@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tony's Tennis Strategy Calculator: 2x2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="/static/css/styles.css" rel="stylesheet">
+    <link href="/static/css/tennisstyles.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="tennis-tracker-body">
+    <div class="tennis-tracker-container">
+        <div class="tennis-tracker-header">
+            <h1>🎾 Tony's Strategy Calculator: 2x2</h1>
+            <p class="subtitle-text">Define your options to get an optimal strategy</p>
+        </div>
+
+        <div class="tennis-nav">
+            <button class="tennis-nav-btn active" onclick="showSection('options-setup')">Options</button>
+            <button class="tennis-nav-btn" id="matrix-nav-btn" onclick="showSection('matrix-input')" disabled>Matrix</button>
+            <button class="tennis-nav-btn" id="results-nav-btn" onclick="showSection('results')" disabled>Results</button>
+            <button class="tennis-nav-btn" onclick="window.location.href='/tonys-tennis-tools'">Back to Tools</button>
+        </div>
+
+        <div id="options-setup" class="tennis-section active">
+            <h2 class="section-title">Define Players & Options</h2>
+            
+            <div class="team-setup-grid">
+                <div class="team-card team-1-bg">
+                    <h3 class="team-title-blue">🔵 Player 1</h3>
+                    <div class="tennis-form-group">
+                        <label for="player1-name">Name:</label>
+                        <input type="text" id="player1-name" value="Player 1">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player1-option1">Option 1:</label>
+                        <input type="text" id="player1-option1" value="Serve Wide">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player1-option2">Option 2:</label>
+                        <input type="text" id="player1-option2" value="Serve T">
+                    </div>
+                </div>
+                
+                <div class="team-card team-2-bg">
+                    <h3 class="team-title-red">🔴 Player 2</h3>
+                    <div class="tennis-form-group">
+                        <label for="player2-name">Name:</label>
+                        <input type="text" id="player2-name" value="Player 2">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player2-option1">Option 1:</label>
+                        <input type="text" id="player2-option1" value="Cover Wide">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player2-option2">Option 2:</label>
+                        <input type="text" id="player2-option2" value="Cover T">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem;">
+                <button class="tennis-btn" onclick="goToMatrix()">Next Step</button>
+            </div>
+        </div>
+
+        <div id="matrix-input" class="tennis-section">
+            <h2 class="section-title">Enter Win Percentages</h2>
+            <p class="subtitle-text">Enter **Player 1's** win percentage for each scenario.</p>
+            <div class="strategy-grid" id="matrix-container">
+                </div>
+            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem;">
+                <button class="tennis-btn" onclick="calculateAndShowResults()">Calculate Strategy</button>
+            </div>
+        </div>
+
+        <div id="results" class="tennis-section">
+            <h2 class="section-title">Optimal Strategy</h2>
+            <div class="results-container" id="results-content">
+                </div>
+            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem;">
+                <button class="tennis-btn" onclick="goToOptions()">Start Over</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const matchData = {
+            players: {
+                player1: { name: 'Player 1', options: ['Serve Wide', 'Serve T'] },
+                player2: { name: 'Player 2', options: ['Cover Wide', 'Cover T'] }
+            },
+            payoffs: [
+                [0, 0],
+                [0, 0]
+            ],
+            optimalStrategy: null
+        };
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.tennis-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.tennis-nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[onclick="showSection('${sectionId}')"]`).classList.add('active');
+        }
+
+        function goToOptions() {
+            showSection('options-setup');
+            document.getElementById('matrix-nav-btn').disabled = true;
+            document.getElementById('results-nav-btn').disabled = true;
+        }
+
+        function goToMatrix() {
+            // Collect player names and options
+            matchData.players.player1.name = document.getElementById('player1-name').value;
+            matchData.players.player1.options[0] = document.getElementById('player1-option1').value;
+            matchData.players.player1.options[1] = document.getElementById('player1-option2').value;
+            
+            matchData.players.player2.name = document.getElementById('player2-name').value;
+            matchData.players.player2.options[0] = document.getElementById('player2-option1').value;
+            matchData.players.player2.options[1] = document.getElementById('player2-option2').value;
+            
+            renderMatrix();
+            showSection('matrix-input');
+            document.getElementById('matrix-nav-btn').disabled = false;
+        }
+
+        function renderMatrix() {
+            const matrixContainer = document.getElementById('matrix-container');
+            const p1 = matchData.players.player1;
+            const p2 = matchData.players.player2;
+            
+            let html = `
+                <div class="grid-cell header"></div>
+                <div class="grid-cell header" colspan="2">Player 2</div>
+                <div class="grid-cell header"></div>
+                <div class="grid-cell header"></div>
+                <div class="grid-cell header"></div>
+                
+                <div class="grid-cell header" colspan="2"></div>
+                <div class="grid-cell header">${p2.options[0]}</div>
+                <div class="grid-cell header">${p2.options[1]}</div>
+                
+                <div class="grid-cell header" rowspan="2">${p1.name}</div>
+                <div class="grid-cell header">${p1.options[0]}</div>
+                <div class="grid-cell">
+                    <input type="number" id="payoff-0-0" class="form-control" value="0">
+                </div>
+                <div class="grid-cell">
+                    <input type="number" id="payoff-0-1" class="form-control" value="0">
+                </div>
+                
+                <div class="grid-cell header">${p1.options[1]}</div>
+                <div class="grid-cell">
+                    <input type="number" id="payoff-1-0" class="form-control" value="0">
+                </div>
+                <div class="grid-cell">
+                    <input type="number" id="payoff-1-1" class="form-control" value="0">
+                </div>
+            `;
+            matrixContainer.innerHTML = html;
+        }
+
+        function calculateAndShowResults() {
+            // Get payoffs from input fields
+            const payoffs = [
+                [parseFloat(document.getElementById('payoff-0-0').value), parseFloat(document.getElementById('payoff-0-1').value)],
+                [parseFloat(document.getElementById('payoff-1-0').value), parseFloat(document.getElementById('payoff-1-1').value)]
+            ];
+            
+            // Check for dominance (adapted from strategyscripts.js)
+            const A = payoffs[0][0] / 100;
+            const B = payoffs[0][1] / 100;
+            const C = payoffs[1][0] / 100;
+            const D = payoffs[1][1] / 100;
+            const A_prime = 1 - A;
+            const B_prime = 1 - B;
+            const C_prime = 1 - C;
+            const D_prime = 1 - D;
+
+            if ((A > C && B > D) || (A_prime > B_prime && C_prime > D_prime)) {
+                alert("A pure strategy Nash Equilibrium exists. This calculator is for mixed strategies. Please check your inputs.");
+                return;
+            }
+            
+            // Calculate Nash Equilibrium probabilities (using formulas from README2.md)
+            let p_num = (1 - D) - (1 - C);
+            let p_den = (1 - A) - (1 - B) - (1 - C) + (1 - D);
+            let p = p_den === 0 ? 0.5 : p_num / p_den;
+            p = Math.max(0, Math.min(1, p));
+
+            let q_num = D - B;
+            let q_den = A - B - C + D;
+            let q = q_den === 0 ? 0.5 : q_num / q_den;
+            q = Math.max(0, Math.min(1, q));
+
+            matchData.optimalStrategy = {
+                player1: {
+                    p1: (p * 100).toFixed(1),
+                    p2: ((1 - p) * 100).toFixed(1)
+                },
+                player2: {
+                    q1: (q * 100).toFixed(1),
+                    q2: ((1 - q) * 100).toFixed(1)
+                }
+            };
+            
+            renderResults();
+            showSection('results');
+            document.getElementById('results-nav-btn').disabled = false;
+        }
+
+        function renderResults() {
+            const resultsContainer = document.getElementById('results-content');
+            const p1 = matchData.players.player1;
+            const p2 = matchData.players.player2;
+            const strat = matchData.optimalStrategy;
+            
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="result-card">
+                            <h3>🔵 ${p1.name}'s Plan</h3>
+                            <p>Play **${p1.options[0]}**: ${strat.player1.p1}% of the time</p>
+                            <p>Play **${p1.options[1]}**: ${strat.player1.p2}% of the time</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="result-card">
+                            <h3>🔴 ${p2.name}'s Plan</h3>
+                            <p>Play **${p2.options[0]}**: ${strat.player2.q1}% of the time</p>
+                            <p>Play **${p2.options[1]}**: ${strat.player2.q2}% of the time</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultsContainer.innerHTML = html;
+        }
+
+        showSection('options-setup');
+    </script>
+</body>
+</html>
