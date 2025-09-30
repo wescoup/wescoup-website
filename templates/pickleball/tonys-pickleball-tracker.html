@@ -51,6 +51,14 @@
                 <label for="matchDate">Date:</label>
                 <input type="date" id="matchDate">
             </div>
+
+            <div class="tennis-form-group">
+                <label for="scoringType">Scoring System:</label>
+                <select id="scoringType" onchange="updateScoringType()">
+                    <option value="rally">Rally Scoring</option>
+                    <option value="sideout">Side-Out Scoring</option>
+                </select>
+            </div>
         </div>
 
         <div id="match-tracker" class="tennis-section">
