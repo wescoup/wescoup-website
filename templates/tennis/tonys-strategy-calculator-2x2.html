@@ -28,6 +28,20 @@
         <div id="options-setup" class="tennis-section active">
             <h2 class="section-title">Define Players & Options</h2>
             
+            <!-- NEW: Scenario Name and Date -->
+            <div class="stat-card" style="margin-bottom: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center;">
+                    <div class="tennis-form-group" style="margin-bottom: 0;">
+                        <label for="scenario-name">Scenario Name:</label>
+                        <input type="text" id="scenario-name" value="My Strategy Scenario" style="width: 100%;">
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stat-label">Date</div>
+                        <div class="stat-value" id="scenario-date" style="font-size: 1.2rem;">-</div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="team-setup-grid">
                 <div class="team-card team-1-bg">
                     <h3 class="team-title-blue">🔵 Player 1</h3>
@@ -67,13 +81,13 @@
             <h2 class="section-title">Enter Win Percentages</h2>
             <p class="subtitle-text">Enter **Player 1's** win percentage for each outcome.</p>
             <div id="matrix-table-container">
-                </div>
+            </div>
         </div>
 
         <div id="results" class="tennis-section">
             <h2 class="section-title">Optimal Strategy</h2>
             <div class="results-container" id="results-content">
-                </div>
+            </div>
             <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
                 <button class="tennis-btn" onclick="saveCalculation()">💾 Save Calc</button>
                 <button class="tennis-btn" onclick="generatePdf()">📄 Save as PDF</button>
@@ -84,7 +98,47 @@
         <div id="saved-calcs" class="tennis-section">
             <h2 class="section-title">Saved Calculations</h2>
             <div id="saved-calcs-list">
+            </div>
+        </div>
+
+        <!-- HIDDEN: PDF Summary View -->
+        <div id="pdf-summary" class="tennis-section" style="display: none;">
+            <h2 class="section-title" id="pdf-scenario-title">Scenario Name - 2025-01-01</h2>
+            
+            <h3 style="color: #FFE135; margin-top: 2rem;">Players & Options</h3>
+            <div class="team-setup-grid" style="margin-bottom: 2rem;">
+                <div class="team-card team-1-bg">
+                    <h3 class="team-title-blue">🔵 <span id="pdf-p1-name">Player 1</span></h3>
+                    <p><strong>Option 1:</strong> <span id="pdf-p1-opt1">Serve Wide</span></p>
+                    <p><strong>Option 2:</strong> <span id="pdf-p1-opt2">Serve T</span></p>
                 </div>
+                
+                <div class="team-card team-2-bg">
+                    <h3 class="team-title-red">🔴 <span id="pdf-p2-name">Player 2</span></h3>
+                    <p><strong>Option 1:</strong> <span id="pdf-p2-opt1">Cover Wide</span></p>
+                    <p><strong>Option 2:</strong> <span id="pdf-p2-opt2">Cover T</span></p>
+                </div>
+            </div>
+
+            <h3 style="color: #FFE135; margin-top: 2rem;">Payoff Matrix (Player 1's Win %)</h3>
+            <div id="pdf-matrix-container" style="margin-bottom: 2rem;">
+            </div>
+
+            <h3 style="color: #FFE135; margin-top: 2rem;">Optimal Strategy</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="result-card">
+                        <h3>🔵 <span id="pdf-result-p1-name">Player 1</span>'s Plan</h3>
+                        <p id="pdf-result-p1-strategy"></p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="result-card">
+                        <h3>🔴 <span id="pdf-result-p2-name">Player 2</span>'s Plan</h3>
+                        <p id="pdf-result-p2-strategy"></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -98,8 +152,14 @@
 
         function init() {
             loadAllCalculations();
+            updateScenarioDate();
             showMatrixView();
             renderSavedCalcsList();
+        }
+
+        function updateScenarioDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('scenario-date').textContent = today;
         }
 
         function showSection(sectionId) {
@@ -123,11 +183,8 @@
                 <table class="results-table" style="text-align:center; border-collapse:collapse;">
                   <thead>
                     <tr>
-                      <!-- corner above P1 name -->
                       <th rowspan="2"></th>
-                      <!-- header above P1 options (Serve Wide/Serve T) -->
                       <th rowspan="2"></th>
-                      <!-- P2 spans the two payoff columns -->
                       <th colspan="2">🔴 ${p2Name}</th>
                     </tr>
                     <tr>
@@ -161,7 +218,7 @@
                 [parseFloat(document.getElementById('payoff-1-0').value), parseFloat(document.getElementById('payoff-1-1').value)]
             ];
             
-            // Check for dominance (adapted from strategyscripts.js)
+            // Check for dominance
             const A = payoffs[0][0] / 100;
             const B = payoffs[0][1] / 100;
             const C = payoffs[1][0] / 100;
@@ -176,7 +233,7 @@
                 return;
             }
             
-            // Calculate Nash Equilibrium probabilities (using formulas from README2.md)
+            // Calculate Nash Equilibrium probabilities
             let p_num = D_prime - C_prime;
             let p_den = A_prime - B_prime - C_prime + D_prime;
             let p = p_den === 0 ? 0.5 : p_num / p_den;
@@ -187,8 +244,13 @@
             let q = q_den === 0 ? 0.5 : q_num / q_den;
             q = Math.max(0, Math.min(1, q));
 
+            // Update scenario date to current date (auto-update on recalculation)
+            updateScenarioDate();
+
             calculationData = {
-                id: Date.now(),
+                id: calculationData.id || Date.now(),
+                scenarioName: document.getElementById('scenario-name').value || 'My Strategy Scenario',
+                date: document.getElementById('scenario-date').textContent,
                 players: {
                     player1: {
                         name: document.getElementById('player1-name').value || 'Player 1',
@@ -227,15 +289,15 @@
                     <div class="col-md-6">
                         <div class="result-card">
                             <h3>🔵 ${p1.name}'s Plan</h3>
-                            <p>${p1.options[0]}: ${strat.player1.p1}%</p>
-                            <p>${p1.options[1]}: ${strat.player1.p2}%</p>
+                            <p>${p1.options[0]}: <strong>${strat.player1.p1}%</strong></p>
+                            <p>${p1.options[1]}: <strong>${strat.player1.p2}%</strong></p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="result-card">
                             <h3>🔴 ${p2.name}'s Plan</h3>
-                            <p>${p2.options[0]}: ${strat.player2.q1}%</p>
-                            <p>${p2.options[1]}: ${strat.player2.q2}%</p>
+                            <p>${p2.options[0]}: <strong>${strat.player2.q1}%</strong></p>
+                            <p>${p2.options[1]}: <strong>${strat.player2.q2}%</strong></p>
                         </div>
                     </div>
                 </div>
@@ -244,6 +306,9 @@
         }
 
         function startNewCalculation() {
+            calculationData = {};
+            document.getElementById('scenario-name').value = 'My Strategy Scenario';
+            updateScenarioDate();
             document.getElementById('player1-name').value = 'Player 1';
             document.getElementById('player1-option1').value = 'Serve Wide';
             document.getElementById('player1-option2').value = 'Serve T';
@@ -252,7 +317,6 @@
             document.getElementById('player2-option2').value = 'Cover T';
             showMatrixView();
             showSection('options-setup');
-            document.getElementById('results-nav-btn').disabled = false;
         }
 
         function goBackToTools() {
@@ -269,6 +333,12 @@
                 alert('Please calculate a strategy before saving.');
                 return;
             }
+            
+            // Update date to current date on save
+            updateScenarioDate();
+            calculationData.date = document.getElementById('scenario-date').textContent;
+            calculationData.scenarioName = document.getElementById('scenario-name').value || 'My Strategy Scenario';
+            
             const existingIndex = allCalculations.findIndex(c => c.id === calculationData.id);
             if (existingIndex > -1) {
                 allCalculations[existingIndex] = calculationData;
@@ -300,11 +370,15 @@
             }
             
             let html = '';
-            allCalculations.forEach(calc => {
+            // Reverse to show newest first
+            [...allCalculations].reverse().forEach(calc => {
+                const scenarioName = calc.scenarioName || 'Unnamed Scenario';
+                const date = calc.date || 'No date';
                 const p1Name = calc.players.player1.name;
                 const p2Name = calc.players.player2.name;
                 html += `<div class="stat-card" style="margin-bottom: 1rem; text-align: left;">
-                    <p style="font-weight: bold; font-size: 1.1rem;">${p1Name} vs ${p2Name}</p>
+                    <p style="font-weight: bold; font-size: 1.1rem;">${scenarioName} - ${date}</p>
+                    <p><b>Players:</b> ${p1Name} vs ${p2Name}</p>
                     <p><b>P1 Options:</b> ${calc.players.player1.options.join(' & ')}</p>
                     <p><b>P2 Options:</b> ${calc.players.player2.options.join(' & ')}</p>
                     <div class="tennis-btn-group" style="margin-top: 1rem;">
@@ -320,6 +394,8 @@
             const calcToLoad = allCalculations.find(c => c.id === id);
             if (calcToLoad) {
                 calculationData = calcToLoad;
+                document.getElementById('scenario-name').value = calcToLoad.scenarioName || 'My Strategy Scenario';
+                document.getElementById('scenario-date').textContent = calcToLoad.date || new Date().toISOString().split('T')[0];
                 document.getElementById('player1-name').value = calcToLoad.players.player1.name;
                 document.getElementById('player1-option1').value = calcToLoad.players.player1.options[0];
                 document.getElementById('player1-option2').value = calcToLoad.players.player1.options[1];
@@ -336,7 +412,6 @@
 
                 renderResults();
                 showSection('results');
-                document.getElementById('results-nav-btn').disabled = false;
             }
         }
 
@@ -348,9 +423,68 @@
             }
         }
         
+        function populatePdfSummary() {
+            const calc = calculationData;
+            
+            // Title
+            document.getElementById('pdf-scenario-title').textContent = `${calc.scenarioName} - ${calc.date}`;
+            
+            // Players & Options
+            document.getElementById('pdf-p1-name').textContent = calc.players.player1.name;
+            document.getElementById('pdf-p1-opt1').textContent = calc.players.player1.options[0];
+            document.getElementById('pdf-p1-opt2').textContent = calc.players.player1.options[1];
+            document.getElementById('pdf-p2-name').textContent = calc.players.player2.name;
+            document.getElementById('pdf-p2-opt1').textContent = calc.players.player2.options[0];
+            document.getElementById('pdf-p2-opt2').textContent = calc.players.player2.options[1];
+            
+            // Matrix
+            const matrixHtml = `
+                <table class="results-table" style="text-align:center; border-collapse:collapse; margin: 0 auto;">
+                  <thead>
+                    <tr>
+                      <th rowspan="2"></th>
+                      <th rowspan="2"></th>
+                      <th colspan="2">🔴 ${calc.players.player2.name}</th>
+                    </tr>
+                    <tr>
+                      <th>${calc.players.player2.options[0]}</th>
+                      <th>${calc.players.player2.options[1]}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th rowspan="2">🔵 ${calc.players.player1.name}</th>
+                      <th>${calc.players.player1.options[0]}</th>
+                      <td><strong>${calc.payoffs[0][0]}%</strong></td>
+                      <td><strong>${calc.payoffs[0][1]}%</strong></td>
+                    </tr>
+                    <tr>
+                      <th>${calc.players.player1.options[1]}</th>
+                      <td><strong>${calc.payoffs[1][0]}%</strong></td>
+                      <td><strong>${calc.payoffs[1][1]}%</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+            `;
+            document.getElementById('pdf-matrix-container').innerHTML = matrixHtml;
+            
+            // Results
+            document.getElementById('pdf-result-p1-name').textContent = calc.players.player1.name;
+            document.getElementById('pdf-result-p2-name').textContent = calc.players.player2.name;
+            document.getElementById('pdf-result-p1-strategy').innerHTML = `
+                ${calc.players.player1.options[0]}: <strong>${calc.optimalStrategy.player1.p1}%</strong><br>
+                ${calc.players.player1.options[1]}: <strong>${calc.optimalStrategy.player1.p2}%</strong>
+            `;
+            document.getElementById('pdf-result-p2-strategy').innerHTML = `
+                ${calc.players.player2.options[0]}: <strong>${calc.optimalStrategy.player2.q1}%</strong><br>
+                ${calc.players.player2.options[1]}: <strong>${calc.optimalStrategy.player2.q2}%</strong>
+            `;
+        }
+        
         function generatePdf() {
             if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
-                alert("PDF generation library is not loaded. Please ensure you are online."); return;
+                alert("PDF generation library is not loaded. Please ensure you are online."); 
+                return;
             }
             if (!calculationData.id) {
                 alert('Please calculate a strategy before generating a PDF.');
@@ -362,37 +496,37 @@
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const margin = 10;
             
+            // Add title and link
+            pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Strategy Calculator: 2x2", pdfWidth / 2, margin, { align: 'center' });
+            pdf.setFontSize(10).setTextColor(0, 0, 255).textWithLink('https://www.wescoup.com/tonys-strategy-calculator-2x2', pdfWidth / 2, margin + 5, { align: 'center', url: 'https://www.wescoup.com/tonys-strategy-calculator-2x2' });
+            
             document.body.classList.add('pdf-export-mode');
             
-            // TEMPORARILY SHOW ALL SECTIONS FOR PDF CAPTURE
-            const allSections = document.querySelectorAll('.tennis-section');
-            const originalDisplays = [];
-            allSections.forEach(section => {
-                originalDisplays.push(section.style.display);
-                section.style.display = 'block';
-            });
-        
-            let promise = Promise.resolve();
-            const elements = [document.getElementById('options-setup'), document.getElementById('matrix-input'), document.getElementById('results')];
+            // Populate and show PDF summary view
+            populatePdfSummary();
+            const pdfSummary = document.getElementById('pdf-summary');
+            pdfSummary.style.display = 'block';
             
-            elements.forEach((element, index) => {
-                promise = promise.then(() => html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 }))
-                .then(canvas => {
-                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
-                    const imgProps = pdf.getImageProperties(imgData);
-                    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                    if (index > 0) pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, index === 0 ? margin + 10 : margin, pdfWidth, imgHeight);
-                });
-            });
-        
-            promise.then(() => {
-                // RESTORE ORIGINAL DISPLAY STATES
-                allSections.forEach((section, index) => {
-                    section.style.display = originalDisplays[index];
-                });
+            html2canvas(pdfSummary, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 })
+            .then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                pdf.addImage(imgData, 'JPEG', 0, margin + 10, pdfWidth, imgHeight);
+                
+                // Clean up
+                pdfSummary.style.display = 'none';
                 document.body.classList.remove('pdf-export-mode');
-                pdf.save(`${calculationData.players.player1.name}-vs-${calculationData.players.player2.name}-strategy.pdf`);
+                
+                // Save with formatted filename: "2025-01-01 Scenario Name.pdf"
+                const filename = `${calculationData.date} ${calculationData.scenarioName}.pdf`;
+                pdf.save(filename);
+            })
+            .catch(error => {
+                console.error('PDF generation error:', error);
+                pdfSummary.style.display = 'none';
+                document.body.classList.remove('pdf-export-mode');
+                alert('Error generating PDF. Please try again.');
             });
         }
     </script>
