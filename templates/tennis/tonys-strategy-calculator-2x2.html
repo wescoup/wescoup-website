@@ -153,7 +153,7 @@
         function init() {
             loadAllCalculations();
             updateScenarioDate();
-            showMatrixView();
+            showSection('options-setup');
             renderSavedCalcsList();
         }
 
@@ -482,31 +482,33 @@
         }
         
         function generatePdf() {
-            if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
-                alert("PDF generation library is not loaded. Please ensure you are online."); 
-                return;
-            }
-            if (!calculationData.id) {
-                alert('Please calculate a strategy before generating a PDF.');
-                return;
-            }
-            
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const margin = 10;
-            
-            // Add title and link
-            pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Strategy Calculator: 2x2", pdfWidth / 2, margin, { align: 'center' });
-            pdf.setFontSize(10).setTextColor(0, 0, 255).textWithLink('https://www.wescoup.com/tonys-strategy-calculator-2x2', pdfWidth / 2, margin + 5, { align: 'center', url: 'https://www.wescoup.com/tonys-strategy-calculator-2x2' });
-            
-            document.body.classList.add('pdf-export-mode');
-            
-            // Populate and show PDF summary view
-            populatePdfSummary();
-            const pdfSummary = document.getElementById('pdf-summary');
-            pdfSummary.style.display = 'block';
-            
+        if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+            alert("PDF generation library is not loaded. Please ensure you are online."); 
+            return;
+        }
+        if (!calculationData.id) {
+            alert('Please calculate a strategy before generating a PDF.');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const margin = 10;
+        
+        // Add title and link
+        pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Strategy Calculator: 2x2", pdfWidth / 2, margin, { align: 'center' });
+        pdf.setFontSize(10).setTextColor(0, 0, 255).textWithLink('https://www.wescoup.com/tonys-strategy-calculator-2x2', pdfWidth / 2, margin + 5, { align: 'center', url: 'https://www.wescoup.com/tonys-strategy-calculator-2x2' });
+        
+        document.body.classList.add('pdf-export-mode');
+        
+        // Populate and show PDF summary view
+        populatePdfSummary();
+        const pdfSummary = document.getElementById('pdf-summary');
+        pdfSummary.style.display = 'block';
+
+        // Add a small delay to allow the DOM to render the new content
+        setTimeout(() => {
             html2canvas(pdfSummary, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 })
             .then(canvas => {
                 const imgData = canvas.toDataURL('image/jpeg', 0.92);
@@ -528,7 +530,8 @@
                 document.body.classList.remove('pdf-export-mode');
                 alert('Error generating PDF. Please try again.');
             });
-        }
+        }, 100); // 100ms delay
+    }
     </script>
 </body>
 </html>
