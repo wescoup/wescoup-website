@@ -9,289 +9,485 @@
     <link href="/static/css/tennisstyles.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-    /*
-        PDF-specific styles for better capture.
-        Added by Gemini to ensure white background and black text on capture.
-    */
-    .pdf-capture-light,
-    .pdf-capture-light * {
-      color: #000 !important;
-      background: #fff !important;
-      text-shadow: none !important;
-      box-shadow: none !important;
-    }
-    </style>
 </head>
-<body>
-    <div class="container my-5">
-        <h1 class="display-5 text-center mb-4">Tony's Strategy Calculator: 2x2</h1>
+<body class="tennis-tracker-body">
+    <div class="tennis-tracker-container">
+        <div class="tennis-tracker-header">
+            <h1>🎾 Tony's Strategy Calculator: 2x2</h1>
+            <p class="subtitle-text">Find your optimal strategy in a game of wits.</p>
+        </div>
 
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link active" id="options-tab" data-bs-toggle="tab" href="#options-setup" role="tab" aria-controls="options" aria-selected="true">Options</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="matrix-tab" data-bs-toggle="tab" href="#matrix-view" role="tab" aria-controls="matrix" aria-selected="false">Matrix</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="results-tab" data-bs-toggle="tab" href="#results-view" role="tab" aria-controls="results" aria-selected="false">Results</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="saved-tab" data-bs-toggle="tab" href="#saved-calcs-view" role="tab" aria-controls="saved-calcs" aria-selected="false">Saved</a>
-            </li>
-        </ul>
+        <div class="tennis-nav">
+            <button class="tennis-nav-btn active" onclick="showSection('options-setup')">Options</button>
+            <button class="tennis-nav-btn" id="matrix-nav-btn" onclick="showMatrixView()">Matrix</button>
+            <button class="tennis-nav-btn" id="results-nav-btn" onclick="showResultsView()">Results</button>
+            <button class="tennis-nav-btn" onclick="showSavedCalcs()">Saved Calcs</button>
+            <button class="tennis-nav-btn" onclick="goBackToTools()">Back to Tools</button>
+        </div>
 
-        <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="options-setup" role="tabpanel" aria-labelledby="options-tab">
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Players & Options</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="player1Name" class="form-label">Player 1 Name</label>
-                                <input type="text" class="form-control" id="player1Name" placeholder="Player 1" value="Player 1">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="player2Name" class="form-label">Player 2 Name</label>
-                                <input type="text" class="form-control" id="player2Name" placeholder="Player 2" value="Player 2">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="p1Option1Name" class="form-label">Player 1, Option 1</label>
-                                <input type="text" class="form-control" id="p1Option1Name" placeholder="Player 1 Option 1" value="Serve Wide">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="p2Option1Name" class="form-label">Player 2, Option 1</label>
-                                <input type="text" class="form-control" id="p2Option1Name" placeholder="Player 2 Option 1" value="Cover Wide">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="p1Option2Name" class="form-label">Player 1, Option 2</label>
-                                <input type="text" class="form-control" id="p1Option2Name" placeholder="Player 1 Option 2" value="Serve T">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="p2Option2Name" class="form-label">Player 2, Option 2</label>
-                                <input type="text" class="form-control" id="p2Option2Name" placeholder="Player 2 Option 2" value="Cover T">
-                            </div>
-                        </div>
+        <div id="options-setup" class="tennis-section active">
+            <h2 class="section-title">Define Players & Options</h2>
+            
+            <!-- NEW: Scenario Name and Date -->
+            <div class="stat-card" style="margin-bottom: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center;">
+                    <div class="tennis-form-group" style="margin-bottom: 0;">
+                        <label for="scenario-name">Scenario Name:</label>
+                        <input type="text" id="scenario-name" value="My Strategy Scenario" style="width: 100%;">
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stat-label">Date</div>
+                        <div class="stat-value" id="scenario-date" style="font-size: 1.2rem;">-</div>
                     </div>
                 </div>
             </div>
-
-            <div class="tab-pane fade" id="matrix-view" role="tabpanel" aria-labelledby="matrix-tab">
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Payoff Matrix (<span id="p1NameMatrix">Player 1</span>'s Win %)</h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered text-center">
-                                <thead>
-                                    <tr>
-                                        <th colspan="2" rowspan="2" class="align-middle"></th>
-                                        <th colspan="2" class="align-middle" id="p2NameMatrix">Player 2</th>
-                                    </tr>
-                                    <tr>
-                                        <th id="p2Option1Cell">Option 1</th>
-                                        <th id="p2Option2Cell">Option 2</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <th rowspan="2" class="align-middle" id="p1NameMatrixVertical">Player 1</th>
-                                        <th id="p1Option1Cell">Option 1</th>
-                                        <td><input type="number" class="form-control text-center" id="payoffA" value="45"></td>
-                                        <td><input type="number" class="form-control text-center" id="payoffB" value="70"></td>
-                                    </tr>
-                                    <tr>
-                                        <th id="p1Option2Cell">Option 2</th>
-                                        <td><input type="number" class="form-control text-center" id="payoffC" value="30"></td>
-                                        <td><input type="number" class="form-control text-center" id="payoffD" value="55"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+            
+            <div class="team-setup-grid">
+                <div class="team-card team-1-bg">
+                    <h3 class="team-title-blue">🔵 Player 1</h3>
+                    <div class="tennis-form-group">
+                        <label for="player1-name">Name:</label>
+                        <input type="text" id="player1-name" value="Player 1">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player1-option1">Option 1:</label>
+                        <input type="text" id="player1-option1" value="Serve Wide">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player1-option2">Option 2:</label>
+                        <input type="text" id="player1-option2" value="Serve T">
+                    </div>
+                </div>
+                
+                <div class="team-card team-2-bg">
+                    <h3 class="team-title-red">🔴 Player 2</h3>
+                    <div class="tennis-form-group">
+                        <label for="player2-name">Name:</label>
+                        <input type="text" id="player2-name" value="Player 2">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player2-option1">Option 1:</label>
+                        <input type="text" id="player2-option1" value="Cover Wide">
+                    </div>
+                    <div class="tennis-form-group">
+                        <label for="player2-option2">Option 2:</label>
+                        <input type="text" id="player2-option2" value="Cover T">
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="tab-pane fade" id="results-view" role="tabpanel" aria-labelledby="results-tab">
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Optimal Mixed Strategies</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-subtitle mb-2 text-muted" id="p1NameResults">Player 1</h6>
-                                        <p id="p1StrategyDisplay" class="card-text"></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-subtitle mb-2 text-muted" id="p2NameResults">Player 2</h6>
-                                        <p id="p2StrategyDisplay" class="card-text"></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <h5 class="card-title mt-4">Expected Payoffs</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-subtitle mb-2 text-muted" id="p1NamePayoff">Player 1</h6>
-                                        <p id="p1PayoffDisplay" class="card-text"></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary mt-3" id="savePdfBtn">Save as PDF</button>
-                    </div>
+        <div id="matrix-input" class="tennis-section">
+            <h2 class="section-title">Enter Win Percentages</h2>
+            <p class="subtitle-text">Enter **Player 1's** win percentage for each outcome.</p>
+            <div id="matrix-table-container">
+            </div>
+        </div>
+
+        <div id="results" class="tennis-section">
+            <h2 class="section-title">Optimal Strategy</h2>
+            <div class="results-container" id="results-content">
+            </div>
+            <div class="tennis-btn-group" style="justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+                <button class="tennis-btn" onclick="saveCalculation()">💾 Save Calc</button>
+                <button class="tennis-btn" onclick="generatePdf()">📄 Save as PDF</button>
+                <button class="tennis-btn" onclick="startNewCalculation()">✨ New Calc</button>
+            </div>
+        </div>
+
+        <div id="saved-calcs" class="tennis-section">
+            <h2 class="section-title">Saved Calculations</h2>
+            <div id="saved-calcs-list">
+            </div>
+        </div>
+
+        <!-- HIDDEN: PDF Summary View -->
+        <div id="pdf-summary" class="tennis-section" style="display: none;">
+            <h2 class="section-title" id="pdf-scenario-title">Scenario Name - 2025-01-01</h2>
+            
+            <h3 style="color: #FFE135; margin-top: 2rem;">Players & Options</h3>
+            <div class="team-setup-grid" style="margin-bottom: 2rem;">
+                <div class="team-card team-1-bg">
+                    <h3 class="team-title-blue">🔵 <span id="pdf-p1-name">Player 1</span></h3>
+                    <p><strong>Option 1:</strong> <span id="pdf-p1-opt1">Serve Wide</span></p>
+                    <p><strong>Option 2:</strong> <span id="pdf-p1-opt2">Serve T</span></p>
+                </div>
+                
+                <div class="team-card team-2-bg">
+                    <h3 class="team-title-red">🔴 <span id="pdf-p2-name">Player 2</span></h3>
+                    <p><strong>Option 1:</strong> <span id="pdf-p2-opt1">Cover Wide</span></p>
+                    <p><strong>Option 2:</strong> <span id="pdf-p2-opt2">Cover T</span></p>
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="saved-calcs-view" role="tabpanel" aria-labelledby="saved-tab">
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Saved Scenarios</h5>
-                        <ul class="list-group list-group-flush" id="savedCalcsList">
-                            </ul>
+            <h3 style="color: #FFE135; margin-top: 2rem;">Payoff Matrix (Player 1's Win %)</h3>
+            <div id="pdf-matrix-container" style="margin-bottom: 2rem;">
+            </div>
+
+            <h3 style="color: #FFE135; margin-top: 2rem;">Optimal Strategy</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="result-card">
+                        <h3>🔵 <span id="pdf-result-p1-name">Player 1</span>'s Plan</h3>
+                        <p id="pdf-result-p1-strategy"></p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="result-card">
+                        <h3>🔴 <span id="pdf-result-p2-name">Player 2</span>'s Plan</h3>
+                        <p id="pdf-result-p2-strategy"></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div id="pdf-summary" style="position: absolute; left: -9999px; top: -9999px; width: 800px;">
-        <div class="d-flex justify-content-center text-center">
-            <h1 class="display-5 text-center mb-4">Tony's Strategy Calculator: 2x2</h1>
-        </div>
-        <p class="text-center"><small><a href="https://www.wescoup.com/tonys-strategy-calculator-2x2" class="text-decoration-none">https://www.wescoup.com/tonys-strategy-calculator-2x2</a></small></p>
-        <p class="text-center"><small><span id="scenario-name-pdf">My Strategy Scenario</span> - <span id="scenario-date-pdf"></span></small></p>
-        
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">Players & Options</h5>
-                <div class="row">
-                    <div class="col-6">
-                        <h6>Player 1</h6>
-                        <p id="p1Option1Pdf"></p>
-                        <p id="p1Option2Pdf"></p>
-                    </div>
-                    <div class="col-6">
-                        <h6>Player 2</h6>
-                        <p id="p2Option1Pdf"></p>
-                        <p id="p2Option2Pdf"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">Payoff Matrix (<span id="p1NameMatrixPdf">Player 1</span>'s Win %)</h5>
-                <div class="table-responsive">
-                    <table class="table table-bordered text-center">
-                        <thead>
-                            <tr>
-                                <th colspan="2" rowspan="2" class="align-middle"></th>
-                                <th colspan="2" class="align-middle" id="p2NameMatrixPdf">Player 2</th>
-                            </tr>
-                            <tr>
-                                <th id="p2Option1CellPdf">Option 1</th>
-                                <th id="p2Option2CellPdf">Option 2</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th rowspan="2" class="align-middle" id="p1NameMatrixVerticalPdf">Player 1</th>
-                                <th id="p1Option1CellPdf">Option 1</th>
-                                <td id="payoffAPdf"></td>
-                                <td id="payoffBPdf"></td>
-                            </tr>
-                            <tr>
-                                <th id="p1Option2CellPdf">Option 2</th>
-                                <td id="payoffCPdf"></td>
-                                <td id="payoffDPdf"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">Optimal Mixed Strategies</h5>
-                <div class="row">
-                    <div class="col-6">
-                        <h6><span id="p1NameResultsPdf">Player 1</span></h6>
-                        <p id="p1StrategyDisplayPdf"></p>
-                    </div>
-                    <div class="col-6">
-                        <h6><span id="p2NameResultsPdf">Player 2</span></h6>
-                        <p id="p2StrategyDisplayPdf"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nb+1zg8W8" crossorigin="anonymous"></script>
-    <script>
-    let calculationData = {};
-
-    function saveCalculation() {
-        // Function to save a calculation, remains unchanged
-    }
-
-    function loadCalculation(id) {
-        // Function to load a saved calculation, remains unchanged
-    }
-
-    function populatePdfSummary() {
-        // Function to populate the PDF summary, remains unchanged
-    }
-
-    function updateScenarioDate() {
-        // Function to update the date, remains unchanged
-    }
-
-    function calculateOptimalStrategy() {
-        // Function to perform the calculation, remains unchanged
-    }
-
-    function updateMatrixNames() {
-        // Function to update matrix names, remains unchanged
-    }
-
-    function showSection(sectionId) {
-        // Function to show a section, remains unchanged
-    }
-
-    function saveCurrentScenario() {
-        // Function to save current scenario, remains unchanged
-    }
-
-    function renderSavedCalcsList() {
-        // Function to render saved calcs, remains unchanged
-    }
-
-    function formatDate(date) {
-        // Function to format date, remains unchanged
-    }
-
-    function setupEventListeners() {
-        // Function to set up event listeners, remains unchanged
-    }
     
-    // Recoded 'generatePdf' function
-    async function generatePdf() {
-        if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
-            alert("PDF generation library is not loaded. Please ensure you are online.");
+    <script>
+        // Global variables for dynamic content
+        let calculationData = {};
+        let allCalculations = [];
+        let currentView = 'options-setup';
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            loadAllCalculations();
+            updateScenarioDate();
+            showSection('options-setup');
+            renderSavedCalcsList();
+        }
+
+        function updateScenarioDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('scenario-date').textContent = today;
+        }
+
+        function showSection(sectionId) {
+            currentView = sectionId;
+            document.querySelectorAll('.tennis-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.tennis-nav-btn').forEach(b => b.classList.remove('active'));
+            const newActiveButton = document.querySelector(`.tennis-nav-btn[onclick="showSection('${sectionId}')"]`);
+            if (newActiveButton) newActiveButton.classList.add('active');
+        }
+
+        function showMatrixView() {
+            const p1Name = document.getElementById('player1-name').value || 'Player 1';
+            const p1Opt1 = document.getElementById('player1-option1').value || 'Serve Wide';
+            const p1Opt2 = document.getElementById('player1-option2').value || 'Serve T';
+            const p2Name = document.getElementById('player2-name').value || 'Player 2';
+            const p2Opt1 = document.getElementById('player2-option1').value || 'Cover Wide';
+            const p2Opt2 = document.getElementById('player2-option2').value || 'Cover T';
+            
+            const matrixHtml = `
+                <table class="results-table" style="text-align:center; border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th rowspan="2"></th>
+                      <th rowspan="2"></th>
+                      <th colspan="2">🔴 ${p2Name}</th>
+                    </tr>
+                    <tr>
+                      <th>${p2Opt1}</th>
+                      <th>${p2Opt2}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th rowspan="2">🔵 ${p1Name}</th>
+                      <th>${p1Opt1}</th>
+                      <td><input type="number" id="payoff-0-0" class="form-control" value="45"></td>
+                      <td><input type="number" id="payoff-0-1" class="form-control" value="70"></td>
+                    </tr>
+                    <tr>
+                      <th>${p1Opt2}</th>
+                      <td><input type="number" id="payoff-1-0" class="form-control" value="65"></td>
+                      <td><input type="number" id="payoff-1-1" class="form-control" value="30"></td>
+                    </tr>
+                  </tbody>
+                </table>
+            `;
+            document.getElementById('matrix-table-container').innerHTML = matrixHtml;
+            showSection('matrix-input');
+        }
+        
+        function showResultsView() {
+            // Get payoffs from input fields
+            const payoffs = [
+                [parseFloat(document.getElementById('payoff-0-0').value), parseFloat(document.getElementById('payoff-0-1').value)],
+                [parseFloat(document.getElementById('payoff-1-0').value), parseFloat(document.getElementById('payoff-1-1').value)]
+            ];
+            
+            // Check for dominance
+            const A = payoffs[0][0] / 100;
+            const B = payoffs[0][1] / 100;
+            const C = payoffs[1][0] / 100;
+            const D = payoffs[1][1] / 100;
+            const A_prime = 1 - A;
+            const B_prime = 1 - B;
+            const C_prime = 1 - C;
+            const D_prime = 1 - D;
+
+            if ((A > C && B > D) || (A_prime > B_prime && C_prime > D_prime)) {
+                alert("A pure strategy Nash Equilibrium exists. This calculator is for mixed strategies. Please check your inputs.");
+                return;
+            }
+            
+            // Calculate Nash Equilibrium probabilities
+            let p_num = D_prime - C_prime;
+            let p_den = A_prime - B_prime - C_prime + D_prime;
+            let p = p_den === 0 ? 0.5 : p_num / p_den;
+            p = Math.max(0, Math.min(1, p));
+
+            let q_num = D - B;
+            let q_den = A - B - C + D;
+            let q = q_den === 0 ? 0.5 : q_num / q_den;
+            q = Math.max(0, Math.min(1, q));
+
+            // Update scenario date to current date (auto-update on recalculation)
+            updateScenarioDate();
+
+            calculationData = {
+                id: calculationData.id || Date.now(),
+                scenarioName: document.getElementById('scenario-name').value || 'My Strategy Scenario',
+                date: document.getElementById('scenario-date').textContent,
+                players: {
+                    player1: {
+                        name: document.getElementById('player1-name').value || 'Player 1',
+                        options: [document.getElementById('player1-option1').value || 'Serve Wide', document.getElementById('player1-option2').value || 'Serve T']
+                    },
+                    player2: {
+                        name: document.getElementById('player2-name').value || 'Player 2',
+                        options: [document.getElementById('player2-option1').value || 'Cover Wide', document.getElementById('player2-option2').value || 'Cover T']
+                    }
+                },
+                payoffs: payoffs,
+                optimalStrategy: {
+                    player1: {
+                        p1: (p * 100).toFixed(1),
+                        p2: ((1 - p) * 100).toFixed(1)
+                    },
+                    player2: {
+                        q1: (q * 100).toFixed(1),
+                        q2: ((1 - q) * 100).toFixed(1)
+                    }
+                }
+            };
+            
+            renderResults();
+            showSection('results');
+        }
+
+        function renderResults() {
+            const resultsContainer = document.getElementById('results-content');
+            const p1 = calculationData.players.player1;
+            const p2 = calculationData.players.player2;
+            const strat = calculationData.optimalStrategy;
+            
+            const html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="result-card">
+                            <h3>🔵 ${p1.name}'s Plan</h3>
+                            <p>${p1.options[0]}: <strong>${strat.player1.p1}%</strong></p>
+                            <p>${p1.options[1]}: <strong>${strat.player1.p2}%</strong></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="result-card">
+                            <h3>🔴 ${p2.name}'s Plan</h3>
+                            <p>${p2.options[0]}: <strong>${strat.player2.q1}%</strong></p>
+                            <p>${p2.options[1]}: <strong>${strat.player2.q2}%</strong></p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultsContainer.innerHTML = html;
+        }
+
+        function startNewCalculation() {
+            calculationData = {};
+            document.getElementById('scenario-name').value = 'My Strategy Scenario';
+            updateScenarioDate();
+            document.getElementById('player1-name').value = 'Player 1';
+            document.getElementById('player1-option1').value = 'Serve Wide';
+            document.getElementById('player1-option2').value = 'Serve T';
+            document.getElementById('player2-name').value = 'Player 2';
+            document.getElementById('player2-option1').value = 'Cover Wide';
+            document.getElementById('player2-option2').value = 'Cover T';
+            showMatrixView();
+            showSection('options-setup');
+        }
+
+        function goBackToTools() {
+            const referrer = document.referrer;
+            if (referrer.includes('tonys-pickleball-tools')) {
+                window.location.href = '/tonys-pickleball-tools';
+            } else {
+                window.location.href = '/tonys-tennis-tools';
+            }
+        }
+        
+        function saveCalculation() {
+            if (!calculationData.id) {
+                alert('Please calculate a strategy before saving.');
+                return;
+            }
+            
+            // Update date to current date on save
+            updateScenarioDate();
+            calculationData.date = document.getElementById('scenario-date').textContent;
+            calculationData.scenarioName = document.getElementById('scenario-name').value || 'My Strategy Scenario';
+            
+            const existingIndex = allCalculations.findIndex(c => c.id === calculationData.id);
+            if (existingIndex > -1) {
+                allCalculations[existingIndex] = calculationData;
+            } else {
+                allCalculations.push(calculationData);
+            }
+            localStorage.setItem('2x2Calcs', JSON.stringify(allCalculations));
+            alert('Calculation saved!');
+            renderSavedCalcsList();
+        }
+
+        function showSavedCalcs() {
+            renderSavedCalcsList();
+            showSection('saved-calcs');
+        }
+        
+        function loadAllCalculations() {
+            const saved = localStorage.getItem('2x2Calcs');
+            if (saved) {
+                allCalculations = JSON.parse(saved);
+            }
+        }
+
+        function renderSavedCalcsList() {
+            const container = document.getElementById('saved-calcs-list');
+            if (allCalculations.length === 0) {
+                container.innerHTML = '<p style="text-align:center;">No saved calculations yet.</p>';
+                return;
+            }
+            
+            let html = '';
+            // Reverse to show newest first
+            [...allCalculations].reverse().forEach(calc => {
+                const scenarioName = calc.scenarioName || 'Unnamed Scenario';
+                const date = calc.date || 'No date';
+                const p1Name = calc.players.player1.name;
+                const p2Name = calc.players.player2.name;
+                html += `<div class="stat-card" style="margin-bottom: 1rem; text-align: left;">
+                    <p style="font-weight: bold; font-size: 1.1rem;">${scenarioName} - ${date}</p>
+                    <p><b>Players:</b> ${p1Name} vs ${p2Name}</p>
+                    <p><b>P1 Options:</b> ${calc.players.player1.options.join(' & ')}</p>
+                    <p><b>P2 Options:</b> ${calc.players.player2.options.join(' & ')}</p>
+                    <div class="tennis-btn-group" style="margin-top: 1rem;">
+                        <button class="tennis-btn" onclick="loadCalc(${calc.id})">Load</button>
+                        <button class="tennis-btn" onclick="deleteCalc(${calc.id})">Delete</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function loadCalc(id) {
+            const calcToLoad = allCalculations.find(c => c.id === id);
+            if (calcToLoad) {
+                calculationData = calcToLoad;
+                document.getElementById('scenario-name').value = calcToLoad.scenarioName || 'My Strategy Scenario';
+                document.getElementById('scenario-date').textContent = calcToLoad.date || new Date().toISOString().split('T')[0];
+                document.getElementById('player1-name').value = calcToLoad.players.player1.name;
+                document.getElementById('player1-option1').value = calcToLoad.players.player1.options[0];
+                document.getElementById('player1-option2').value = calcToLoad.players.player1.options[1];
+                document.getElementById('player2-name').value = calcToLoad.players.player2.name;
+                document.getElementById('player2-option1').value = calcToLoad.players.player2.options[0];
+                document.getElementById('player2-option2').value = calcToLoad.players.player2.options[1];
+                
+                // Render matrix and fill with loaded data
+                showMatrixView();
+                document.getElementById('payoff-0-0').value = calcToLoad.payoffs[0][0];
+                document.getElementById('payoff-0-1').value = calcToLoad.payoffs[0][1];
+                document.getElementById('payoff-1-0').value = calcToLoad.payoffs[1][0];
+                document.getElementById('payoff-1-1').value = calcToLoad.payoffs[1][1];
+
+                renderResults();
+                showSection('results');
+            }
+        }
+
+        function deleteCalc(id) {
+            if (confirm('Are you sure you want to delete this calculation?')) {
+                allCalculations = allCalculations.filter(c => c.id !== id);
+                localStorage.setItem('2x2Calcs', JSON.stringify(allCalculations));
+                renderSavedCalcsList();
+            }
+        }
+        
+        function populatePdfSummary() {
+            const calc = calculationData;
+            
+            // Title
+            document.getElementById('pdf-scenario-title').textContent = `${calc.scenarioName} - ${calc.date}`;
+            
+            // Players & Options
+            document.getElementById('pdf-p1-name').textContent = calc.players.player1.name;
+            document.getElementById('pdf-p1-opt1').textContent = calc.players.player1.options[0];
+            document.getElementById('pdf-p1-opt2').textContent = calc.players.player1.options[1];
+            document.getElementById('pdf-p2-name').textContent = calc.players.player2.name;
+            document.getElementById('pdf-p2-opt1').textContent = calc.players.player2.options[0];
+            document.getElementById('pdf-p2-opt2').textContent = calc.players.player2.options[1];
+            
+            // Matrix
+            const matrixHtml = `
+                <table class="results-table" style="text-align:center; border-collapse:collapse; margin: 0 auto;">
+                  <thead>
+                    <tr>
+                      <th rowspan="2"></th>
+                      <th rowspan="2"></th>
+                      <th colspan="2">🔴 ${calc.players.player2.name}</th>
+                    </tr>
+                    <tr>
+                      <th>${calc.players.player2.options[0]}</th>
+                      <th>${calc.players.player2.options[1]}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th rowspan="2">🔵 ${calc.players.player1.name}</th>
+                      <th>${calc.players.player1.options[0]}</th>
+                      <td><strong>${calc.payoffs[0][0]}%</strong></td>
+                      <td><strong>${calc.payoffs[0][1]}%</strong></td>
+                    </tr>
+                    <tr>
+                      <th>${calc.players.player1.options[1]}</th>
+                      <td><strong>${calc.payoffs[1][0]}%</strong></td>
+                      <td><strong>${calc.payoffs[1][1]}%</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+            `;
+            document.getElementById('pdf-matrix-container').innerHTML = matrixHtml;
+            
+            // Results
+            document.getElementById('pdf-result-p1-name').textContent = calc.players.player1.name;
+            document.getElementById('pdf-result-p2-name').textContent = calc.players.player2.name;
+            document.getElementById('pdf-result-p1-strategy').innerHTML = `
+                ${calc.players.player1.options[0]}: <strong>${calc.optimalStrategy.player1.p1}%</strong><br>
+                ${calc.players.player1.options[1]}: <strong>${calc.optimalStrategy.player1.p2}%</strong>
+            `;
+            document.getElementById('pdf-result-p2-strategy').innerHTML = `
+                ${calc.players.player2.options[0]}: <strong>${calc.optimalStrategy.player2.q1}%</strong><br>
+                ${calc.players.player2.options[1]}: <strong>${calc.optimalStrategy.player2.q2}%</strong>
+            `;
+        }
+        
+        function generatePdf() {
+        if (!window.html2canvas || !(window.jspdf && window.jspdf.jsPDF)) {
+            alert("PDF generation library is not loaded. Please ensure you are online."); 
+            return;
+        }
+        if (!calculationData.id) {
+            alert('Please calculate a strategy before generating a PDF.');
             return;
         }
 
@@ -303,53 +499,62 @@
         // Add title and link
         pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Strategy Calculator: 2x2", pdfWidth / 2, margin, { align: 'center' });
         pdf.setFontSize(10).setTextColor(0, 0, 255).textWithLink('https://www.wescoup.com/tonys-strategy-calculator-2x2', pdfWidth / 2, margin + 5, { align: 'center', url: 'https://www.wescoup.com/tonys-strategy-calculator-2x2' });
-
+        
+        document.body.classList.add('pdf-export-mode');
+        
+        // Populate and show PDF summary view
+        populatePdfSummary();
         const pdfSummary = document.getElementById('pdf-summary');
-        const currentActiveTab = document.querySelector('.tab-pane.show.active');
+        pdfSummary.style.display = 'block';
 
-        try {
-            // Populate and force render PDF summary view
-            populatePdfSummary();
-            currentActiveTab.classList.remove('show', 'active');
-            pdfSummary.classList.add('show', 'active', 'pdf-capture-light');
+        // Add a small delay to allow the DOM to render the new content
+        setTimeout(() => {
+            const pdfSummary = document.getElementById('pdf-summary');
+
+            // Remember which section was active so we can restore it later
+            const prevActive = document.querySelector('.tennis-section.active');
+            prevActive?.classList.remove('active');
             
-            // Wait for the DOM to update and render
-            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+            // Force the summary to be the visible/active section
+            pdfSummary.classList.add('active');
+            // Belt-and-suspenders override in case of aggressive CSS:
+            pdfSummary.style.setProperty('display', 'block', 'important');
 
-            const canvas = await html2canvas(pdfSummary, { scale: 2, useCORS: true });
-            const imgData = canvas.toDataURL('image/jpeg', 0.92);
-            const imgProps = pdf.getImageProperties(imgData);
-            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            pdf.addImage(imgData, 'JPEG', 0, margin + 10, pdfWidth, imgHeight);
-            
-            // Save with formatted filename: "2025-01-01 Scenario Name.pdf"
-            const filename = `${calculationData.date} ${calculationData.scenarioName}.pdf`;
-            pdf.save(filename);
-        } catch (error) {
-            console.error('PDF generation error:', error);
-            alert('Error generating PDF. Please try again.');
-        } finally {
-            // Restore original UI
-            pdfSummary.classList.remove('show', 'active', 'pdf-capture-light');
-            currentActiveTab.classList.add('show', 'active');
-        }
+            html2canvas(pdfSummary, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 })
+            .then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                pdf.addImage(imgData, 'JPEG', 0, margin + 10, pdfWidth, imgHeight);
+                
+                // Clean up
+                pdfSummary.style.display = 'none';
+                document.body.classList.remove('pdf-export-mode');
+                
+                // Save with formatted filename: "2025-01-01 Scenario Name.pdf"
+                const filename = `${calculationData.date} ${calculationData.scenarioName}.pdf`;
+                pdf.save(filename);
+                // Hide and restore UI state
+                pdfSummary.style.display = 'none';
+                pdfSummary.classList.remove('active');
+                if (prevActive) prevActive.classList.add('active');
+                document.body.classList.remove('pdf-export-mode');
+            })
+            .catch(error => {
+                console.error('PDF generation error:', error);
+                pdfSummary.style.display = 'none';
+                document.body.classList.remove('pdf-export-mode');
+                alert('Error generating PDF. Please try again.');
+                // Hide and restore UI state
+                pdfSummary.style.display = 'none';
+                pdfSummary.classList.remove('active');
+                if (prevActive) prevActive.classList.add('active');
+                document.body.classList.remove('pdf-export-mode');
+            });
+        }, 100); // 100ms delay
     }
-
-    // Recoded 'init' function
-    function init() {
-        loadAllCalculations();
-        updateScenarioDate();
-        showSection('options-setup');
-        renderSavedCalcsList();
-    }
-
-    // Call init and setup event listeners when the page loads
-    document.addEventListener('DOMContentLoaded', () => {
-        init();
-        setupEventListeners();
-    });
     </script>
 </body>
 </html>
-</html>
+
 
