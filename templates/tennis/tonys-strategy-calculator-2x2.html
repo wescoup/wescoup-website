@@ -347,7 +347,7 @@
                 renderSavedCalcsList();
             }
         }
-
+        
         function generatePdf() {
             if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
                 alert("PDF generation library is not loaded. Please ensure you are online."); return;
@@ -363,7 +363,15 @@
             const margin = 10;
             
             document.body.classList.add('pdf-export-mode');
-
+            
+            // TEMPORARILY SHOW ALL SECTIONS FOR PDF CAPTURE
+            const allSections = document.querySelectorAll('.tennis-section');
+            const originalDisplays = [];
+            allSections.forEach(section => {
+                originalDisplays.push(section.style.display);
+                section.style.display = 'block';
+            });
+        
             let promise = Promise.resolve();
             const elements = [document.getElementById('options-setup'), document.getElementById('matrix-input'), document.getElementById('results')];
             
@@ -377,8 +385,12 @@
                     pdf.addImage(imgData, 'JPEG', 0, index === 0 ? margin + 10 : margin, pdfWidth, imgHeight);
                 });
             });
-
+        
             promise.then(() => {
+                // RESTORE ORIGINAL DISPLAY STATES
+                allSections.forEach((section, index) => {
+                    section.style.display = originalDisplays[index];
+                });
                 document.body.classList.remove('pdf-export-mode');
                 pdf.save(`${calculationData.players.player1.name}-vs-${calculationData.players.player2.name}-strategy.pdf`);
             });
