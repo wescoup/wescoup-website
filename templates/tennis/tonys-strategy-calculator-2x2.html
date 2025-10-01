@@ -482,7 +482,7 @@
         }
         
         function generatePdf() {
-        if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+        if (!window.html2canvas || !(window.jspdf && window.jspdf.jsPDF)) {
             alert("PDF generation library is not loaded. Please ensure you are online."); 
             return;
         }
@@ -509,6 +509,17 @@
 
         // Add a small delay to allow the DOM to render the new content
         setTimeout(() => {
+            const pdfSummary = document.getElementById('pdf-summary');
+
+            // Remember which section was active so we can restore it later
+            const prevActive = document.querySelector('.tennis-section.active');
+            prevActive?.classList.remove('active');
+            
+            // Force the summary to be the visible/active section
+            pdfSummary.classList.add('active');
+            // Belt-and-suspenders override in case of aggressive CSS:
+            pdfSummary.style.setProperty('display', 'block', 'important');
+
             html2canvas(pdfSummary, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 })
             .then(canvas => {
                 const imgData = canvas.toDataURL('image/jpeg', 0.92);
@@ -523,12 +534,22 @@
                 // Save with formatted filename: "2025-01-01 Scenario Name.pdf"
                 const filename = `${calculationData.date} ${calculationData.scenarioName}.pdf`;
                 pdf.save(filename);
+                // Hide and restore UI state
+                pdfSummary.style.display = 'none';
+                pdfSummary.classList.remove('active');
+                if (prevActive) prevActive.classList.add('active');
+                document.body.classList.remove('pdf-export-mode');
             })
             .catch(error => {
                 console.error('PDF generation error:', error);
                 pdfSummary.style.display = 'none';
                 document.body.classList.remove('pdf-export-mode');
                 alert('Error generating PDF. Please try again.');
+                // Hide and restore UI state
+                pdfSummary.style.display = 'none';
+                pdfSummary.classList.remove('active');
+                if (prevActive) prevActive.classList.add('active');
+                document.body.classList.remove('pdf-export-mode');
             });
         }, 100); // 100ms delay
     }
