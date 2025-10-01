@@ -120,31 +120,35 @@
             const p2Opt2 = document.getElementById('player2-option2').value || 'Cover T';
             
             const matrixHtml = `
-            <table class="results-table" style="text-align: center;">
-                <thead>
+                <table class="results-table" style="text-align:center; border-collapse:collapse;">
+                  <thead>
                     <tr>
-                        <th rowspan="2"></th>
-                        <th colspan="2">🔴 ${p2Name}</th>
+                      <!-- corner above P1 name -->
+                      <th rowspan="2"></th>
+                      <!-- header above P1 options (Serve Wide/Serve T) -->
+                      <th rowspan="2"></th>
+                      <!-- P2 spans the two payoff columns -->
+                      <th colspan="2">🔴 ${p2Name}</th>
                     </tr>
                     <tr>
-                        <th>${p2Opt1}</th>
-                        <th>${p2Opt2}</th>
+                      <th>${p2Opt1}</th>
+                      <th>${p2Opt2}</th>
                     </tr>
-                </thead>
-                <tbody>
+                  </thead>
+                  <tbody>
                     <tr>
-                        <th rowspan="2">🔵 ${p1Name}</th>
-                        <th>${p1Opt1}</th>
-                        <td><input type="number" id="payoff-0-0" class="form-control" value="45"></td>
-                        <td><input type="number" id="payoff-0-1" class="form-control" value="70"></td>
+                      <th rowspan="2">🔵 ${p1Name}</th>
+                      <th>${p1Opt1}</th>
+                      <td><input type="number" id="payoff-0-0" class="form-control" value="45"></td>
+                      <td><input type="number" id="payoff-0-1" class="form-control" value="70"></td>
                     </tr>
                     <tr>
-                        <th>${p1Opt2}</th>
-                        <td><input type="number" id="payoff-1-0" class="form-control" value="65"></td>
-                        <td><input type="number" id="payoff-1-1" class="form-control" value="30"></td>
+                      <th>${p1Opt2}</th>
+                      <td><input type="number" id="payoff-1-0" class="form-control" value="65"></td>
+                      <td><input type="number" id="payoff-1-1" class="form-control" value="30"></td>
                     </tr>
-                </tbody>
-            </table>
+                  </tbody>
+                </table>
             `;
             document.getElementById('matrix-table-container').innerHTML = matrixHtml;
             showSection('matrix-input');
