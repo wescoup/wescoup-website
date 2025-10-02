@@ -434,7 +434,7 @@ async function generatePdf() {
     const pdfContainer = document.getElementById('pdf-container');
 
     try {
-        pdfContainer.classList.add('pdf-capture-light');
+        pdfContainer.classList.add('pdf-capture-light', 'pdf-page-content');
 
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
@@ -453,11 +453,11 @@ async function generatePdf() {
             alert('Error generating PDF. Please try again.');
         })
         .finally(() => {
-            pdfContainer.classList.remove('pdf-capture-light');
+            pdfContainer.classList.remove('pdf-capture-light', 'pdf-page-content');
         });
     } catch (error) {
         console.error('PDF generation error:', error);
         alert('Error generating PDF. Please try again.');
-        pdfContainer.classList.remove('pdf-capture-light');
+        pdfContainer.classList.remove('pdf-capture-light', 'pdf-page-content');
     }
 }
