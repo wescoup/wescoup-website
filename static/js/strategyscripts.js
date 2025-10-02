@@ -390,10 +390,8 @@ async function generatePdf() {
     const pdfContainer = document.getElementById('pdf-container');
 
     try {
-        // We no longer need to show/hide sections as the PDF content is always in the DOM
-        
         // Add PDF-specific styling for proper rendering
-        pdfContainer.classList.add('pdf-capture-light');
+        pdfContainer.classList.add('pdf-capture-light', 'pdf-page-content');
 
         // Wait for the DOM to update and render
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -415,12 +413,12 @@ async function generatePdf() {
         })
         .finally(() => {
             // Restore original UI
-            pdfContainer.classList.remove('pdf-capture-light');
+            pdfContainer.classList.remove('pdf-capture-light', 'pdf-page-content');
         });
     } catch (error) {
         console.error('PDF generation error:', error);
         alert('Error generating PDF. Please try again.');
         // Ensure UI is restored even if initial setup fails
-        pdfContainer.classList.remove('pdf-capture-light');
+        pdfContainer.classList.remove('pdf-capture-light', 'pdf-page-content');
     }
 }
