@@ -557,3 +557,20 @@ body.pdf-export-mode .results-table thead {
     font-weight: bold;
 }
 */
+
+/* The following styles are for the strategy calculators. */
+/* Add or modify this section in tennisstyles.css */
+.results-table th, .results-table td {
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* NEW: Ensure sufficient width for player names */
+    min-width: 80px; /* Adjust this value as needed */
+    vertical-align: middle; /* Align content nicely */
+}
+
+/* Also, add a specific rule for the side-header cells */
+.results-table th[rowspan="2"] {
+    text-align: left;
+    white-space: nowrap; /* Prevents text from wrapping */
+}
