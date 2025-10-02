@@ -574,3 +574,21 @@ body.pdf-export-mode .results-table thead {
     text-align: left;
     white-space: nowrap; /* Prevents text from wrapping */
 }
+
+/*
+    PDF-specific styles for better capture.
+    Added by Gemini to ensure white background and black text on capture,
+    and a narrower, centered content width.
+*/
+.pdf-capture-light,
+.pdf-capture-light * {
+  color: #000 !important;
+  background: #fff !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.pdf-page-content {
+    max-width: 200mm; /* A4 width is 210mm, leaving a 5mm margin on each side */
+    margin: 0 auto; /* Center the content */
+}
