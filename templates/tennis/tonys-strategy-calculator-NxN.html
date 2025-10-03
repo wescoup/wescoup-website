@@ -26,6 +26,24 @@
         flex-direction: column;
         gap: 0.5rem;
     }
+    .option-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .option-control-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+    }
     </style>
 </head>
 <body class="tennis-tracker-body">
@@ -67,16 +85,7 @@
                         <input type="text" id="player1-name" value="Player 1">
                     </div>
                     <div id="player1-options-container" class="option-list">
-                        <div class="option-group" id="player1-option-group-1">
-                            <label for="player1-option1">Option 1:</label>
-                            <input type="text" id="player1-option1" value="Option 1">
-                        </div>
-                        <div class="option-group" id="player1-option-group-2">
-                            <label for="player1-option2">Option 2:</label>
-                            <input type="text" id="player1-option2" value="Option 2">
-                        </div>
                     </div>
-                    <button class="tennis-btn" onclick="addOption('player1')">Add Option</button>
                 </div>
                 
                 <div class="team-card team-2-bg">
@@ -86,17 +95,14 @@
                         <input type="text" id="player2-name" value="Player 2">
                     </div>
                     <div id="player2-options-container" class="option-list">
-                        <div class="option-group" id="player2-option-group-1">
-                            <label for="player2-option1">Option 1:</label>
-                            <input type="text" id="player2-option1" value="Response 1">
-                        </div>
-                        <div class="option-group" id="player2-option-group-2">
-                            <label for="player2-option2">Option 2:</label>
-                            <input type="text" id="player2-option2" value="Response 2">
-                        </div>
                     </div>
-                    <button class="tennis-btn" onclick="addOption('player2')">Add Option</button>
                 </div>
+            </div>
+            
+            <div class="option-controls">
+                <span style="font-size: 1.2rem; font-weight: bold;">Options</span>
+                <button class="option-control-btn" id="add-option-btn" onclick="addOption()">+</button>
+                <button class="option-control-btn" id="remove-option-btn" onclick="removeOption()">-</button>
             </div>
         </div>
 
