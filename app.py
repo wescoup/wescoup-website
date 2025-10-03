@@ -32,11 +32,6 @@ def tonys_strategy_calculator_instructions():
     """Show Tony's Strategy Calculator instructions page"""
     return render_template("tennis/tonys-strategy-calculator-instructions.html")
 
-@app.route("/tonys-strategy-calculator")
-def tonys_strategy_calculator():
-    """Show Tony's Strategy Calculator page"""
-    return render_template("tennis/tonys-strategy-calculator.html")
-
 @app.route("/tonys-strategy-calculator-2x2")
 def tonys_strategy_calculator_2x2():
     """Show Tony's 2x2 Strategy Calculator page"""
@@ -44,9 +39,14 @@ def tonys_strategy_calculator_2x2():
 
 @app.route("/tonys-strategy-calculator-3x3")
 def tonys_strategy_calculator_3x3():
-    """Show Tony's 2x2 Strategy Calculator page"""
+    """Show Tony's 3x3 Strategy Calculator page"""
     return render_template("tennis/tonys-strategy-calculator-3x3.html")
 
+@app.route("/tonys-strategy-calculator-NxN")
+def tonys_strategy_calculator_NxN():
+    """Show Tony's NxN Strategy Calculator page"""
+    return render_template("tennis/tonys-strategy-calculator-NxN.html")
+    
 @app.route("/tonys-tracker-instructions")
 def tonys_tracker_instructions():
     """Show the instructions page for the tennis trackers"""
