@@ -8,10 +8,14 @@ document.addEventListener('DOMContentLoaded', init);
 function init() {
     loadAllCalculations();
     updateScenarioDate();
+    // Add default options for a 2x2 matrix on initial load
+    addOption('player1');
+    addOption('player2');
     // Add event listeners for input fields to trigger continuous updates
     document.querySelectorAll('#options-setup input').forEach(input => {
         input.addEventListener('input', updateAllViews);
     });
+    updateOptionButtons();
     updateAllViews(); // Initial render on page load
     showSection('options-setup');
     renderSavedCalcsList();
@@ -39,23 +43,87 @@ function showSection(sectionId) {
     if (newActiveButton) newActiveButton.classList.add('active');
 }
 
-function addOption(player) {
-    const optionsContainer = document.getElementById(`${player}-options-container`);
-    const existingOptions = optionsContainer.querySelectorAll('.option-group').length;
+function addOption() {
+    const p1OptionsContainer = document.getElementById('player1-options-container');
+    const p2OptionsContainer = document.getElementById('player2-options-container');
+    const existingOptions = p1OptionsContainer.querySelectorAll('.option-group').length;
+
     if (existingOptions >= 6) {
         alert("You can only have up to 6 options per player.");
         return;
     }
+
     const newOptionNumber = existingOptions + 1;
-    const optionType = player === 'player1' ? 'Option' : 'Response';
-    const newOptionHtml = `
-        <div class="option-group" id="${player}-option-group-${newOptionNumber}">
-            <label for="${player}-option${newOptionNumber}">Option ${newOptionNumber}:</label>
-            <input type="text" id="${player}-option${newOptionNumber}" value="${optionType} ${newOptionNumber}">
+    const p1OptionHtml = `
+        <div class="option-group" id="player1-option-group-${newOptionNumber}">
+            <label for="player1-option${newOptionNumber}">Option ${newOptionNumber}:</label>
+            <input type="text" id="player1-option${newOptionNumber}" value="Option ${newOptionNumber}">
         </div>
     `;
-    optionsContainer.insertAdjacentHTML('beforeend', newOptionHtml);
-    document.getElementById(`${player}-option${newOptionNumber}`).addEventListener('input', updateAllViews);
+    const p2OptionHtml = `
+        <div class="option-group" id="player2-option-group-${newOptionNumber}">
+            <label for="player2-option${newOptionNumber}">Option ${newOptionNumber}:</label>
+            <input type="text" id="player2-option${newOptionNumber}" value="Response ${newOptionNumber}">
+        </div>
+    `;
+
+    p1OptionsContainer.insertAdjacentHTML('beforeend', p1OptionHtml);
+    p2OptionsContainer.insertAdjacentHTML('beforeend', p2OptionHtml);
+
+    document.getElementById(`player1-option${newOptionNumber}`).addEventListener('input', updateAllViews);
+    document.getElementById(`player2-option${newOptionNumber}`).addEventListener('input', updateAllViews);
+    
+    updateOptionButtons();
+}
+
+function removeOption() {
+    const p1OptionsContainer = document.getElementById('player1-options-container');
+    const p2OptionsContainer = document.getElementById('player2-options-container');
+    const existingOptions = p1OptionsContainer.querySelectorAll('.option-group').length;
+
+    if (existingOptions > 2) {
+        const lastP1Option = document.getElementById(`player1-option-group-${existingOptions}`);
+        const lastP2Option = document.getElementById(`player2-option-group-${existingOptions}`);
+        lastP1Option.remove();
+        lastP2Option.remove();
+    }
+    updateOptionButtons();
+    updateAllViews();
+}
+
+function updateOptionButtons() {
+    const p1OptionsContainer = document.getElementById('player1-options-container');
+    const existingOptions = p1OptionsContainer.querySelectorAll('.option-group').length;
+    const addBtn = document.getElementById('add-option-btn');
+    const removeBtn = document.getElementById('remove-option-btn');
+
+    if (existingOptions >= 6) {
+        addBtn.disabled = true;
+        addBtn.style.opacity = 0.5;
+    } else {
+        addBtn.disabled = false;
+        addBtn.style.opacity = 1.0;
+    }
+
+    if (existingOptions <= 2) {
+        removeBtn.disabled = true;
+        removeBtn.style.opacity = 0.5;
+    } else {
+        removeBtn.disabled = false;
+        removeBtn.style.opacity = 1.0;
+    }
+}
+
+function getOptions(player) {
+    const options = [];
+    const optionsContainer = document.getElementById(`${player}-options-container`);
+    const optionInputs = optionsContainer.querySelectorAll('input');
+    optionInputs.forEach(input => {
+        if (input.value) {
+            options.push(input.value);
+        }
+    });
+    return options;
 }
 
 function showMatrixView() {
@@ -102,16 +170,6 @@ function showMatrixView() {
     showSection('matrix-input');
 }
 
-function getOptions(player) {
-    const options = [];
-    for (let i = 1; i <= 6; i++) {
-        const input = document.getElementById(`${player}-option${i}`);
-        if (input && input.value) {
-            options.push(input.value);
-        }
-    }
-    return options;
-}
 
 function showResultsView() {
     const p1Options = getOptions('player1');
@@ -153,7 +211,6 @@ function showResultsView() {
 }
 
 function calculateNxNNash(payoffs, size) {
-    // Pairwise method from the paper
     const p1_raw_strategies = new Array(size).fill(0);
     const p2_raw_strategies = new Array(size).fill(0);
     let p1_count = new Array(size).fill(0);
@@ -178,15 +235,15 @@ function calculateNxNNash(payoffs, size) {
                 [payoffs[j][i], payoffs[j][j]]
             ];
             const p2_result = solve2x2Nash(p2_2x2_payoffs);
-            p2_raw_strategies[i] += p2_result.q_opponent;
-            p2_raw_strategies[j] += p2_result.p_opponent;
+            p2_raw_strategies[i] += p2_result.p_opponent;
+            p2_raw_strategies[j] += p2_result.q_opponent;
             p2_count[i]++;
             p2_count[j]++;
         }
     }
 
-    const p1_normalized = p1_raw_strategies.map((val, i) => val / p1_count[i]);
-    const p2_normalized = p2_raw_strategies.map((val, i) => val / p2_count[i]);
+    const p1_normalized = p1_raw_strategies.map((val, i) => val / p1_count[i] || 0);
+    const p2_normalized = p2_raw_strategies.map((val, i) => val / p2_count[i] || 0);
 
     const p1_total = p1_normalized.reduce((sum, val) => sum + val, 0);
     const p2_total = p2_normalized.reduce((sum, val) => sum + val, 0);
@@ -327,27 +384,12 @@ function startNewCalculation() {
     document.getElementById('player2-name').value = 'Player 2';
     
     const p1OptionsContainer = document.getElementById('player1-options-container');
-    p1OptionsContainer.innerHTML = `
-        <div class="option-group" id="player1-option-group-1">
-            <label for="player1-option1">Option 1:</label>
-            <input type="text" id="player1-option1" value="Option 1">
-        </div>
-        <div class="option-group" id="player1-option-group-2">
-            <label for="player1-option2">Option 2:</label>
-            <input type="text" id="player1-option2" value="Option 2">
-        </div>
-    `;
     const p2OptionsContainer = document.getElementById('player2-options-container');
-    p2OptionsContainer.innerHTML = `
-        <div class="option-group" id="player2-option-group-1">
-            <label for="player2-option1">Option 1:</label>
-            <input type="text" id="player2-option1" value="Response 1">
-        </div>
-        <div class="option-group" id="player2-option-group-2">
-            <label for="player2-option2">Option 2:</label>
-            <input type="text" id="player2-option2" value="Response 2">
-        </div>
-    `;
+    p1OptionsContainer.innerHTML = '';
+    p2OptionsContainer.innerHTML = '';
+
+    addOption();
+    addOption();
     
     showMatrixView();
     showSection('options-setup');
