@@ -96,7 +96,7 @@ body, html {
     margin-top: 2rem;
 }
 
-.card {
+.card { /* Modified for tool cards */
     background: #ffffff;
     border: 1px solid #ddd;
     border-radius: 10px;
@@ -107,7 +107,7 @@ body, html {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
-.card:hover {
+.card:hover { /* Modified for tool cards */
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
@@ -154,12 +154,12 @@ body, html {
 
 .player-info {
     text-align: center;
-    min-height: 80px; /* Give space for stats */
+    min-height: 100px; /* Increased space for stats */
     margin-bottom: 15px;
 }
 
 .player-info h2 {
-    margin: 0 0 10px 0;
+    margin: 0 0 5px 0; /* Reduced bottom margin */
     color: #444;
 }
 
@@ -167,29 +167,37 @@ body, html {
     font-size: 1.1rem;
     color: #333;
     font-weight: bold;
+    margin-bottom: 2px; /* Added spacing */
+}
+
+/* New "Cards Left" Stat Style */
+.cards-left-stat {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 8px; /* Space before main stats */
 }
 
 /* New Stats Container */
 .stats-container {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-top: 8px;
+    gap: 10px; /* Reduced gap */
+    margin-top: 5px; /* Reduced top margin */
     flex-wrap: wrap;
 }
 
 .stat-item {
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* Slightly smaller */
     color: #555;
     background: rgba(255, 255, 255, 0.6);
-    padding: 3px 8px;
+    padding: 2px 6px; /* Adjusted padding */
     border-radius: 4px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     white-space: nowrap; /* Prevent wrapping */
 }
 
 /* --- Card Piles --- */
-.deck-pile, .discard-pile-area {
+.deck-pile { /* Removed discard-pile-area */
     min-height: 140px;
     display: flex;
     justify-content: center;
@@ -209,7 +217,7 @@ body, html {
 .card-pile {
     width: 100px;
     height: 140px;
-    position: relative; /* Needed for discard pile stacking */
+    position: relative;
     border: 2px dashed #ccc;
     border-radius: 8px;
     display: flex;
@@ -217,36 +225,25 @@ body, html {
     align-items: center;
 }
 
-.card-pile.discard {
-    border-style: solid; /* Solid border for discard */
-}
-
-.discard-pile-area .card {
-    /* Stack cards in discard pile */
-    position: absolute;
-    top: 0;
-    left: 0;
-}
+/* Removed styles for .card-pile.discard and .discard-pile-area .card */
 
 /* Updated War Pile styles */
 .war-pile {
     width: 180px; /* Widen to show staggered cards */
     height: 140px;
     position: relative;
-    /* border: 1px dashed #fd7e14; */ /* Optional: for debugging */
     margin-top: 0; /* Align with play pile */
 }
 
 .war-pile .card {
-    /* Staggered cards will be positioned absolutely */
     position: absolute;
     top: 0;
     left: 0;
 }
 
-/* --- Card Visuals --- */
+/* --- Card Visuals (Updated) --- */
 
-.card {
+.card { /* Game Card specific styles */
     width: 100px;
     height: 140px;
     border-radius: 8px;
@@ -254,13 +251,27 @@ body, html {
     border: 1px solid #aaa;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
-    justify-content: center;
+    /* Updated for Value + Suit */
+    flex-direction: column;
+    justify-content: space-around; /* Space out value and suit */
     align-items: center;
-    font-size: 2.5rem;
     font-weight: bold;
     user-select: none;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 5px 0; /* Add some vertical padding */
+    box-sizing: border-box; /* Include padding in height */
 }
+
+.card .card-value {
+    font-size: 2.5rem; /* Main value size */
+    line-height: 1.1;
+}
+
+.card .card-suit {
+    font-size: 1.8rem; /* Suit size */
+    line-height: 1;
+}
+
 
 .card:hover {
     transform: translateY(-3px);
