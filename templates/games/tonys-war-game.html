@@ -13,7 +13,6 @@
         <div class="game-controls">
             <button id="start-game" class="btn">Start Game</button>
             <button id="play-turn" class="btn" disabled>Play Turn</button>
-            <!-- New Auto-Play Button -->
             <button id="auto-play" class="btn" disabled>Auto Play</button>
         </div>
     </header>
@@ -26,7 +25,8 @@
             <div class="player-info">
                 <h2>Opponent</h2>
                 <div class="card-count" id="player-2-deck-count">Cards: 26</div>
-                <!-- New Stats Block -->
+                <!-- New "Cards Left" tracker -->
+                <div class="cards-left-stat" id="player-2-cards-left">Cards Left: 26</div>
                 <div class="stats-container">
                     <div id="player-2-aces" class="stat-item">Aces: 0</div>
                     <div id="player-2-kings" class="stat-item">Kings: 0</div>
@@ -38,12 +38,9 @@
             </div>
             <div class="play-pile-area">
                 <div class="card-pile" id="player-2-play-pile"></div>
-                <!-- Updated War Pile container -->
                 <div class="war-pile" id="opponent-war-pile"></div>
             </div>
-            <div class="discard-pile-area">
-                <div class="card-pile discard" id="player-2-discard-pile"></div>
-            </div>
+            <!-- Removed discard-pile-area -->
         </div>
 
         <!-- Player 2 (User) Area -->
@@ -51,7 +48,8 @@
             <div class="player-info">
                 <h2>Tony</h2>
                 <div class="card-count" id="player-1-deck-count">Cards: 26</div>
-                <!-- New Stats Block -->
+                <!-- New "Cards Left" tracker -->
+                <div class="cards-left-stat" id="player-1-cards-left">Cards Left: 26</div>
                 <div class="stats-container">
                     <div id="player-1-aces" class="stat-item">Aces: 0</div>
                     <div id="player-1-kings" class="stat-item">Kings: 0</div>
@@ -63,12 +61,9 @@
             </div>
             <div class="play-pile-area">
                 <div class="card-pile" id="player-1-play-pile"></div>
-                <!-- Updated War Pile container -->
                 <div class="war-pile" id="player-war-pile"></div>
             </div>
-            <div class="discard-pile-area">
-                <div class="card-pile discard" id="player-1-discard-pile"></div>
-            </div>
+             <!-- Removed discard-pile-area -->
         </div>
     </div>
 </div>
