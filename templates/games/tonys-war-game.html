@@ -1,45 +1,77 @@
 {% extends "layout.html" %}
 {% block title %}War (Tony's Time Traps){% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gamesstyles.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <header class="header">
+<div class="game-container war-game">
+    <header class="game-header">
         <h1>War</h1>
-        <p><a href="{{ url_for('tonys_time_traps') }}" class="back-link">&larr; Back to Time Traps</a></p>
+        <div class="game-controls">
+            <button id="start-game" class="btn">Start Game</button>
+            <button id="play-turn" class="btn" disabled>Play Turn</button>
+            <!-- New Auto-Play Button -->
+            <button id="auto-play" class="btn" disabled>Auto Play</button>
+        </div>
     </header>
 
-    <div class="game-container">
-        <!-- Game Board -->
-        <div class="game-board">
-            <!-- Player 1 Area -->
-            <div class="player-area">
-                <h2>Player 1</h2>
-                <div id="player-1-deck" class="card-back"></div>
-                <div id="player-1-card" class="card-display"></div>
-                <div class="score" id="player-1-score">Cards: 26</div>
-            </div>
+    <div id="game-message" class="game-message">Welcome to War! Click Start Game to begin.</div>
 
-            <!-- War Pile / Message Area -->
-            <div class="middle-area">
-                <div id="message-box" class="message-box">Click "Play Hand" to Start!</div>
-                <div id="war-pile" class="war-pile">
-                    <div id="war-pile-p1" class="card-back-small"></div>
-                    <div id="war-pile-p2" classm="card-back-small"></div>
+    <div class="game-board">
+        <!-- Player 1 (Opponent) Area -->
+        <div class="player-area" id="player-2-area">
+            <div class="player-info">
+                <h2>Opponent</h2>
+                <div class="card-count" id="player-2-deck-count">Cards: 26</div>
+                <!-- New Stats Block -->
+                <div class="stats-container">
+                    <div id="player-2-aces" class="stat-item">Aces: 0</div>
+                    <div id="player-2-kings" class="stat-item">Kings: 0</div>
+                    <div id="player-2-wars" class="stat-item">Wars Won: 0</div>
                 </div>
-                <button id="play-hand-btn" class="game-btn">Play Hand</button>
-                <button id="reset-game-btn" class="game-btn reset-btn">Reset Game</button>
             </div>
+            <div class="deck-pile">
+                <div class="card card-back" id="player-2-deck"></div>
+            </div>
+            <div class="play-pile-area">
+                <div class="card-pile" id="player-2-play-pile"></div>
+                <!-- Updated War Pile container -->
+                <div class="war-pile" id="opponent-war-pile"></div>
+            </div>
+            <div class="discard-pile-area">
+                <div class="card-pile discard" id="player-2-discard-pile"></div>
+            </div>
+        </div>
 
-            <!-- Player 2 Area -->
-            <div class="player-area">
-                <h2>Player 2</h2>
-                <div id="player-2-deck" class="card-back"></div>
-                <div id="player-2-card" class="card-display"></div>
-                <div class="score" id="player-2-score">Cards: 26</div>
+        <!-- Player 2 (User) Area -->
+        <div class="player-area" id="player-1-area">
+            <div class="player-info">
+                <h2>Tony</h2>
+                <div class="card-count" id="player-1-deck-count">Cards: 26</div>
+                <!-- New Stats Block -->
+                <div class="stats-container">
+                    <div id="player-1-aces" class="stat-item">Aces: 0</div>
+                    <div id="player-1-kings" class="stat-item">Kings: 0</div>
+                    <div id="player-1-wars" class="stat-item">Wars Won: 0</div>
+                </div>
+            </div>
+            <div class="deck-pile">
+                <div class="card card-back" id="player-1-deck"></div>
+            </div>
+            <div class="play-pile-area">
+                <div class="card-pile" id="player-1-play-pile"></div>
+                <!-- Updated War Pile container -->
+                <div class="war-pile" id="player-war-pile"></div>
+            </div>
+            <div class="discard-pile-area">
+                <div class="card-pile discard" id="player-1-discard-pile"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Link to the new game script -->
 <script src="{{ url_for('static', filename='js/games/war.js') }}"></script>
 {% endblock %}
