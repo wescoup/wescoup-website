@@ -402,10 +402,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (player1BattleCard.value > player2BattleCard.value) {
             gameMessage.innerText = 'Tony wins the WAR!';
             player1WarsWon++;
+            player1HandsWon++; // <<< FIX IS HERE
             collectPiles(player1Discard, turnPile); // Winner gets ALL cards from turnPile
         } else if (player2BattleCard.value > player1BattleCard.value) {
             gameMessage.innerText = 'Player 1 wins the WAR!'; // Updated name
             player2WarsWon++;
+            player2HandsWon++; // <<< FIX IS HERE
             collectPiles(player2Discard, turnPile); // Winner gets ALL cards from turnPile
         } else {
             gameMessage.innerText = 'WAR... AGAIN!';
