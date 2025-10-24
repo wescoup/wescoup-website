@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block title %}Tony's Time Traps{% endblock %}
+{% block content %}
+<div class="container">
+    <header class="header">
+        <h1>Tony's Time Traps</h1>
+        <p>Select a game to play. Engaging games for when you need a break.</p>
+    </header>
+    <div class="tool-cards">
+        <div class="card" onclick="location.href='{{ url_for('tonys_war_game') }}'">
+            <h2 class="card-title">War</h2>
+            <p class="card-description">The classic card game of chance. Flip cards and battle for the whole deck!</p>
+        </div>
+        <!-- Add new game cards here as they are created -->
+        <!--
+        <div class="card" onclick="location.href='#'">
+            <h2 class="card-title">Snake (Coming Soon)</h2>
+            <p class="card-description">The classic arcade game. Grow your snake by eating apples, but don't hit the wall or yourself!</p>
+        </div>
+        -->
+    </div>
+</div>
+{% endblock %}
