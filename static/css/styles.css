@@ -1,50 +1,232 @@
-/* Main Wescoup.com Styles */
-.main-page-body { /* Changed from 'body' to '.main-page-body' */
+/* Main Wescoup.com Styles - Updated */
+
+/* General Body Styles */
+body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #f4f4f4 0%, #e0e0e0 100%); /* Lighter background for general pages */
+    color: #333; /* Darker text for readability */
     margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
 }
+
+/* Navbar Styles */
+.navbar {
+    background-color: #343a40; /* Dark background for navbar */
+    padding: 0.8rem 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px; /* Limit navbar container width */
+    margin: 0 auto;
+}
+
+.nav-logo {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.5rem;
+    text-decoration: none;
+}
+
+.nav-menu {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu li {
+    margin-left: 1.5rem;
+}
+
+.nav-menu a {
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-menu a:hover {
+    color: #fff;
+}
+
+/* Main Content Area */
+main {
+    flex-grow: 1; /* Allows main content to fill available space */
+    padding: 2rem 1rem; /* Padding around main content */
+}
+
 .container {
-    max-width: 600px;
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(4px);
+    max-width: 960px; /* Max width for content containers */
+    margin: 0 auto; /* Center content */
+    padding: 0 1rem; /* Padding inside content container */
 }
-h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+
+/* Header Styles (Used on index, etc.) */
+.header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.03); /* Subtle background */
+    border-radius: 8px;
 }
-p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    opacity: 0.9;
+
+.header h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
 }
+
+.header p {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 0;
+}
+
+/* Card Layout Styles (Based on tool-card) */
+.tool-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid */
+    gap: 1.5rem;
+}
+
+.card {
+    background: #ffffff; /* White background for cards */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 10px; /* Rounded corners */
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 1.4rem;
+    color: #007bff; /* Primary color for title */
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+
+.card-description {
+    font-size: 1rem;
+    color: #555; /* Slightly lighter text for description */
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+
+/* Footer Styles */
+footer {
+    background-color: #f8f9fa; /* Light background for footer */
+    color: #6c757d; /* Muted text color */
+    padding: 1.5rem 0;
+    margin-top: 2rem; /* Space above footer */
+    text-align: center;
+    font-size: 0.9rem;
+    border-top: 1px solid #e9ecef; /* Subtle top border */
+}
+
+footer .container {
+    max-width: 1200px;
+}
+
+
+/* Specific styles for the original index page elements if needed */
+.main-page-body .container {
+    /* Styles for the container specifically on the very first index page */
+    /* background: rgba(255, 255, 255, 0.1); */ /* Commented out as we now use standard container */
+    /* box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); */
+    /* backdrop-filter: blur(4px); */
+}
+
 .status {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.05); /* Lighter status box */
     padding: 1rem;
     border-radius: 5px;
     margin-top: 2rem;
+    text-align: left; /* Align text left for readability */
+    color: #333;
 }
+
 .date {
     font-size: 0.9rem;
     opacity: 0.7;
     margin-top: 1rem;
+    color: #555;
 }
+
+/* Link Style */
 a {
-    color: #ffeb3b;
+    color: #007bff; /* Standard link color */
     text-decoration: none;
-    font-weight: bold;
 }
+
 a:hover {
+    color: #0056b3;
     text-decoration: underline;
+}
+
+/* Responsive Navbar Toggle (Placeholder - Requires JS or different structure for actual toggle) */
+.navbar-toggler {
+    display: none; /* Hide toggler on larger screens */
+    /* Basic styling for toggler button if you implement it */
+    background: none;
+    border: 1px solid rgba(255,255,255,0.5);
+    padding: 0.25rem 0.75rem;
+    font-size: 1.25rem;
+    line-height: 1;
+    border-radius: 0.25rem;
+}
+
+.navbar-toggler-icon {
+    /* Style for the hamburger icon lines */
+     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+     display: inline-block;
+     width: 1.5em;
+     height: 1.5em;
+     vertical-align: middle;
+     background-repeat: no-repeat;
+     background-position: center;
+     background-size: 100%;
+}
+
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    .navbar .container {
+        flex-wrap: wrap; /* Allow items to wrap */
+    }
+    .nav-menu {
+        display: none; /* Hide menu items by default on small screens */
+        width: 100%; /* Take full width when shown */
+        flex-direction: column; /* Stack vertically */
+        text-align: center;
+    }
+    .nav-menu li {
+        margin-left: 0;
+        margin-bottom: 0.5rem;
+    }
+    /* Style for toggler button visibility */
+    .navbar-toggler {
+        display: block; /* Show toggler on small screens */
+    }
+    /* Add a class 'active' to nav-menu via JS to show it */
+    .nav-menu.active {
+        display: flex;
+    }
+    .header h1 {
+        font-size: 2rem;
+    }
 }
