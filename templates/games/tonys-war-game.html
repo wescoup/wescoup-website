@@ -20,17 +20,20 @@
     <div id="game-message" class="game-message">Welcome to War! Click Start Game to begin.</div>
 
     <div class="game-board">
-        <!-- Player 1 (Opponent) Area -->
+        <!-- Player 1 (Opponent) Area - Renamed -->
         <div class="player-area" id="player-2-area">
             <div class="player-info">
-                <h2>Opponent</h2>
+                <!-- Changed Opponent to Player 1 -->
+                <h2>Player 1</h2>
                 <div class="card-count" id="player-2-deck-count">Cards: 26</div>
-                <!-- New "Cards Left" tracker -->
                 <div class="cards-left-stat" id="player-2-cards-left">Cards Left: 26</div>
                 <div class="stats-container">
                     <div id="player-2-aces" class="stat-item">Aces: 0</div>
                     <div id="player-2-kings" class="stat-item">Kings: 0</div>
                     <div id="player-2-wars" class="stat-item">Wars Won: 0</div>
+                    <!-- New Stats -->
+                    <div id="player-2-hands" class="stat-item">Hands: 0</div>
+                    <div id="player-2-hands-pct" class="stat-item">Win %: 0%</div>
                 </div>
             </div>
             <div class="deck-pile">
@@ -40,7 +43,6 @@
                 <div class="card-pile" id="player-2-play-pile"></div>
                 <div class="war-pile" id="opponent-war-pile"></div>
             </div>
-            <!-- Removed discard-pile-area -->
         </div>
 
         <!-- Player 2 (User) Area -->
@@ -48,12 +50,14 @@
             <div class="player-info">
                 <h2>Tony</h2>
                 <div class="card-count" id="player-1-deck-count">Cards: 26</div>
-                <!-- New "Cards Left" tracker -->
                 <div class="cards-left-stat" id="player-1-cards-left">Cards Left: 26</div>
                 <div class="stats-container">
                     <div id="player-1-aces" class="stat-item">Aces: 0</div>
                     <div id="player-1-kings" class="stat-item">Kings: 0</div>
                     <div id="player-1-wars" class="stat-item">Wars Won: 0</div>
+                    <!-- New Stats -->
+                    <div id="player-1-hands" class="stat-item">Hands: 0</div>
+                    <div id="player-1-hands-pct" class="stat-item">Win %: 0%</div>
                 </div>
             </div>
             <div class="deck-pile">
@@ -63,7 +67,6 @@
                 <div class="card-pile" id="player-1-play-pile"></div>
                 <div class="war-pile" id="player-war-pile"></div>
             </div>
-             <!-- Removed discard-pile-area -->
         </div>
     </div>
 </div>
