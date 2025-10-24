@@ -1,39 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Wescoup.com</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-</head>
-<body class="main-page-body">
-    <div class="container">
-        <h1>Hello World!</h1>
-        <p>Welcome to <strong>Wescoup.com</strong></p>
-        <p>This is Felipe's new domain, successfully deployed on Heroku!</p>
-        
-        <div class="tennis-link">
-            <a href="/tonys-tennis-tools">🎾 Tony's Tennis Tools</a>
+{% extends "layout.html" %}
+{% block title %}Wescoup Home{% endblock %}
+{% block content %}
+<div class="container">
+    <header class="header">
+        <h1>Welcome to Wescoup</h1>
+        <p>A collection of tools and projects.</p>
+    </header>
+    <div class="tool-cards">
+        <div class="card" onclick="location.href='{{ url_for('tonys_tennis_tools') }}'">
+            <h2 class="card-title">Tony's Tennis Tools</h2>
+            <p class="card-description">Track your tennis match stats, analyze strategies, and more.</p>
         </div>
-        <br>
-        <div class="tennis-link">
-            <a href="/tonys-pickleball-tools">🥒🌕 Tony's Pickleball Tools</a>
+        <div class="card" onclick="location.href='{{ url_for('tonys_pickleball_tools') }}'">
+            <h2 class="card-title">Tony's Pickleball Tools</h2>
+            <p class="card-description">Tools for the pickleball enthusiast. Track stats and improve your game.</p>
         </div>
-        
-        <div class="status">
-            <strong>🚀 Status:</strong> Live and Running<br>
-            <strong>🌐 Domain:</strong> wescoup.com<br>
-            <strong>☁️ Hosting:</strong> Heroku<br>
-            <strong>📝 Content:</strong> Ready for updates
+        <!-- NEW CARD FOR GAMES -->
+        <div class="card" onclick="location.href='{{ url_for('tonys_time_traps') }}'">
+            <h2 class="card-title">Tony's Time Traps</h2>
+            <p class="card-description">Engaging games to play when you need a break. (War, Snake, etc.)</p>
         </div>
-        
-        <div class="date">
-            Launched: August 6, 2025
+        <!--
+        <div class="card" onclick="location.href='#'">
+            <h2 class="card-title">Tony's Math Musings (Coming Soon)</h2>
+            <p class="card-description">Explorations and thoughts on mathematical concepts and curiosities.</p>
         </div>
-        
-        <p style="margin-top: 2rem;">
-            <a href="https://bonete-wescoup.com">Visit Bonete-Wescoup.com</a>
-        </p>
+        -->
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
