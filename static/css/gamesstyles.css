@@ -1,205 +1,316 @@
-/* General Game Container */
-.game-container {
-    width: 100%;
-    max-width: 1000px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f4f4f4;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+/* --- General Game & Tool Page Styles --- */
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
-.game-board {
+.game-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.game-header, .tools-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.game-header h1, .tools-header h1 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.game-controls {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    min-height: 400px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+.btn {
+    display: inline-block;
+    background: #007bff;
+    color: #ffffff;
+    padding: 10px 18px; /* Slightly larger buttons */
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0 5px;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.btn:disabled {
+    background-color: #c0c0c0;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.game-message {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    min-height: 2em;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eee;
+}
+
+/* --- Tool Card Styles (for tonys-time-traps.html) --- */
+
+.tool-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 1.4rem;
+    color: #007bff;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+}
+
+.card-description {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+
+/* --- Specific War Game Styles --- */
+
+.war-game .game-board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+/* On larger screens, show side-by-side */
+@media (min-width: 768px) {
+    .war-game .game-board {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .player-area {
-    flex: 1;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.03);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
 }
 
-.player-area h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 20px;
+.player-info {
+    text-align: center;
+    min-height: 80px; /* Give space for stats */
+    margin-bottom: 15px;
+}
+
+.player-info h2 {
+    margin: 0 0 10px 0;
+    color: #444;
+}
+
+.card-count {
+    font-size: 1.1rem;
     color: #333;
+    font-weight: bold;
 }
 
-.middle-area {
-    flex: 1;
+/* New Stats Container */
+.stats-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    padding: 20px;
-    gap: 15px;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
 }
 
-/* Card Styling */
-.card-display {
-    width: 120px;
-    height: 180px;
-    border: 1px solid #ccc;
+.stat-item {
+    font-size: 0.9rem;
+    color: #555;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 3px 8px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+/* --- Card Piles --- */
+.deck-pile, .discard-pile-area {
+    min-height: 140px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.play-pile-area {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 150px; /* Ensure space for staggered cards */
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.card-pile {
+    width: 100px;
+    height: 140px;
+    position: relative; /* Needed for discard pile stacking */
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-pile.discard {
+    border-style: solid; /* Solid border for discard */
+}
+
+.discard-pile-area .card {
+    /* Stack cards in discard pile */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Updated War Pile styles */
+.war-pile {
+    width: 180px; /* Widen to show staggered cards */
+    height: 140px;
+    position: relative;
+    /* border: 1px dashed #fd7e14; */ /* Optional: for debugging */
+    margin-top: 0; /* Align with play pile */
+}
+
+.war-pile .card {
+    /* Staggered cards will be positioned absolutely */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* --- Card Visuals --- */
+
+.card {
+    width: 100px;
+    height: 140px;
     border-radius: 8px;
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #aaa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     font-size: 2.5rem;
-    font-weight: 700;
-    padding: 10px;
-    box-sizing: border-box;
-    position: relative;
-    transition: transform 0.3s ease;
+    font-weight: bold;
+    user-select: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card-display.red {
-    color: #D92D20; /* Red color for hearts/diamonds */
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
-
-.card-display.black {
-    color: #333; /* Black color for spades/clubs */
-}
-
-.card-display::before,
-.card-display::after {
-    position: absolute;
-    font-size: 1.2rem;
-    font-weight: 600;
-}
-
-.card-display::before {
-    top: 10px;
-    left: 10px;
-}
-
-.card-display::after {
-    bottom: 10px;
-    right: 10px;
-    transform: rotate(180deg);
-}
-
 
 .card-back {
-    width: 120px;
-    height: 180px;
-    border: 2px dashed #aaa;
+    background: linear-gradient(135deg, #0d6efd, #0d47a1);
+    color: transparent; /* Hide text */
+    position: relative; /* For pseudo-element */
+    overflow: hidden;
+}
+
+/* Simple back design */
+.card-back::after {
+    content: '';
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    border: 3px dashed rgba(255, 255, 255, 0.4);
     border-radius: 8px;
-    background-color: #e9e9e9;
-    background-image: linear-gradient(135deg, #f5f5f5 25%, transparent 25%), 
-                      linear-gradient(225deg, #f5f5f5 25%, transparent 25%),
-                      linear-gradient(45deg, #f5f5f5 25%, transparent 25%),
-                      linear-gradient(315deg, #f5f5f5 25%, #e9e9e9 25%);
-    background-size: 20px 20px;
-    background-position: -10px 0, -10px 0, 0 0, 0 0;
-    margin-bottom: 20px;
-}
-
-.card-back.has-cards {
-    background-color: #a3bffa; /* Blueish color */
-    background-image: 
-        linear-gradient(45deg, #7b9ef7 25%, transparent 25%, transparent 75%, #7b9ef7 75%, #7b9ef7), 
-        linear-gradient(45deg, #7b9ef7 25%, transparent 25%, transparent 75%, #7b9ef7 75%, #7b9ef7);
-    background-size: 40px 40px;
-    background-position: 0 0, 20px 20px;
-    border: 2px solid #5a7edb;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 
-/* Middle Area */
-.message-box {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-    min-height: 50px;
-    text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-    background-color: #fff;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+.card.red {
+    color: #dc3545; /* Red */
 }
 
-.game-btn {
-    padding: 12px 25px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #fff;
-    background-color: #007bff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.card.black {
+    color: #212529; /* Black */
 }
 
-.game-btn:hover {
-    background-color: #0056b3;
+/* Highlight for Aces/Kings in war */
+.card.highlight-power-card {
+    box-shadow: 0 0 15px 5px #ffeb3b; /* Yellow glow */
+    border: 2px solid #fbc02d;
+    z-index: 100; /* Bring to front */
 }
 
-.game-btn:active {
-    transform: translateY(1px);
+/* --- Auto Play Button Style --- */
+
+#auto-play.playing {
+    background-color: #dc3545; /* Red when active */
+    border-color: #dc3545;
 }
 
-.game-btn.reset-btn {
-    background-color: #6c757d;
-}
-.game-btn.reset-btn:hover {
-    background-color: #5a6268;
-}
-
-.game-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-
-.score {
-    margin-top: 20px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #555;
-}
-
-/* War Pile */
-.war-pile {
-    display: flex;
-    gap: 10px;
-    min-height: 90px;
-    align-items: center;
-    justify-content: center;
-}
-
-.card-back-small {
-    width: 60px;
-    height: 90px;
-    border: 1px solid #aaa;
-    border-radius: 4px;
-    background-color: #ddd;
-    opacity: 0; /* Hidden by default */
-    transition: opacity 0.3s ease;
-}
-
-.card-back-small.visible {
-    opacity: 1;
-}
-
-/* Back link */
-.back-link {
-    font-size: 1rem;
-    color: #007bff;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.back-link:hover {
-    color: #0056b3;
-    text-decoration: underline;
+#auto-play.playing:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
 }
