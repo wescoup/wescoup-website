@@ -325,3 +325,32 @@ body, html {
     background-color: #c82333;
     border-color: #bd2130;
 }
+
+/* --- Mobile View Adjustments --- */
+@media (max-width: 767px) {
+    
+    .game-container {
+        padding: 1rem;
+    }
+
+    /* Request 1: Make player tiles smaller */
+    .player-area {
+        padding: 10px;
+    }
+
+    .player-info {
+        min-height: 80px; /* Reduced min-height */
+        margin-bottom: 10px;
+    }
+
+    /* Request 2: Flip Player 2's (Tony's) layout */
+    #player-1-area {
+        display: flex;
+        flex-direction: column-reverse; /* This flips the order */
+    }
+    
+    #player-1-area .player-info {
+        margin-bottom: 0; /* Remove bottom margin */
+        margin-top: 10px;   /* Add top margin to space it from cards */
+    }
+}
