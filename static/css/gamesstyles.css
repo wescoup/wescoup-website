@@ -6,6 +6,7 @@ body, html {
     padding: 0;
 }
 
+/* Added specificity */
 .game-container {
     max-width: 900px;
     margin: 2rem auto;
@@ -16,7 +17,7 @@ body, html {
     border: 1px solid #e0e0e0;
 }
 
-.game-header, .tools-header {
+.game-header, .tools-header { /* tools-header likely not needed here, but kept for consistency */
     text-align: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
@@ -37,7 +38,8 @@ body, html {
     margin-top: 1rem;
 }
 
-.btn {
+/* Added specificity - Apply btn styles within game context */
+.game-container .btn {
     display: inline-block;
     background: #007bff;
     color: #ffffff;
@@ -53,18 +55,18 @@ body, html {
     margin: 0 5px;
 }
 
-.btn:hover {
+.game-container .btn:hover {
     background-color: #0056b3;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     transform: translateY(-1px);
 }
 
-.btn:active {
+.game-container .btn:active {
     transform: translateY(1px);
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.btn:disabled {
+.game-container .btn:disabled {
     background-color: #c0c0c0;
     cursor: not-allowed;
     box-shadow: none;
@@ -87,47 +89,18 @@ body, html {
     border: 1px solid #eee;
 }
 
-/* --- Tool Card Styles (for tonys-time-traps.html) --- */
-
-.tool-cards {
+/* --- Tool Card Styles (for tonys-time-traps.html specifically inside game-container) --- */
+/* Added specificity */
+.game-container .tool-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-top: 2rem;
 }
 
-.card { /* Modified for tool cards */
-    background: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 1.5rem;
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-.card:hover { /* Modified for tool cards */
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.card-title {
-    font-size: 1.4rem;
-    color: #007bff;
-    margin-top: 0;
-    margin-bottom: 0.75rem;
-}
-
-.card-description {
-    font-size: 1rem;
-    color: #555;
-    line-height: 1.6;
-    margin-bottom: 0;
-}
-
-
 /* --- Specific War Game Styles --- */
+/* The general .card styles below conflict with the main styles.css */
+/* We will only apply these specific styles within the .war-game context */
 
 .war-game .game-board {
     display: grid;
@@ -235,15 +208,11 @@ body, html {
     margin-top: 0; /* Align with play pile */
 }
 
-.war-pile .card {
+.war-pile .card { /* Apply card styles only within war-pile for this context */
     position: absolute;
     top: 0;
     left: 0;
-}
-
-/* --- Card Visuals (Updated) --- */
-
-.card { /* Game Card specific styles */
+    /* Copied necessary card styles here */
     width: 100px;
     height: 140px;
     border-radius: 8px;
@@ -251,42 +220,73 @@ body, html {
     border: 1px solid #aaa;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
-    /* Updated for Value + Suit */
     flex-direction: column;
-    justify-content: space-around; /* Space out value and suit */
+    justify-content: space-around;
     align-items: center;
     font-weight: bold;
     user-select: none;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    padding: 5px 0; /* Add some vertical padding */
-    box-sizing: border-box; /* Include padding in height */
+    padding: 5px 0;
+    box-sizing: border-box;
 }
 
-.card .card-value {
+
+/* --- Card Visuals (Updated) Specific to .war-game --- */
+/* Added specificity .war-game */
+.war-game .card {
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    background-color: #fff;
+    border: 1px solid #aaa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 5px 0;
+    box-sizing: border-box;
+    /* IMPORTANT: Reset styles inherited from general .card definition */
+    padding: 5px 0; /* Keep game card padding */
+    text-align: center; /* Keep game card text align */
+    cursor: default; /* Game cards not clickable like tool cards */
+}
+
+/* Added specificity .war-game */
+.war-game .card .card-value {
     font-size: 2.5rem; /* Main value size */
     line-height: 1.1;
+    color: inherit; /* Ensure color is inherited from .red/.black */
+    margin: 0; /* Reset margin */
 }
 
-.card .card-suit {
+/* Added specificity .war-game */
+.war-game .card .card-suit {
     font-size: 1.8rem; /* Suit size */
     line-height: 1;
+    color: inherit; /* Ensure color is inherited from .red/.black */
+    margin: 0; /* Reset margin */
 }
 
-
-.card:hover {
+/* Added specificity .war-game */
+.war-game .card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
-.card-back {
+/* Added specificity .war-game */
+.war-game .card-back {
     background: linear-gradient(135deg, #0d6efd, #0d47a1);
     color: transparent; /* Hide text */
     position: relative; /* For pseudo-element */
     overflow: hidden;
 }
 
-/* Simple back design */
-.card-back::after {
+/* Added specificity .war-game */
+.war-game .card-back::after {
     content: '';
     position: absolute;
     width: 80%;
@@ -298,87 +298,109 @@ body, html {
     transform: translate(-50%, -50%);
 }
 
-
-.card.red {
+/* Added specificity .war-game */
+.war-game .card.red {
     color: #dc3545; /* Red */
 }
 
-.card.black {
+/* Added specificity .war-game */
+.war-game .card.black {
     color: #212529; /* Black */
 }
 
+/* Added specificity .war-game */
 /* Highlight for Aces/Kings in war */
-.card.highlight-power-card {
+.war-game .card.highlight-power-card {
     box-shadow: 0 0 15px 5px #ffeb3b; /* Yellow glow */
     border: 2px solid #fbc02d;
     z-index: 100; /* Bring to front */
 }
 
 /* --- Auto Play Button Style --- */
-
-#auto-play.playing {
+/* Added specificity .game-container */
+.game-container #auto-play.playing {
     background-color: #dc3545; /* Red when active */
     border-color: #dc3545;
 }
 
-#auto-play.playing:hover {
+.game-container #auto-play.playing:hover {
     background-color: #c82333;
     border-color: #bd2130;
 }
 
 /* --- Mobile View Adjustments --- */
+/* Ensure these only apply within .war-game context */
 @media (max-width: 767px) {
     
-    .game-container {
+    .game-container { /* General padding adjustment is fine */
         padding: 1rem;
     }
 
     /* Request 1: Make player tiles smaller */
-    .player-area {
+    .war-game .player-area {
         padding: 10px;
     }
 
-    .player-info {
+    .war-game .player-info {
         min-height: 80px; /* Reduced min-height */
         margin-bottom: 10px;
     }
 
     /* Request 2: Flip Player 2's (Tony's) layout */
-    #player-1-area {
+    .war-game #player-1-area {
         display: flex;
         flex-direction: column-reverse; /* This flips the order */
     }
     
-    #player-1-area .player-info {
+    .war-game #player-1-area .player-info {
         margin-bottom: 0; /* Remove bottom margin */
         margin-top: 10px;   /* Add top margin to space it from cards */
     }
 
-    /* --- NEW: Make cards 50% smaller --- */
-    .card,
-    .card-pile {
+    /* --- Make cards 50% smaller --- */
+    .war-game .card,
+    .war-game .card-pile {
         width: 50px;
         height: 70px;
+        /* Adjust border radius for smaller size if needed */
+        border-radius: 4px;
     }
 
-    .war-pile {
+    .war-game .war-pile {
         width: 90px; /* 180px * 0.5 */
         height: 70px;
     }
+    
+    /* Adjust staggering for smaller war cards */
+    .war-game .war-pile .card {
+        width: 50px; /* Match smaller card size */
+        height: 70px; /* Match smaller card size */
+    }
+    .war-game .war-pile .card:nth-child(1) { left: 0px; }
+    .war-game .war-pile .card:nth-child(2) { left: 10px; } /* Adjust staggering */
+    .war-game .war-pile .card:nth-child(3) { left: 20px; } /* Adjust staggering */
+    .war-game .war-pile .card:nth-child(4) { left: 30px; } /* Adjust staggering */
 
-    .deck-pile {
+
+    .war-game .deck-pile {
         min-height: 70px;
     }
 
-    .play-pile-area {
+    .war-game .play-pile-area {
         min-height: 75px;
     }
 
-    .card .card-value {
+    .war-game .card .card-value {
         font-size: 1.25rem; /* 2.5rem * 0.5 */
     }
 
-    .card .card-suit {
+    .war-game .card .card-suit {
         font-size: 0.9rem; /* 1.8rem * 0.5 */
+    }
+    
+    /* Adjust card back design for smaller size */
+    .war-game .card-back::after {
+        border-width: 2px;
+        border-radius: 4px;
     }
 }
