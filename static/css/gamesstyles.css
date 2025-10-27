@@ -353,4 +353,32 @@ body, html {
         margin-bottom: 0; /* Remove bottom margin */
         margin-top: 10px;   /* Add top margin to space it from cards */
     }
+
+    /* --- NEW: Make cards 50% smaller --- */
+    .card,
+    .card-pile {
+        width: 50px;
+        height: 70px;
+    }
+
+    .war-pile {
+        width: 90px; /* 180px * 0.5 */
+        height: 70px;
+    }
+
+    .deck-pile {
+        min-height: 70px;
+    }
+
+    .play-pile-area {
+        min-height: 75px;
+    }
+
+    .card .card-value {
+        font-size: 1.25rem; /* 2.5rem * 0.5 */
+    }
+
+    .card .card-suit {
+        font-size: 0.9rem; /* 1.8rem * 0.5 */
+    }
 }
