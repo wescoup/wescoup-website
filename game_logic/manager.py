@@ -276,112 +276,97 @@ def register_handlers(socketio):
     
     @socketio.on('connect')
     def on_connect():
-        # --- MODIFIED PART ---
-        # Store the Socket.IO SID in the Flask session when a user connects via Socket.IO
-        if 'sid' not in session:
-            session['sid'] = request.sid
-            log.info(f"Socket connected: {request.sid}, assigned to session.")
-        else:
-            # If they already have a session sid, check if it matches the current socket sid
-            # This can happen if they refresh the page
-            if session['sid'] != request.sid:
-                 log.warning(f"Session SID {session['sid']} differs from current Socket SID {request.sid}. Updating.")
-                 session['sid'] = request.sid
-            else:
-                 log.info(f"Socket reconnected: {request.sid}")
-        # --- END MODIFIED PART ---
+        # --- FIXED ---
+        # We don't need to do anything with the session here.
+        # Just log the connection.
+        log.info(f"Client connected: {request.sid}")
 
     @socketio.on('disconnect')
     def on_disconnect():
-        # Now we reliably get the SID from the session
-        sid = session.get('sid') # <-- Keep this as is
-        if sid:
-            log.info(f"Client disconnected: {sid}")
-            # Find which game this player was in
-            for room_code, game in list(games.items()): # Use list() for safe iteration while deleting
-                if sid in game.players:
-                    game.remove_player(sid)
-                    if not game.players and not game.game_in_progress: # If room is empty AND game not running cleanup task
-                        log.info(f"Room {room_code} is empty, cleaning up immediately.")
-                        if room_code in games:
-                             del games[room_code] # Remove game immediately if empty
-                             try:
-                                 close_room(room_code)
-                             except Exception as e:
-                                 log.error(f"Error closing room {room_code} on disconnect: {e}")
-                    break
-        else:
-            log.warning(f"Disconnect event received, but no SID found in session.")
-
+        # --- FIXED ---
+        # Use request.sid directly instead of session.get('sid')
+        sid = request.sid 
+        log.info(f"Client disconnected: {sid}")
+        
+        # Find which game this player was in
+        for room_code, game in list(games.items()): # Use list() for safe iteration
+            if sid in game.players:
+                game.remove_player(sid)
+                if not game.players and not game.game_in_progress: 
+                    log.info(f"Room {room_code} is empty, cleaning up.")
+                    if room_code in games:
+                         del games[room_code] 
+                         try:
+                             close_room(room_code)
+                         except Exception as e:
+                             log.error(f"Error closing room {room_code} on disconnect: {e}")
+                break
 
     @socketio.on('create_game')
     def on_create_game():
         """Event handler for 'Create Game' button."""
-        # Ensure SID is in session (should be from connect)
-        if 'sid' not in session:
-            session['sid'] = request.sid
-            log.warning(f"SID {request.sid} added to session during create_game.")
-
+        # --- FIXED ---
+        # No session logic needed
         room_code = create_new_game('war_classic')
-        emit('game_created', {'room_code': room_code}) # Emits only to the creator
+        emit('game_created', {'room_code': room_code})
 
     @socketio.on('join_game')
     def on_join_game(data):
         """Event handler for when a client loads the game page."""
         room_code = data.get('room_code')
-        # Ensure SID is in session (should be from connect)
-        if 'sid' not in session:
-            session['sid'] = request.sid
-            log.warning(f"SID {request.sid} added to session during join_game for room {room_code}.")
-
-        sid = session.get('sid')
+        
+        # --- FIXED ---
+        # Use request.sid directly
+        sid = request.sid 
 
         if not sid:
-             log.error(f"Cannot join game {room_code}, SID missing from session.")
+             log.error(f"Cannot join game {room_code}, SID missing from request.")
              emit('join_error', {'message': 'Session error. Please refresh.'})
              return
 
-        # ... (rest of join_game logic remains the same) ...
         if not room_code or room_code not in games:
             log.warning(f"Player {sid} tried to join non-existent room: {room_code}")
             emit('join_error', {'message': 'Game not found. It may have expired.'})
             return
 
         game = games[room_code]
-        join_room(room_code) # Subscribe socket to room broadcasts
+        join_room(room_code)
         player_index = game.add_player(sid)
-
+        
         if player_index is None:
             log.warning(f"Player {sid} tried to join full room: {room_code}")
             emit('join_error', {'message': 'This game is already full.'})
-            leave_room(room_code) # Unsubscribe socket if join failed
+            leave_room(room_code)
             return
 
-        emit('you_joined', {'player_index': player_index}) # Tell client their player number
-
-        # Notify everyone in the room about the current player count/status
+        emit('you_joined', {'player_index': player_index})
+        
         if len(game.players) == 2 and not game.game_in_progress:
             sio.emit('status_update', {'message': f'Player {player_index + 1} has joined. Starting game...'}, to=room_code)
             game.start_game()
         elif len(game.players) == 1:
-            emit('status_update', {'message': 'Waiting for Player 2 to join...'}) # Only to joining player
-        else: # Game in progress, maybe a reconnect? Send current state.
-             game.broadcast_state("Player reconnected") # Send current state if game is running
+            emit('status_update', {'message': 'Waiting for Player 2 to join...'})
+        else: 
+             if game.game_in_progress:
+                game.broadcast_state("Player reconnected")
 
     @socketio.on('change_speed')
     def on_change_speed(data):
         """Event handler for speed control buttons."""
         room_code = data.get('room_code')
         change = data.get('change', 0.0)
-        sid = session.get('sid') # Get SID from session
+        
+        # --- FIXED ---
+        # Use request.sid directly
+        sid = request.sid 
 
         if not sid:
-             log.warning(f"Cannot change speed for game {room_code}, SID missing from session.")
+             log.warning(f"Cannot change speed for game {room_code}, SID missing from request.")
              return
 
         if room_code in games:
             game = games[room_code]
-            if sid in game.players: # Ensure player is in this game
+            if sid in game.players: 
                 game.change_speed(change)
             else:
                 log.warning(f"Player {sid} tried to change speed for game {room_code} they aren't in.")
