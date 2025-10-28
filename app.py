@@ -171,6 +171,9 @@ def on_disconnect():
             emit('player_list_updated', {'count': player_count}, to=room_code)
             leave_room(room_code)
 
+@app.route("/socketio-test")
+def socketio_test():
+    return render_template("socketio_test.html")
 
 # --- Main Runner ---
 if __name__ == '__main__':
