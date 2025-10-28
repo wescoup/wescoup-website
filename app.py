@@ -19,10 +19,7 @@ log = logging.getLogger(__name__)
 
 # --- SocketIO Setup ---
 # Initialize SocketIO after Flask app, including CORS configuration
-socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins=[
-    "https://wescoup-website-jlf2h.ondigitalocean.app", # Allow frontend origin
-    # Add other origins if needed, e.g., "http://localhost:5001" for local testing
-])
+socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
 
 # --- Game Logic Import and Handler Registration ---
 # Import the manager module AFTER socketio has been created
