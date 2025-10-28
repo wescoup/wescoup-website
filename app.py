@@ -1,19 +1,21 @@
 import os
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
-from flask_socketio import SocketIO, join_room, leave_room, emit
-
-# Import our new game manager
-from game_logic import manager
+from flask import Flask
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
-# A secret key is required for Flask sessions and Socket.IO
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'a_very_secret_key_you_should_change')
-socketio = SocketIO(app)
 
-# --- Standard Routes ---
-@app.route('/')
+# Create socketio first
+socketio = SocketIO(app, async_mode="eventlet")  # add cors_allowed_origins="*" if needed
+
+# Import AFTER socketio exists, and only pull the registration function
+from game_logic.manager import register_handlers
+register_handlers(socketio)
+
+# Keep this trivial until you confirm boot
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return "OK"
 
 @app.route('/testpage')
 def testpage():
@@ -170,5 +172,4 @@ def on_disconnect():
 
 # --- Main Runner ---
 if __name__ == '__main__':
-    # Use socketio.run() instead of app.run() to start the server
     socketio.run(app, debug=True)
