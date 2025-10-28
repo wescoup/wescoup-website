@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+
+{% block title %}Create or Join War Game{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-header">
+        <h1>War (Multiplayer)</h1>
+    </div>
+
+    <div class="game-controls" style="flex-direction: column; gap: 20px;">
+        
+        <div>
+            <h2>Create a New Game</h2>
+            <button id="create-game-btn" class="btn">Create Game</button>
+        </div>
+
+        <hr style="width: 80%;">
+
+        <div>
+            <h2>Or Join an Existing Game</h2>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="game-code-input" placeholder="Enter Game Code" style="padding: 10px; border-radius: 6px; border: 1px solid #ccc;">
+                <button id="join-game-btn" class="btn">Join</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Connect to the Socket.IO server
+        const socket = io();
+
+        const createBtn = document.getElementById('create-game-btn');
+        const joinBtn = document.getElementById('join-game-btn');
+        const codeInput = document.getElementById('game-code-input');
+
+        // 1. Handle Game Creation
+        createBtn.addEventListener('click', () => {
+            console.log('Emitting create_game');
+            socket.emit('create_game');
+        });
+
+        // 2. Listen for the server's response after creation
+        socket.on('game_created', (data) => {
+            console.log('Game created, redirecting...', data);
+            // Redirect this user to their new game room
+            window.location.href = `/war/game/${data.room_code}`;
+        });
+
+        // 3. Handle Joining by Code
+        joinBtn.addEventListener('click', () => {
+            const code = codeInput.value.trim();
+            if (code) {
+                // Simply redirect to the game room URL
+                // The server will handle the 'join' logic when that page loads
+                window.location.href = `/war/game/${code}`;
+            }
+        });
+    });
+</script>
+{% endblock %}
