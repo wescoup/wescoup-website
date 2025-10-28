@@ -1,21 +1,39 @@
 import os
-from flask import Flask, render_template, redirect, url_for, session, request # Added render_template, redirect, url_for, session, request
-from flask_socketio import SocketIO, emit, join_room, leave_room # Added emit, join_room, leave_room
-import logging # Added logging
+from flask import Flask, render_template, redirect, url_for, session, request
+from flask_socketio import SocketIO, emit, join_room, leave_room
+import logging
+from werkzeug.serving import run_simple # For local testing
+import eventlet # Import eventlet
 
-# Configure logging (optional but helpful)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-log = logging.getLogger(__name__)
+# Use eventlet for async
+eventlet.monkey_patch()
 
+# --- App Setup ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'a_very_secret_key_you_should_change')
 
 # Create socketio first
 socketio = SocketIO(app, async_mode="eventlet")
 
+# --- Logging ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log = logging.getLogger(__name__)
+
+# --- Game Logic Import ---
 # Import AFTER socketio exists
-from game_logic import manager # Keep this import
+from game_logic import manager
+# Pass the socketio instance to the manager
+manager.register_socketio_instance(socketio)
+# Register all event handlers defined in the manager
 manager.register_handlers(socketio)
+
+# --- Session Management ---
+@app.before_request
+def assign_session_id():
+    """Assign a unique SID to the user's session if one doesn't exist."""
+    if 'sid' not in session:
+        session['sid'] = request.sid
+        log.info(f"New session created with SID: {session['sid']}")
 
 @app.route("/")
 def index():
