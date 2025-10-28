@@ -6,3 +6,4 @@ itsdangerous==2.0.1
 click==8.0.1
 MarkupSafe==2.0.1
 flask-socketio==5.1.1
+eventlet  # Add this line
