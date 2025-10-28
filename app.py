@@ -1,19 +1,21 @@
 import os
-from flask import Flask
-from flask_socketio import SocketIO
+from flask import Flask, render_template, redirect, url_for, session, request # Added render_template, redirect, url_for, session, request
+from flask_socketio import SocketIO, emit, join_room, leave_room # Added emit, join_room, leave_room
+import logging # Added logging
+
+# Configure logging (optional but helpful)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'a_very_secret_key_you_should_change')
 
 # Create socketio first
-socketio = SocketIO(app, async_mode="eventlet")  # add cors_allowed_origins="*" if needed
+socketio = SocketIO(app, async_mode="eventlet")
 
-# Import AFTER socketio exists, and only pull the registration function
-from game_logic.manager import register_handlers
-register_handlers(socketio)
-
-# Keep this trivial until you confirm boot
-from flask import render_template
+# Import AFTER socketio exists
+from game_logic import manager # Keep this import
+manager.register_handlers(socketio)
 
 @app.route("/")
 def index():
