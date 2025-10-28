@@ -10,16 +10,15 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
 
     <script>
-      const log = (m) => document.getElementById('log').textContent += m + "\n";
-      const socket = io({ transports: ["websocket", "polling"] });
-
-      socket.on("connect",   () => log("connected: " + socket.id));
-      socket.on("server_msg", (d) => log("server_msg: " + JSON.stringify(d)));
-      socket.on("pong",      (d) => log("pong: " + JSON.stringify(d)));
-      socket.on("disconnect",() => log("disconnected"));
-
-      // prove round-trip:
+      const log = (m) => (document.body.innerHTML += `<pre>${m}</pre>`);
+      const socket = io({ transports: ["websocket", "polling"] }); // same origin
+    
+      socket.on("connect", () => log("connected: " + socket.id));
+      socket.on("server_msg", d => log("server_msg: " + JSON.stringify(d)));
+      socket.on("pong", d => log("pong: " + JSON.stringify(d)));
+    
       setTimeout(() => socket.emit("ping", { hello: "world" }), 500);
     </script>
+
   </body>
 </html>
