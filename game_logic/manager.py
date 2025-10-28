@@ -62,3 +62,4 @@ def remove_player_from_game(room_code, player_sid):
         if not game["players"]:
             del active_games[room_code]
             log.info(f"Room {room_code} is empty and has been deleted.")
+# Note: The extra '}' that was here has been removed.
