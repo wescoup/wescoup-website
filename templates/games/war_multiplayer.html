@@ -1,0 +1,72 @@
+{% extends 'layout.html' %}
+
+{% block title %}War Game Room{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-header">
+        <h1>War Game Room</h1>
+        <p>Waiting for players...</p>
+    </div>
+
+    <div class="game-message">
+        Share this code with your opponent: <strong>{{ game_code }}</strong>
+        <button id="copy-code-btn" style="margin-left: 15px;">Copy</button>
+    </div>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <h2>Players Connected: <span id="player-count">0</span></h2>
+        
+        <div id="game-board-placeholder" style="margin-top: 20px;">
+            <p><em>(Game will begin when 2 players have joined...)</em></p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Connect to the Socket.IO server
+        const socket = io();
+        
+        // Get the room code from the template (passed by Flask)
+        const roomCode = '{{ game_code }}';
+
+        // 1. Tell the server we are joining this room
+        console.log(`Emitting 'join_game' for room: ${roomCode}`);
+        socket.emit('join_game', { room_code: roomCode });
+
+        // 2. Listen for updates on the player list
+        socket.on('player_list_updated', (data) => {
+            console.log('Player list updated:', data);
+            document.getElementById('player-count').innerText = data.count;
+
+            // In Phase 2, we'll use this to start the game
+            if (data.count === 2) {
+                document.getElementById('game-board-placeholder').innerHTML = 
+                    '<p style="color: green; font-weight: bold;">2 players connected! Starting game...</p>';
+            } else if (data.count < 2) {
+                document.getElementById('game-board-placeholder').innerHTML = 
+                    '<p><em>(Game will begin when 2 players have joined...)</em></p>';
+            }
+        });
+
+        // 3. Handle errors
+        socket.on('error', (data) => {
+            console.error('Server error:', data.message);
+            alert('Error: ' + data.message);
+            window.location.href = '{{ url_for("war_new_game") }}'; // Redirect to lobby
+        });
+
+        // Copy button helper
+        document.getElementById('copy-code-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(roomCode).then(() => {
+                alert('Game code copied to clipboard!');
+            }, (err) => {
+                alert('Failed to copy code. Please copy it manually.');
+            });
+        });
+    });
+</script>
+{% endblock %}
