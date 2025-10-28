@@ -11,6 +11,14 @@ games = {}
 # socketio instance (will be set by app.py)
 sio = None
 
+# --- ADD THIS FUNCTION ---
+def register_socketio_instance(socketio_instance):
+    """Allows app.py to pass its 'socketio' object to this manager."""
+    global sio
+    sio = socketio_instance
+    log.info("Socket.IO instance registered with manager.")
+# --- END OF ADDITION ---
+
 # --- Constants ---
 SUITS = ["♠", "♥", "♦", "♣"]
 VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
