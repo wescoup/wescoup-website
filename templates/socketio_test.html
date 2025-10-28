@@ -6,7 +6,9 @@
     <pre id="log"></pre>
 
     <!-- Heroku serves the client from the Flask-SocketIO package -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- replace your old script tag with this one -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+
     <script>
       const log = (m) => document.getElementById('log').textContent += m + "\n";
       const socket = io({ transports: ["websocket", "polling"] });
