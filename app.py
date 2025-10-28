@@ -27,14 +27,6 @@ manager.register_socketio_instance(socketio)
 # Register all event handlers defined in the manager
 manager.register_handlers(socketio)
 
-# --- Session Management ---
-@app.before_request
-def assign_session_id():
-    """Assign a unique SID to the user's session if one doesn't exist."""
-    if 'sid' not in session:
-        session['sid'] = request.sid
-        log.info(f"New session created with SID: {session['sid']}")
-
 @app.route("/")
 def index():
     return render_template("index.html")
