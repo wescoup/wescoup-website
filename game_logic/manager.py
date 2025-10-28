@@ -63,9 +63,8 @@ def remove_player_from_game(room_code, player_sid):
             del active_games[room_code]
             log.info(f"Room {room_code} is empty and has been deleted.")
 
+# manager.py
 def register_handlers(socketio):
-    # Example no-op handler so we know socketio is wired:
     @socketio.on("ping")
     def on_ping(data):
         socketio.emit("pong", {"ok": True})
-
