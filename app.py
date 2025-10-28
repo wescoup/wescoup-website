@@ -13,7 +13,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'a_very_secret_key_you_should_change')
 
 # Create socketio first
-socketio = SocketIO(app, async_mode="eventlet")
+socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins=[
+    "https://wescoup-website-jlf2h.ondigitalocean.app"
+])
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
