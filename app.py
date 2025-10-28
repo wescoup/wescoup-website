@@ -172,6 +172,3 @@ def on_disconnect():
 if __name__ == '__main__':
     # Use socketio.run() instead of app.run() to start the server
     socketio.run(app, debug=True)
-
-if __name__ == '__main__':
-    app.run(debug=True)
