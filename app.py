@@ -122,24 +122,15 @@ def tonys_war_game():
 # --- NEW 2-Player War Routes ---
 @app.route('/war/new')
 def war_new_game():
-    """
-    Serves the "lobby" page where a player can create or join a game.
-    """
+    """Renders the 2-player lobby."""
     return render_template('games/war_lobby.html')
 
-@app.route('/war/game/<string:game_id>')
-def war_game_room(game_id):
-    """
-    Serves the actual game room page for a specific game ID.
-    """
-    game = manager.get_game(game_id)
-    if not game:
-        # If the game ID doesn't exist, send them back to the lobby
-        return redirect(url_for('war_new_game'))
-    
-    # We store the room code in the user's session
-    session['room_code'] = game_id
-    return render_template('games/war_multiplayer.html', game_code=game_id)
+@app.route('/war/game/<code>')
+def war_game_room(code):
+    """Renders the 2-player game board."""
+    log.info(f"Serving game page for room: {code}")
+    # Pass the room code to the template
+    return render_template('games/war_multiplayer.html', room_code=code)
 
 # --- SOCKET.IO EVENTS ---
 
