@@ -65,6 +65,11 @@ def remove_player_from_game(room_code, player_sid):
 
 # manager.py
 def register_handlers(socketio):
+    @socketio.on("connect")
+    def on_connect():
+        socketio.emit("server_msg", {"msg": "connected"})
+
     @socketio.on("ping")
     def on_ping(data):
         socketio.emit("pong", {"ok": True})
+
