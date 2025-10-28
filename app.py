@@ -13,9 +13,11 @@ from game_logic.manager import register_handlers
 register_handlers(socketio)
 
 # Keep this trivial until you confirm boot
+from flask import render_template
+
 @app.route("/")
 def index():
-    return "OK"
+    return render_template("index.html")
 
 @app.route('/testpage')
 def testpage():
