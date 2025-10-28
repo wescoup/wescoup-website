@@ -487,3 +487,56 @@ body, html {
  .modal-content .btn-secondary:hover {
     background-color: #5a6268;
  }
+/* --- Additions for War 2-Player --- */
+
+/* Make secondary buttons (like speed) less prominent */
+.game-container .btn-secondary {
+    background-color: #6c757d;
+}
+.game-container .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Container for war pile cards */
+#war-pile-container {
+    width: 180px; /* Widen to show staggered cards */
+    height: 140px;
+    position: relative;
+    margin-top: 0;
+}
+
+/* Style for cards inside the war pile container */
+#war-pile-container .card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Copy of card styles from .war-game .card */
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    background-color: #fff;
+    border: 1px solid #aaa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+    padding: 5px 0;
+    box-sizing: border-box;
+}
+
+/* Ensure mobile styles also apply to new war pile container */
+@media (max-width: 767px) {
+    #war-pile-container {
+        width: 90px; /* 180px * 0.5 */
+        height: 70px;
+    }
+    
+    #war-pile-container .card {
+        width: 50px; /* Match smaller card size */
+        height: 70px; /* Match smaller card size */
+        border-radius: 4px;
+    }
+}
