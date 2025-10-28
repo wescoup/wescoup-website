@@ -188,4 +188,6 @@ def socketio_test():
 
 # --- Main Runner ---
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    log.info("Starting Wescoup website in debug mode with Socket.IO...")
+    # Use socketio.run for local development
+    socketio.run(app, debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5001)))
