@@ -59,6 +59,13 @@ class WarGame:
         self.game_in_progress = False
         self.game_over = False
         self.game_loop_task = None # To hold the background task
+        
+        # *** ADDED: Stats tracking ***
+        self.stats = {
+            0: {'hands_won': 0, 'wars_won': 0},
+            1: {'hands_won': 0, 'wars_won': 0}
+        }
+        self.total_hands_played = 0
 
     def add_player(self, sid):
         """Adds a player SID to the game, returns player_index (0 or 1) or None if full."""
@@ -89,7 +96,6 @@ class WarGame:
         
     def start_game(self):
         """Shuffles, deals, and sets game in progress."""
-        # ADDED check to prevent multiple starts
         if len(self.players) != 2 or self.game_in_progress:
             log.warning(f"Attempted to start {self.room_code} (In Progress: {self.game_in_progress}) with {len(self.players)} players.")
             return
@@ -97,6 +103,10 @@ class WarGame:
         log.info(f"Starting game {self.room_code}")
         self.game_in_progress = True
         self.game_over = False
+        # *** ADDED: Reset stats on new game start ***
+        self.stats = { 0: {'hands_won': 0, 'wars_won': 0}, 1: {'hands_won': 0, 'wars_won': 0} }
+        self.total_hands_played = 0
+        
         deck = Deck()
         deck.shuffle()
         hands = deck.deal(2)
@@ -152,14 +162,46 @@ class WarGame:
         play_pile = play_pile if play_pile is not None else []
         war_pile = war_pile if war_pile is not None else []
 
+        # *** ADDED: Calculate all stats ***
+        p0_hand = self.player_hands[0]
+        p1_hand = self.player_hands[1]
+        
+        # Calculate win percentages
+        if self.total_hands_played > 0:
+            p0_win_pct = (self.stats[0]['hands_won'] / self.total_hands_played) * 100
+            p1_win_pct = (self.stats[1]['hands_won'] / self.total_hands_played) * 100
+        else:
+            p0_win_pct = 0
+            p1_win_pct = 0
+
+        player_0_stats = {
+            "aces_count": sum(1 for card in p0_hand if card.rank == 14),
+            "kings_count": sum(1 for card in p0_hand if card.rank == 13),
+            "hands_won": self.stats[0]['hands_won'],
+            "wars_won": self.stats[0]['wars_won'],
+            "win_pct": p0_win_pct
+        }
+        
+        player_1_stats = {
+            "aces_count": sum(1 for card in p1_hand if card.rank == 14),
+            "kings_count": sum(1 for card in p1_hand if card.rank == 13),
+            "hands_won": self.stats[1]['hands_won'],
+            "wars_won": self.stats[1]['wars_won'],
+            "win_pct": p1_win_pct
+        }
+
         state = {
-            "player_0_count": len(self.player_hands[0]),
-            "player_1_count": len(self.player_hands[1]),
+            "player_0_count": len(p0_hand),
+            "player_1_count": len(p1_hand),
             "play_pile": [card.to_dict() for card in play_pile],
             "war_pile": [card.to_dict() for card in war_pile],
             "message": message,
             "current_delay": self.base_delay,
-            "game_over": game_over or self.game_over
+            "game_over": game_over or self.game_over,
+            # *** ADDED: Pass stats to client ***
+            "player_0_stats": player_0_stats,
+            "player_1_stats": player_1_stats,
+            "total_hands_played": self.total_hands_played
         }
         try:
             sio.emit('game_state_update', state, to=self.room_code)
@@ -169,15 +211,18 @@ class WarGame:
     def game_loop(self):
         """Main server-side game loop."""
         log.info(f"Game loop started for {self.room_code}")
-        turn_count = 0
+        # Note: self.total_hands_played is now the turn counter
         while self.game_in_progress and not self.game_over:
             try:
                 # Check for disconnect, which sets game_in_progress to False
                 if not self.game_in_progress:
                     break
 
-                turn_count += 1
-                if turn_count > 2000: # Safety break for endless games
+                # *** MODIFIED: Use class variable for turn count ***
+                self.total_hands_played += 1
+                current_turn = self.total_hands_played
+                
+                if current_turn > 2000: # Safety break for endless games
                     self.end_game("Game timed out (2000 rounds). It's a draw!")
                     return
 
@@ -195,7 +240,7 @@ class WarGame:
                 # --- 2. Determine Speed ---
                 is_dramatic = p0_cards_total <= DRAMATIC_DELAY_THRESHOLD or p1_cards_total <= DRAMATIC_DELAY_THRESHOLD
                 current_delay = DRAMATIC_SPEED_DELAY if is_dramatic else self.base_delay
-                msg = "Tension builds... low card warning!" if is_dramatic else f"Turn {turn_count}"
+                msg = "Tension builds... low card warning!" if is_dramatic else f"Turn {current_turn}"
                 
                 self.broadcast_state(msg)
                 sio.sleep(current_delay) # Use sio.sleep for cooperative multitasking
@@ -213,16 +258,19 @@ class WarGame:
                 # --- 4. Compare Cards ---
                 if p0_card.rank > p1_card.rank:
                     self.player_hands[0].extend(play_pile)
+                    self.stats[0]['hands_won'] += 1 # *** ADDED ***
                     self.broadcast_state("Player 1 wins the hand!", play_pile=play_pile)
                 elif p1_card.rank > p0_card.rank:
                     self.player_hands[1].extend(play_pile)
+                    self.stats[1]['hands_won'] += 1 # *** ADDED ***
                     self.broadcast_state("Player 2 wins the hand!", play_pile=play_pile)
                 else:
                     # --- 5. Handle War ---
                     self.broadcast_state("It's WAR!", play_pile=play_pile)
                     sio.sleep(current_delay)
                     if not self.game_in_progress: break
-                    self.handle_war(play_pile) # This function will broadcast its own results
+                    # *** MODIFIED: Pass stats dict to handle_war ***
+                    self.handle_war(play_pile) 
                 
                 sio.sleep(current_delay) # Pause to show result before next turn
             
@@ -243,13 +291,19 @@ class WarGame:
             self.player_hands[1].extend(current_spoils) # Give spoils to P1
             self.player_hands[1].extend(self.player_hands[0]) # Give P1 all P0's remaining cards
             self.player_hands[0] = [] # P0 is out
+            # *** ADDED: P1 wins hand and war by default ***
+            self.stats[1]['hands_won'] += 1 
+            self.stats[1]['wars_won'] += 1
             self.broadcast_state("Player 1 doesn't have enough cards for war! Player 2 wins!", play_pile=[], war_pile=current_spoils)
-            return # Main loop will detect P0 is out of cards and end game
+            return
             
         if len(self.player_hands[1]) < 2:
             self.player_hands[0].extend(current_spoils)
             self.player_hands[0].extend(self.player_hands[1])
             self.player_hands[1] = []
+            # *** ADDED: P0 wins hand and war by default ***
+            self.stats[0]['hands_won'] += 1
+            self.stats[0]['wars_won'] += 1
             self.broadcast_state("Player 2 doesn't have enough cards for war! Player 1 wins!", play_pile=[], war_pile=current_spoils)
             return
 
@@ -277,9 +331,15 @@ class WarGame:
         # --- 4. Compare war cards ---
         if p0_battle_card.rank > p1_battle_card.rank:
             self.player_hands[0].extend(all_cards_in_play)
+            # *** ADDED: Update P0 stats for war win ***
+            self.stats[0]['hands_won'] += 1
+            self.stats[0]['wars_won'] += 1
             self.broadcast_state("Player 1 wins the WAR!", play_pile=[], war_pile=all_cards_in_play)
         elif p1_battle_card.rank > p0_battle_card.rank:
             self.player_hands[1].extend(all_cards_in_play)
+            # *** ADDED: Update P1 stats for war win ***
+            self.stats[1]['hands_won'] += 1
+            self.stats[1]['wars_won'] += 1
             self.broadcast_state("Player 2 wins the WAR!", play_pile=[], war_pile=all_cards_in_play)
         else:
             # --- 5. Another War! ---
@@ -330,33 +390,28 @@ def register_handlers(socketio):
 
     @socketio.on('connect')
     def on_connect():
-        # No session logic. Just log the connection.
-        # request.sid is the unique ID for this specific socket connection.
         log.info(f"Client connected: {request.sid}")
 
     @socketio.on('disconnect')
     def on_disconnect():
-        sid = request.sid # Use request.sid directly. It's available in all socket handlers.
+        sid = request.sid 
         log.info(f"Client disconnected: {sid}")
         
         game_found = False
-        # Use list(games.items()) to create a copy, allowing safe deletion during iteration
         for room_code, game in list(games.items()):
             if sid in game.players:
                 game_found = True
-                player_left = game.remove_player(sid) # This will trigger end_game if needed
+                player_left = game.remove_player(sid) 
                 
-                # If the player left, the room is now empty, AND the game is NOT in progress
-                # (meaning end_game wasn't called), we can clean up.
                 if player_left and not game.players and not game.game_in_progress:
                     log.info(f"Room {room_code} is empty after disconnect, cleaning up immediately.")
-                    if room_code in games: # Double check it wasn't already cleaned by end_game
+                    if room_code in games: 
                          del games[room_code]
                          try:
                              close_room(room_code)
                          except Exception as e:
                              log.error(f"Error closing room {room_code} on disconnect cleanup: {e}")
-                break # Player found and processed
+                break 
         
         if not game_found:
              log.warning(f"Disconnected SID {sid} was not found in any active game.")
@@ -368,7 +423,6 @@ def register_handlers(socketio):
         log.info(f"Received create_game request from {sid}")
         room_code = create_new_game('war_classic')
         if room_code:
-            # emit() without 'to=' sends only to the user who made the request (identified by request.sid)
             emit('game_created', {'room_code': room_code})
             log.info(f"Sent game_created event to {sid} for room {room_code}")
         else:
@@ -397,35 +451,26 @@ def register_handlers(socketio):
              emit('join_error', {'message': 'This game has already finished.'})
              return
         
-        # Add player to our game logic
         player_index = game.add_player(sid)
         
         if player_index is None:
-            # Game was full and this was not a rejoin
             log.warning(f"Player {sid} tried to join full room: {room_code}")
             emit('join_error', {'message': 'This game is already full.'})
             return
 
-        # Join the Socket.IO room for broadcasts
         join_room(room_code)
         log.info(f"Added {sid} to socket.io room {room_code}")
 
-        # Tell the player they joined successfully and their index
         emit('you_joined', {'player_index': player_index})
 
-        # Update status for players in the room
         if len(game.players) == 2 and not game.game_in_progress:
-            # *** MODIFIED: This is the second player joining, notify players they can start ***
+            # (From previous step: Show start button)
             sio.emit('status_update', {'message': 'Both players are in the room. Press Start to begin!'}, to=room_code)
             log.info(f"Two players in {room_code}, ready to start.")
-            # *** ADDED: Tell clients to show the start button ***
             sio.emit('show_start_button', to=room_code)
-            # *** REMOVED: game.start_game() ***
         elif len(game.players) == 1:
-            # This is the first player, tell them to wait
             emit('status_update', {'message': 'Waiting for Player 2 to join...'})
         else:
-            # This is a reconnect, broadcast the current state
              if game.game_in_progress:
                 game.broadcast_state("Player reconnected")
 
@@ -442,14 +487,14 @@ def register_handlers(socketio):
 
         game = get_game(room_code)
         if game:
-            if sid in game.players: # Check if the player is actually in this game
+            if sid in game.players: 
                 game.change_speed(change)
             else:
                 log.warning(f"Player {sid} tried to change speed for game {room_code} they aren't in.")
         else:
             log.warning(f"Player {sid} tried to change speed for non-existent game: {room_code}")
 
-    # *** ADDED: New handler for starting the game ***
+    # (From previous step: Start game handler)
     @socketio.on('start_game')
     def on_start_game(data):
         sid = request.sid
@@ -469,7 +514,6 @@ def register_handlers(socketio):
             log.warning(f"Start_game error: Player {sid} not in game {room_code}.")
             return
 
-        # start_game() method in WarGame is safe and won't run twice
         if not game.game_in_progress:
             log.info(f"Game {room_code} started by {sid}.")
             game.start_game()
