@@ -90,8 +90,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const speedDownBtn = document.getElementById('speed-down-btn');
         const p0NameEl = document.getElementById('player-0-name');
         const p1NameEl = document.getElementById('player-1-name');
-        // *** ADDED: Reference to the new start button ***
         const startBtn = document.getElementById('start-game-btn');
+        
+        // *** ADDED: Stat Element Refs ***
+        // Player 0 Stats
+        const p0AcesEl = document.getElementById('player-0-aces');
+        const p0KingsEl = document.getElementById('player-0-kings');
+        const p0WarsWonEl = document.getElementById('player-0-wars-won');
+        const p0RecycleEl = document.getElementById('player-0-recycle');
+        const p0HandsWonEl = document.getElementById('player-0-hands-won');
+        const p0WinPctEl = document.getElementById('player-0-win-pct');
+        // Player 1 Stats
+        const p1AcesEl = document.getElementById('player-1-aces');
+        const p1KingsEl = document.getElementById('player-1-kings');
+        const p1WarsWonEl = document.getElementById('player-1-wars-won');
+        const p1RecycleEl = document.getElementById('player-1-recycle');
+        const p1HandsWonEl = document.getElementById('player-1-hands-won');
+        const p1WinPctEl = document.getElementById('player-1-win-pct');
         
         let thisPlayerIndex = 0; // Will be 0 or 1
         let isProcessingUpdate = false; // Flag to prevent overlaps
@@ -100,9 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const BASE_PACE_DURATION = 500; // General pace for card reveals
         const DRAMATIC_PAUSE_DURATION = 1000; // Pause for Ace/King
 
-        // --- Helper Functions ---
+        // --- Helper Functions (Unchanged) ---
         const sleep = (ms) => new Promise(res => setTimeout(res, ms));
-
+        function createCardHTML(card) { /* ... */ }
+        function createCardElement(card, staggerIndex = -1) { /* ... */ }
+        async function checkAndPause(card, cardEl, defaultDelay) { /* ... */ }
+        
+        // (Helper function implementations are assumed to be here from previous steps)
+        // Example:
         function createCardHTML(card) {
             const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
             const displayValue = card.value; 
@@ -137,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+
         // --- Socket Event Listeners ---
         console.log(`Attempting to join room: ${roomCode}`);
         socket.emit('join_game', { room_code: roomCode });
@@ -144,8 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('you_joined', (data) => {
             thisPlayerIndex = data.player_index;
             console.log(`Joined game, I am Player ${thisPlayerIndex}`);
-            // *** NOTE: This logic assumes P0 is "You" if index is 0 ***
-            // *** This was swapped in a previous step, VERIFY THIS IS CORRECT ***
             if (thisPlayerIndex === 0) {
                 p0NameEl.textContent = "Player 1 (You)";
                 p1NameEl.textContent = "Player 2 (Opponent)";
@@ -166,11 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
             speedDownBtn.disabled = true;
         });
 
-        // *** ADDED: Listen for server signal to show the start button ***
+        // (From previous step: Show start button)
         socket.on('show_start_button', () => {
             console.log("Server signaled to show start button.");
             if (startBtn) {
-                startBtn.style.display = 'inline-block';
+                startBtn.style.display = 'block';
             }
         });
 
@@ -178,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('game_state_update', async (state) => {
             console.log('Game state update received:', state);
 
-            // *** ADDED: Hide start button once game is running ***
+            // (From previous step: Hide start button)
             if (startBtn) {
                 startBtn.style.display = 'none';
             }
@@ -189,32 +208,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             isProcessingUpdate = true;
             
-            try { // *** (try/finally block remains from previous fix) ***
+            try { 
                 // --- Update basic info immediately ---
                 p0CountEl.textContent = `Cards: ${state.player_0_count}`;
                 p1CountEl.textContent = `Cards: ${state.player_1_count}`;
                 messageEl.textContent = state.message;
                 speedDisplayEl.textContent = `Delay: ${state.current_delay.toFixed(1)}s`;
 
-                // --- LOGIC FOR CARD PILES ---
-
-                // A) Check if it's a War.
-                if (state.war_pile.length > 0) {
-                    // This is a war state.
-                    // (War animation logic remains unchanged)
+                // *** ADDED: Update Stats Display ***
+                if (state.player_0_stats && state.player_1_stats) {
+                    const p0_stats = state.player_0_stats;
+                    const p1_stats = state.player_1_stats;
                     
-                    // 2. Clear ONLY the war piles.
+                    // Update Player 0 Stats
+                    p0AcesEl.textContent = p0_stats.aces_count;
+                    p0KingsEl.textContent = p0_stats.kings_count;
+                    p0WarsWonEl.textContent = p0_stats.wars_won;
+                    p0HandsWonEl.textContent = p0_stats.hands_won;
+                    p0WinPctEl.textContent = p0_stats.win_pct.toFixed(0);
+                    // "Cards Left" (p0RecycleEl) mirrors the main card count
+                    p0RecycleEl.textContent = state.player_0_count; 
+                    
+                    // Update Player 1 Stats
+                    p1AcesEl.textContent = p1_stats.aces_count;
+                    p1KingsEl.textContent = p1_stats.kings_count;
+                    p1WarsWonEl.textContent = p1_stats.wars_won;
+                    p1HandsWonEl.textContent = p1_stats.hands_won;
+                    p1WinPctEl.textContent = p1_stats.win_pct.toFixed(0);
+                    // "Cards Left" (p1RecycleEl) mirrors the main card count
+                    p1RecycleEl.textContent = state.player_1_count;
+                }
+
+                // --- LOGIC FOR CARD PILES (Unchanged) ---
+                if (state.war_pile.length > 0) {
+                    // (War animation logic as before)
                     p0WarPileEl.innerHTML = '';
                     p1WarPileEl.innerHTML = '';
                     
-                    // 3. Split the spoils
-                    // (This logic is based on the previous fix, assuming server sends spoils in war_pile
-                    // and decision cards in play_pile)
                     const numSpoilsPerPlayer = state.war_pile.length / 2;
                     const p0Spoils = state.war_pile.slice(0, numSpoilsPerPlayer);
                     const p1Spoils = state.war_pile.slice(numSpoilsPerPlayer);
 
-                    // 4. Render spoil cards sequentially
                     for (let i = 0; i < numSpoilsPerPlayer; i++) {
                         if (i < p0Spoils.length) {
                              const p0Card = p0Spoils[i];
@@ -230,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
-                    // 5. Render the new decision cards (from state.play_pile)
                     p0PileEl.innerHTML = '';
                     p1PileEl.innerHTML = '';
                     
@@ -248,8 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                 } else {
-                    // B) This is NOT a war state.
-                    // (Regular play logic remains unchanged)
+                    // (Regular play logic as before)
                     p0WarPileEl.innerHTML = '';
                     p1WarPileEl.innerHTML = '';
                     
@@ -283,12 +315,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Button Event Listeners ---
 
-        // *** ADDED: Click listener for the start button ***
+        // (From previous step: Start button listener)
         if (startBtn) {
             startBtn.addEventListener('click', () => {
                 console.log("Start button clicked. Emitting 'start_game'.");
                 socket.emit('start_game', { room_code: roomCode });
-                startBtn.style.display = 'none'; // Hide button immediately
+                startBtn.style.display = 'none'; 
                 messageEl.textContent = "Starting game...";
             });
         }
