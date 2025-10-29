@@ -14,24 +14,32 @@
     </div>
 
     <div class="game-controls">
-        <button id="speed-down-btn" class="btn btn-secondary" title="Slower (Increase Delay)">Slower</button>
+        <button id="speed-down-btn" class="btn btn-secondary" title="Slower (Increase Delay)">🐢 Slower</button>
         <span id="speed-display" style="font-weight: bold; margin: 0 15px;">Delay: 1.0s</span>
-        <button id="speed-up-btn" class="btn btn-secondary" title="Faster (Decrease Delay)">Faster</button>
+        <button id="speed-up-btn" class="btn btn-secondary" title="Faster (Decrease Delay)">🐇 Faster</button>
     </div>
 
-    <div class="game-start-controls" style="display: flex; justify-content: center; margin-top: 20px;">
-      <button id="start-game-btn" class="btn btn-primary btn-lg" style="display: none;">
-        Start Game
-      </button>
+    <div class="game-start-controls" style="text-align: center; margin-top: 20px;">
+        <button id="start-game-btn" class="btn btn-primary btn-lg" style="display: none;">
+            Start Game
+        </button>
     </div>
-
 
     <div class="game-board">
         <div id="player-0-area" class="player-area">
             <div class="player-info">
                 <h2 id="player-0-name">Player 1 (You)</h2>
                 <div class="card-count" id="player-0-count">Cards: 26</div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">Aces: <span id="player-0-aces">0</span></div>
+                    <div class="stat-item">Kings: <span id="player-0-kings">0</span></div>
+                    <div class="stat-item">Wars Won: <span id="player-0-wars-won">0</span></div>
+                    <div class="stat-item">Cards Left: <span id="player-0-recycle">26</span></div>
+                    <div class="stat-item">Hands: <span id="player-0-hands-won">0</span></div>
+                    <div class="stat-item">Win %: <span id="player-0-win-pct">0</span>%</div>
                 </div>
+            </div>
             <div class="deck-pile">
                 <div class="card-pile">
                     <div class="card card-back"></div>
@@ -49,7 +57,16 @@
              <div class="player-info">
                 <h2 id="player-1-name">Player 2 (Opponent)</h2>
                 <div class="card-count" id="player-1-count">Cards: 26</div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">Aces: <span id="player-1-aces">0</span></div>
+                    <div class="stat-item">Kings: <span id="player-1-kings">0</span></div>
+                    <div class="stat-item">Wars Won: <span id="player-1-wars-won">0</span></div>
+                    <div class="stat-item">Cards Left: <span id="player-1-recycle">26</span></div>
+                    <div class="stat-item">Hands: <span id="player-1-hands-won">0</span></div>
+                    <div class="stat-item">Win %: <span id="player-1-win-pct">0</span>%</div>
                 </div>
+            </div>
             <div class="deck-pile">
                 <div class="card-pile">
                     <div class="card card-back"></div>
