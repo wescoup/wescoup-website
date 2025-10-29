@@ -31,13 +31,13 @@
                 <h2 id="player-0-name">Player 1 (You)</h2>
                 <div class="card-count" id="player-0-count">Cards: 26</div>
                 
-                <div class="cards-left-stat" id="player-0-recycle">Cards Left: 26</div> 
+                <div class="cards-left-stat">Cards Left: <span id="player-0-recycle">26</span></div> 
                 <div class="stats-container">
-                    <div id="player-0-aces" class="stat-item">Aces: 0</div>
-                    <div id="player-0-kings" class="stat-item">Kings: 0</div>
-                    <div id="player-0-wars-won" class="stat-item">Wars Won: 0</div>
-                    <div id="player-0-hands-won" class="stat-item">Hands: 0</div>
-                    <div id="player-0-win-pct" class="stat-item">Win %: 0%</div>
+                    <div class="stat-item">Aces: <span id="player-0-aces">0</span></div>
+                    <div class="stat-item">Kings: <span id="player-0-kings">0</span></div>
+                    <div class="stat-item">Wars Won: <span id="player-0-wars-won">0</span></div>
+                    <div class="stat-item">Hands: <span id="player-0-hands-won">0</span></div>
+                    <div class="stat-item">Win %: <span id="player-0-win-pct">0</span>%</div>
                 </div>
             </div>
             <div class="deck-pile">
@@ -58,13 +58,13 @@
                 <h2 id="player-1-name">Player 2 (Opponent)</h2>
                 <div class="card-count" id="player-1-count">Cards: 26</div>
                 
-                <div class="cards-left-stat" id="player-1-recycle">Cards Left: 26</div>
+                <div class="cards-left-stat">Cards Left: <span id="player-1-recycle">26</span></div>
                 <div class="stats-container">
-                    <div id="player-1-aces" class="stat-item">Aces: 0</div>
-                    <div id="player-1-kings" class="stat-item">Kings: 0</div>
-                    <div id="player-1-wars-won" class="stat-item">Wars Won: 0</div>
-                    <div id="player-1-hands-won" class="stat-item">Hands: 0</div>
-                    <div id="player-1-win-pct" class="stat-item">Win %: 0%</div>
+                    <div class="stat-item">Aces: <span id="player-1-aces">0</span></div>
+                    <div class="stat-item">Kings: <span id="player-1-kings">0</span></div>
+                    <div class="stat-item">Wars Won: <span id="player-1-wars-won">0</span></div>
+                    <div class="stat-item">Hands: <span id="player-1-hands-won">0</span></div>
+                    <div class="stat-item">Win %: <span id="player-1-win-pct">0</span>%</div>
                 </div>
             </div>
             <div class="deck-pile">
@@ -88,6 +88,6 @@
 
 </div>
 
-<script src="[https://cdn.socket.io/4.7.5/socket.io.min.js](https://cdn.socket.io/4.7.5/socket.io.min.js)"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/games/war2.js') }}"></script>
 {% endblock %}
