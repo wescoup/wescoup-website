@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- LOBBY LOGIC (Unchanged) ---
     const createBtn = document.getElementById('create-game-btn');
     if (createBtn) {
+        // ... (existing lobby code remains unchanged) ...
         const socket = io();
         const joinBtn = document.getElementById('join-game-btn');
         const codeInput = document.getElementById('game-code-input');
@@ -109,12 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>`;
         }
 
-        /**
-         * Creates a DOM element for a card and applies staggering.
-         * @param {object} card - The card object.
-         * @param {number} staggerIndex - The 0-based index for staggering (0, 1, 2).
-         * @returns {HTMLElement} The card DOM element.
-         */
         function createCardElement(card, staggerIndex = -1) {
             const cardElHTML = createCardHTML(card);
             const tempDiv = document.createElement('div');
@@ -122,18 +117,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardEl = tempDiv.firstChild;
 
             if (staggerIndex > -1) {
-                cardEl.style.left = `${staggerIndex * 20}px`; // Stagger horizontally
-                cardEl.style.top = `${staggerIndex * 5}px`;  // Stagger vertically
+                cardEl.style.left = `${staggerIndex * 20}px`; 
+                cardEl.style.top = `${staggerIndex * 5}px`;  
             }
             return cardEl;
         }
 
-        /**
-         * Checks if a card is high-value and pauses execution.
-         * @param {object} card - The card object.
-         * @param {HTMLElement} cardEl - The card's DOM element to highlight.
-         * @param {number} defaultDelay - The default sleep time.
-         */
         async function checkAndPause(card, cardEl, defaultDelay) {
             const isHighCard = card.rank === 14 || card.rank === 13; // Ace or King
             
@@ -154,11 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
             thisPlayerIndex = data.player_index;
             console.log(`Joined game, I am Player ${thisPlayerIndex}`);
             if (thisPlayerIndex === 0) {
-                p0NameEl.textContent = "Player 1 (You)";
-                p1NameEl.textContent = "Player 2 (Opponent)";
-            } else {
-                p0NameEl.textContent = "Player 1 (Opponent)";
+                p0NameEl.textContent = "Player 1 (Opponent)"; // Swapped these
                 p1NameEl.textContent = "Player 2 (You)";
+            } else {
+                p0NameEl.textContent = "Player 1 (You)"; // Swapped these
+                p1NameEl.textContent = "Player 2 (Opponent)";
             }
         });
 
@@ -183,102 +172,105 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             isProcessingUpdate = true;
             
-            // --- Update basic info immediately ---
-            p0CountEl.textContent = `Cards: ${state.player_0_count}`;
-            p1CountEl.textContent = `Cards: ${state.player_1_count}`;
-            messageEl.textContent = state.message;
-            speedDisplayEl.textContent = `Delay: ${state.current_delay.toFixed(1)}s`;
+            try { // *** ADDED TRY BLOCK ***
+                // --- Update basic info immediately ---
+                p0CountEl.textContent = `Cards: ${state.player_0_count}`;
+                p1CountEl.textContent = `Cards: ${state.player_1_count}`;
+                messageEl.textContent = state.message;
+                speedDisplayEl.textContent = `Delay: ${state.current_delay.toFixed(1)}s`;
 
-            // --- *** REBUILT LOGIC FOR CARD PILES WITH DELAYS *** ---
+                // --- LOGIC FOR CARD PILES ---
 
-            // A) Check if it's a War.
-            if (state.war_pile.length > 0) {
-                // This is a war state.
-                // 1. The play_pile (initiating cards) is already visible. Leave it.
-                
-                // 2. Clear ONLY the war piles for the new cards.
-                p0WarPileEl.innerHTML = '';
-                p1WarPileEl.innerHTML = '';
-                
-                // 3. Split the spoils (Server sends [p0s1,p0s2,p0s3, p1s1,p1s2,p1s3])
-                const numSpoils = state.war_pile.length / 2;
-                const p0Spoils = state.war_pile.slice(0, numSpoils);
-                const p1Spoils = state.war_pile.slice(numSpoils);
+                // A) Check if it's a War.
+                if (state.war_pile.length > 0) {
+                    // This is a war state.
+                    // 1. Leave initiating cards in p0PileEl/p1PileEl.
+                    
+                    // 2. Clear ONLY the war piles.
+                    p0WarPileEl.innerHTML = '';
+                    p1WarPileEl.innerHTML = '';
+                    
+                    // 3. Split the spoils (Server sends [p0s1,p0s2,p0s3, p1s1,p1s2,p1s3])
+                    // *** CORRECTION: Server sends [p0_down, p1_down, p0_up, p1_up] ***
+                    // Let's assume 3 spoils + 1 decision for now, so war_pile.length is 8
+                    // [p0_s1, p1_s1, p0_s2, p1_s2, p0_s3, p1_s3, p0_decide, p1_decide]
+                    
+                    // The server actually sends spoils in war_pile and decision in play_pile
+                    // war_pile = [p0_s1, p0_s2, p0_s3, p1_s1, p1_s2, p1_s3]
+                    // play_pile = [p0_decide, p1_decide] (overwrites initial tie cards)
+                    
+                    const numSpoilsPerPlayer = state.war_pile.length / 2;
+                    const p0Spoils = state.war_pile.slice(0, numSpoilsPerPlayer);
+                    const p1Spoils = state.war_pile.slice(numSpoilsPerPlayer);
 
-                // 4. Render spoil cards, one pair at a time, with pauses
-                for (let i = 0; i < numSpoils; i++) {
-                    // Render P0 spoil card
-                    const p0Card = p0Spoils[i];
-                    const p0CardEl = createCardElement(p0Card, i); // Pass 'i' for stagger
-                    p0WarPileEl.appendChild(p0CardEl);
-                    await checkAndPause(p0Card, p0CardEl, BASE_PACE_DURATION);
+                    // 4. Render spoil cards sequentially
+                    for (let i = 0; i < numSpoilsPerPlayer; i++) {
+                        if (i < p0Spoils.length) {
+                             const p0Card = p0Spoils[i];
+                             const p0CardEl = createCardElement(p0Card, i); 
+                             p0WarPileEl.appendChild(p0CardEl);
+                             await checkAndPause(p0Card, p0CardEl, BASE_PACE_DURATION);
+                        }
+                        if (i < p1Spoils.length) {
+                             const p1Card = p1Spoils[i];
+                             const p1CardEl = createCardElement(p1Card, i); 
+                             p1WarPileEl.appendChild(p1CardEl);
+                             await checkAndPause(p1Card, p1CardEl, BASE_PACE_DURATION);
+                        }
+                    }
 
-                    // Render P1 spoil card
-                    const p1Card = p1Spoils[i];
-                    const p1CardEl = createCardElement(p1Card, i); // Pass 'i' for stagger
-                    p1WarPileEl.appendChild(p1CardEl);
-                    await checkAndPause(p1Card, p1CardEl, BASE_PACE_DURATION);
+                    // 5. Render the new decision cards (from state.play_pile)
+                    //    Clear previous play pile content first
+                    p0PileEl.innerHTML = '';
+                    p1PileEl.innerHTML = '';
+                    
+                    if (state.play_pile.length > 0) {
+                        const p0DecisionCard = state.play_pile[0];
+                        const p0DecisionEl = createCardElement(p0DecisionCard); 
+                        p0PileEl.appendChild(p0DecisionEl);
+                        await checkAndPause(p0DecisionCard, p0DecisionEl, DRAMATIC_PAUSE_DURATION); 
+                    }
+                    if (state.play_pile.length > 1) {
+                         const p1DecisionCard = state.play_pile[1];
+                         const p1DecisionEl = createCardElement(p1DecisionCard); 
+                         p1PileEl.appendChild(p1DecisionEl);
+                         await checkAndPause(p1DecisionCard, p1DecisionEl, DRAMATIC_PAUSE_DURATION);
+                    }
+
+                } else {
+                    // B) This is NOT a war state.
+                    // 1. Clear war piles
+                    p0WarPileEl.innerHTML = '';
+                    p1WarPileEl.innerHTML = '';
+                    
+                    // 2. Render play piles
+                    p0PileEl.innerHTML = ''; // Clear
+                    if (state.play_pile.length > 0) {
+                        p0PileEl.innerHTML = createCardHTML(state.play_pile[0]);
+                    }
+                    
+                    p1PileEl.innerHTML = ''; // Clear
+                    if (state.play_pile.length > 1) {
+                        p1PileEl.innerHTML = createCardHTML(state.play_pile[1]);
+                    }
                 }
-
-                // 5. Render the new decision cards (from state.play_pile)
-                //    First, clear the initiating cards
-                p0PileEl.innerHTML = '';
-                p1PileEl.innerHTML = '';
-
-                // 6. Render P0 decision card
-                const p0DecisionCard = state.play_pile[0];
-                const p0DecisionEl = createCardElement(p0DecisionCard); // No stagger
-                p0PileEl.appendChild(p0DecisionEl);
-                // Pause for dramatic effect on the *decision* card
-                await checkAndPause(p0DecisionCard, p0DecisionEl, DRAMATIC_PAUSE_DURATION); 
-
-                // 7. Render P1 decision card
-                const p1DecisionCard = state.play_pile[1];
-                const p1DecisionEl = createCardElement(p1DecisionCard); // No stagger
-                p1PileEl.appendChild(p1DecisionEl);
-                // Pause for dramatic effect on the *decision* card
-                await checkAndPause(p1DecisionCard, p1DecisionEl, DRAMATIC_PAUSE_DURATION);
-
-            } else {
-                // B) This is NOT a war state.
-                // 1. Clear war piles
-                p0WarPileEl.innerHTML = '';
-                p1WarPileEl.innerHTML = '';
                 
-                // 2. Render play piles
-                p0PileEl.innerHTML = ''; // Clear
-                if (state.play_pile.length > 0) {
-                    p0PileEl.innerHTML = createCardHTML(state.play_pile[0]);
+                // Handle Game Over
+                if (state.game_over) {
+                    messageEl.style.color = '#007bff';
+                    messageEl.style.fontWeight = 'bold';
+                    speedUpBtn.disabled = true;
+                    speedDownBtn.disabled = true;
                 }
-                
-                p1PileEl.innerHTML = ''; // Clear
-                if (state.play_pile.length > 1) {
-                    p1PileEl.innerHTML = createCardHTML(state.play_pile[1]);
-                }
+            } catch (error) { // *** ADDED CATCH BLOCK ***
+                 console.error("Error processing game state update:", error);
+                 // Optionally, display an error to the user
+                 messageEl.textContent = "An error occurred displaying the game state.";
+                 messageEl.style.color = 'red';
+            } finally { // *** ADDED FINALLY BLOCK ***
+                 isProcessingUpdate = false; // Release the flag *after* all async operations are done or if an error occurred
+                 console.log("Processing finished, flag released.");
             }
-            
-            // Handle Game Over
-            if (state.game_over) {
-                messageEl.style.color = '#007bff';
-                messageEl.style.fontWeight = 'bold';
-                speedUpBtn.disabled = true;
-                speedDownBtn.disabled = true;
-            }
-
-            isProcessingUpdate = false; // Release the flag
         });
 
         // --- Button Event Listeners ---
-        speedUpBtn.addEventListener('click', () => {
-             if (isProcessingUpdate) return; // Prevent speed change during animation
-            console.log('Emitting speed change: -0.1');
-            socket.emit('change_speed', { room_code: roomCode, change: -0.1 });
-        });
-        
-        speedDownBtn.addEventListener('click', () => {
-             if (isProcessingUpdate) return; // Prevent speed change during animation
-            console.log('Emitting speed change: +0.1');
-            socket.emit('change_speed', { room_code: roomCode, change: 0.1 });
-        });
-    }
-});
