@@ -92,15 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const p1NameEl = document.getElementById('player-1-name');
         const startBtn = document.getElementById('start-game-btn');
         
-        // *** ADDED: Stat Element Refs ***
-        // Player 0 Stats
+        // Stat Element Refs
         const p0AcesEl = document.getElementById('player-0-aces');
         const p0KingsEl = document.getElementById('player-0-kings');
         const p0WarsWonEl = document.getElementById('player-0-wars-won');
         const p0RecycleEl = document.getElementById('player-0-recycle');
         const p0HandsWonEl = document.getElementById('player-0-hands-won');
         const p0WinPctEl = document.getElementById('player-0-win-pct');
-        // Player 1 Stats
         const p1AcesEl = document.getElementById('player-1-aces');
         const p1KingsEl = document.getElementById('player-1-kings');
         const p1WarsWonEl = document.getElementById('player-1-wars-won');
@@ -108,21 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const p1HandsWonEl = document.getElementById('player-1-hands-won');
         const p1WinPctEl = document.getElementById('player-1-win-pct');
         
-        let thisPlayerIndex = 0; // Will be 0 or 1
-        let isProcessingUpdate = false; // Flag to prevent overlaps
+        let thisPlayerIndex = 0; 
+        let isProcessingUpdate = false; 
 
         // --- Constants for delays ---
-        const BASE_PACE_DURATION = 500; // General pace for card reveals
-        const DRAMATIC_PAUSE_DURATION = 1000; // Pause for Ace/King
+        const BASE_PACE_DURATION = 500; 
+        const DRAMATIC_PAUSE_DURATION = 1000; 
 
-        // --- Helper Functions (Unchanged) ---
+        // --- Helper Functions (Defined ONCE here) ---
         const sleep = (ms) => new Promise(res => setTimeout(res, ms));
-        function createCardHTML(card) { /* ... */ }
-        function createCardElement(card, staggerIndex = -1) { /* ... */ }
-        async function checkAndPause(card, cardEl, defaultDelay) { /* ... */ }
-        
-        // (Helper function implementations are assumed to be here from previous steps)
-        // Example:
+
         function createCardHTML(card) {
             const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
             const displayValue = card.value; 
@@ -156,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await sleep(defaultDelay);
             }
         }
-
+        // *** DUPLICATE DEFINITIONS REMOVED FROM HERE ***
 
         // --- Socket Event Listeners ---
         console.log(`Attempting to join room: ${roomCode}`);
@@ -185,11 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
             speedDownBtn.disabled = true;
         });
 
-        // (From previous step: Show start button)
         socket.on('show_start_button', () => {
             console.log("Server signaled to show start button.");
             if (startBtn) {
-                startBtn.style.display = 'inline-block';
+                 startBtn.style.display = 'inline-block'; // Changed to inline-block
             }
         });
 
@@ -197,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('game_state_update', async (state) => {
             console.log('Game state update received:', state);
 
-            // (From previous step: Hide start button)
             if (startBtn) {
                 startBtn.style.display = 'none';
             }
@@ -215,33 +206,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 messageEl.textContent = state.message;
                 speedDisplayEl.textContent = `Delay: ${state.current_delay.toFixed(1)}s`;
 
-                // *** ADDED: Update Stats Display ***
+                // Update Stats Display 
                 if (state.player_0_stats && state.player_1_stats) {
                     const p0_stats = state.player_0_stats;
                     const p1_stats = state.player_1_stats;
                     
-                    // Update Player 0 Stats
                     p0AcesEl.textContent = p0_stats.aces_count;
                     p0KingsEl.textContent = p0_stats.kings_count;
                     p0WarsWonEl.textContent = p0_stats.wars_won;
                     p0HandsWonEl.textContent = p0_stats.hands_won;
                     p0WinPctEl.textContent = p0_stats.win_pct.toFixed(0);
-                    // "Cards Left" (p0RecycleEl) mirrors the main card count
                     p0RecycleEl.textContent = state.player_0_count; 
                     
-                    // Update Player 1 Stats
                     p1AcesEl.textContent = p1_stats.aces_count;
                     p1KingsEl.textContent = p1_stats.kings_count;
                     p1WarsWonEl.textContent = p1_stats.wars_won;
                     p1HandsWonEl.textContent = p1_stats.hands_won;
                     p1WinPctEl.textContent = p1_stats.win_pct.toFixed(0);
-                    // "Cards Left" (p1RecycleEl) mirrors the main card count
                     p1RecycleEl.textContent = state.player_1_count;
                 }
 
                 // --- LOGIC FOR CARD PILES (Unchanged) ---
                 if (state.war_pile.length > 0) {
-                    // (War animation logic as before)
+                    // (War animation logic)
                     p0WarPileEl.innerHTML = '';
                     p1WarPileEl.innerHTML = '';
                     
@@ -281,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                 } else {
-                    // (Regular play logic as before)
+                    // (Regular play logic)
                     p0WarPileEl.innerHTML = '';
                     p1WarPileEl.innerHTML = '';
                     
@@ -314,8 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // --- Button Event Listeners ---
-
-        // (From previous step: Start button listener)
         if (startBtn) {
             startBtn.addEventListener('click', () => {
                 console.log("Start button clicked. Emitting 'start_game'.");
