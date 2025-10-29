@@ -274,3 +274,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // --- Button Event Listeners ---
+        speedUpBtn.addEventListener('click', () => {
+             if (isProcessingUpdate) return; 
+            console.log('Emitting speed change: -0.1');
+            socket.emit('change_speed', { room_code: roomCode, change: -0.1 });
+        });
+        
+        speedDownBtn.addEventListener('click', () => {
+             if (isProcessingUpdate) return; 
+            console.log('Emitting speed change: +0.1');
+            socket.emit('change_speed', { room_code: roomCode, change: 0.1 });
+        });
+    }
+});
