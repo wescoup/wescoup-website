@@ -89,6 +89,7 @@ class WarGame:
         
     def start_game(self):
         """Shuffles, deals, and sets game in progress."""
+        # ADDED check to prevent multiple starts
         if len(self.players) != 2 or self.game_in_progress:
             log.warning(f"Attempted to start {self.room_code} (In Progress: {self.game_in_progress}) with {len(self.players)} players.")
             return
@@ -414,10 +415,12 @@ def register_handlers(socketio):
 
         # Update status for players in the room
         if len(game.players) == 2 and not game.game_in_progress:
-            # This is the second player joining, start the game
-            sio.emit('status_update', {'message': f'Player {player_index + 1} has joined. Starting game...'}, to=room_code)
-            log.info(f"Two players in {room_code}, attempting to start game.")
-            game.start_game()
+            # *** MODIFIED: This is the second player joining, notify players they can start ***
+            sio.emit('status_update', {'message': 'Both players are in the room. Press Start to begin!'}, to=room_code)
+            log.info(f"Two players in {room_code}, ready to start.")
+            # *** ADDED: Tell clients to show the start button ***
+            sio.emit('show_start_button', to=room_code)
+            # *** REMOVED: game.start_game() ***
         elif len(game.players) == 1:
             # This is the first player, tell them to wait
             emit('status_update', {'message': 'Waiting for Player 2 to join...'})
@@ -445,5 +448,32 @@ def register_handlers(socketio):
                 log.warning(f"Player {sid} tried to change speed for game {room_code} they aren't in.")
         else:
             log.warning(f"Player {sid} tried to change speed for non-existent game: {room_code}")
+
+    # *** ADDED: New handler for starting the game ***
+    @socketio.on('start_game')
+    def on_start_game(data):
+        sid = request.sid
+        if not data or 'room_code' not in data:
+             log.warning(f"Start_game request from {sid} missing room_code.")
+             return
+        
+        room_code = data.get('room_code').lower()
+        log.info(f"Received start_game request from {sid} for room {room_code}")
+        
+        game = get_game(room_code)
+        if not game:
+            log.warning(f"Start_game error: Game {room_code} not found for {sid}.")
+            return
+        
+        if sid not in game.players:
+            log.warning(f"Start_game error: Player {sid} not in game {room_code}.")
+            return
+
+        # start_game() method in WarGame is safe and won't run twice
+        if not game.game_in_progress:
+            log.info(f"Game {room_code} started by {sid}.")
+            game.start_game()
+        else:
+            log.warning(f"Player {sid} sent start_game but game {room_code} already in progress.")
 
     log.info("Socket.IO event handlers registered successfully.")
