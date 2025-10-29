@@ -81,7 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const p1CountEl = document.getElementById('player-1-count');
         const p0PileEl = document.getElementById('player-0-play-pile');
         const p1PileEl = document.getElementById('player-1-play-pile');
-        const warPileEl = document.getElementById('war-pile-container');
+        
+        // *** UPDATED REFS ***
+        const p0WarPileEl = document.getElementById('player-0-war-pile');
+        const p1WarPileEl = document.getElementById('player-1-war-pile');
+        // const warPileEl = document.getElementById('war-pile-container'); // No longer used for cards
+        
         const messageEl = document.getElementById('game-message-multi');
         const speedDisplayEl = document.getElementById('speed-display');
         const speedUpBtn = document.getElementById('speed-up-btn');
@@ -99,6 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="card-suit">${card.suit}</span>
                     </div>`;
         }
+        
+        // *** NEW HELPER ***
+        function createCardBackHTML() {
+            return '<div class="card card-back"></div>';
+        }
+
 
         // --- Socket Event Listeners ---
 
@@ -146,40 +157,84 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Update speed display
             speedDisplayEl.textContent = `Delay: ${state.current_delay.toFixed(1)}s`;
-            
-            // Update play piles
-            p0PileEl.innerHTML = ''; // Clear
-            if (state.play_pile.length > 0) {
-                p0PileEl.innerHTML = createCardHTML(state.play_pile[0]);
-            }
-            
-            p1PileEl.innerHTML = ''; // Clear
-            if (state.play_pile.length > 1) {
-                p1PileEl.innerHTML = createCardHTML(state.play_pile[1]);
-            }
-            
-            // Update war pile
-            warPileEl.innerHTML = ''; // Clear
+
+            // --- *** NEW LOGIC FOR CARD PILES *** ---
+
+            // A) Check if it's a War. If it is, war_pile has cards.
             if (state.war_pile.length > 0) {
-                // Stagger war cards
+                // This is a war state.
+                // 1. The play_pile (battle cards) should already be set from the previous state.
+                //    We DON'T clear them.
+                
+                // 2. Clear ONLY the war piles.
+                p0WarPileEl.innerHTML = '';
+                p1WarPileEl.innerHTML = '';
+                
+                // 3. Iterate and distribute war_pile cards.
+                //    P0 cards are at even indices (0, 2, 4...)
+                //    P1 cards are at odd indices (1, 3, 5...)
                 state.war_pile.forEach((card, index) => {
-                    const cardEl = document.createElement('div');
-                    // Show 1 face down, 1 face up
-                    if (index % 2 === 0) {
-                        cardEl.className = 'card card-back';
-                    } else {
-                        cardEl.innerHTML = createCardHTML(card);
-                    }
-                    cardEl.style.left = `${index * 10}px`;
-                    cardEl.style.top = `${index * 2}px`; // Slight vertical stagger
+                    let cardElHTML;
+                    // The server logic sends 1 face down, 1 face up.
+                    // So, [p0_down, p1_down, p0_up, p1_up]
+                    // We just need to render them as they come.
                     
-                    // Add card class if it's not a back
-                    if(index % 2 !== 0) {
-                        const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'red' : 'black';
-                        cardEl.className = `card ${colorClass}`;
+                    // index 0 (p0_down), 1 (p1_down), 2 (p0_up), 3 (p1_up)
+                    // We can simplify: first 2 are face down, next 2 are face up.
+                    // And in a double war: next 2 face down, next 2 face up.
+                    
+                    // The server logic in manager.py [handle_war] sends:
+                    // 1. face_down_p0, face_down_p1
+                    // 2. p0_battle_card, p1_battle_card
+                    // This means:
+                    // index 0 = p0_down
+                    // index 1 = p1_down
+                    // index 2 = p0_up
+                    // index 3 = p1_up
+                    // ...and so on for multi-war
+                    
+                    const isFaceDown = (index % 4 === 0) || (index % 4 === 1);
+                    
+                    if (isFaceDown) {
+                        cardElHTML = createCardBackHTML();
+                    } else {
+                        cardElHTML = createCardHTML(card);
                     }
-                    warPileEl.appendChild(cardEl);
+                    
+                    const cardEl = document.createElement('div');
+                    cardEl.innerHTML = cardElHTML;
+                    
+                    // Staggering
+                    const staggerIndex = Math.floor(index / 2);
+                    cardEl.style.left = `${staggerIndex * 10}px`;
+                    cardEl.style.top = `${staggerIndex * 2}px`;
+                    
+                    // Add the first child of cardEl (the card itself)
+                    if (index % 2 === 0) {
+                        // Player 0
+                        p0WarPileEl.appendChild(cardEl.firstChild);
+                    } else {
+                        // Player 1
+                        p1WarPileEl.appendChild(cardEl.firstChild);
+                    }
                 });
+
+            } else {
+                // B) This is NOT a war state. It's a regular draw or a hand result.
+                // 1. Clear all war piles.
+                p0WarPileEl.innerHTML = '';
+                p1WarPileEl.innerHTML = '';
+
+                // 2. Update play piles based on play_pile.
+                p0PileEl.innerHTML = ''; // Clear
+                if (state.play_pile.length > 0) {
+                    p0PileEl.innerHTML = createCardHTML(state.play_pile[0]);
+                }
+                
+                p1PileEl.innerHTML = ''; // Clear
+                if (state.play_pile.length > 1) {
+                    p1PileEl.innerHTML = createCardHTML(state.play_pile[1]);
+                }
             }
             
             // Handle Game Over
