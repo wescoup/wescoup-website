@@ -90,6 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const speedDownBtn = document.getElementById('speed-down-btn');
         const p0NameEl = document.getElementById('player-0-name');
         const p1NameEl = document.getElementById('player-1-name');
+        // *** ADDED: Reference to the new start button ***
+        const startBtn = document.getElementById('start-game-btn');
         
         let thisPlayerIndex = 0; // Will be 0 or 1
         let isProcessingUpdate = false; // Flag to prevent overlaps
@@ -142,12 +144,14 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('you_joined', (data) => {
             thisPlayerIndex = data.player_index;
             console.log(`Joined game, I am Player ${thisPlayerIndex}`);
+            // *** NOTE: This logic assumes P0 is "You" if index is 0 ***
+            // *** This was swapped in a previous step, VERIFY THIS IS CORRECT ***
             if (thisPlayerIndex === 0) {
-                p0NameEl.textContent = "Player 1 (Opponent)"; // Swapped these
-                p1NameEl.textContent = "Player 2 (You)";
-            } else {
-                p0NameEl.textContent = "Player 1 (You)"; // Swapped these
+                p0NameEl.textContent = "Player 1 (You)";
                 p1NameEl.textContent = "Player 2 (Opponent)";
+            } else {
+                p0NameEl.textContent = "Player 1 (Opponent)";
+                p1NameEl.textContent = "Player 2 (You)";
             }
         });
 
@@ -162,9 +166,22 @@ document.addEventListener('DOMContentLoaded', () => {
             speedDownBtn.disabled = true;
         });
 
+        // *** ADDED: Listen for server signal to show the start button ***
+        socket.on('show_start_button', () => {
+            console.log("Server signaled to show start button.");
+            if (startBtn) {
+                startBtn.style.display = 'block';
+            }
+        });
+
         // 5. Main Game State Updater - ASYNC
         socket.on('game_state_update', async (state) => {
             console.log('Game state update received:', state);
+
+            // *** ADDED: Hide start button once game is running ***
+            if (startBtn) {
+                startBtn.style.display = 'none';
+            }
 
             if (isProcessingUpdate) {
                  console.warn("Skipping update, previous one still processing.");
@@ -172,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             isProcessingUpdate = true;
             
-            try { // *** ADDED TRY BLOCK ***
+            try { // *** (try/finally block remains from previous fix) ***
                 // --- Update basic info immediately ---
                 p0CountEl.textContent = `Cards: ${state.player_0_count}`;
                 p1CountEl.textContent = `Cards: ${state.player_1_count}`;
@@ -184,21 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // A) Check if it's a War.
                 if (state.war_pile.length > 0) {
                     // This is a war state.
-                    // 1. Leave initiating cards in p0PileEl/p1PileEl.
+                    // (War animation logic remains unchanged)
                     
                     // 2. Clear ONLY the war piles.
                     p0WarPileEl.innerHTML = '';
                     p1WarPileEl.innerHTML = '';
                     
-                    // 3. Split the spoils (Server sends [p0s1,p0s2,p0s3, p1s1,p1s2,p1s3])
-                    // *** CORRECTION: Server sends [p0_down, p1_down, p0_up, p1_up] ***
-                    // Let's assume 3 spoils + 1 decision for now, so war_pile.length is 8
-                    // [p0_s1, p1_s1, p0_s2, p1_s2, p0_s3, p1_s3, p0_decide, p1_decide]
-                    
-                    // The server actually sends spoils in war_pile and decision in play_pile
-                    // war_pile = [p0_s1, p0_s2, p0_s3, p1_s1, p1_s2, p1_s3]
-                    // play_pile = [p0_decide, p1_decide] (overwrites initial tie cards)
-                    
+                    // 3. Split the spoils
+                    // (This logic is based on the previous fix, assuming server sends spoils in war_pile
+                    // and decision cards in play_pile)
                     const numSpoilsPerPlayer = state.war_pile.length / 2;
                     const p0Spoils = state.war_pile.slice(0, numSpoilsPerPlayer);
                     const p1Spoils = state.war_pile.slice(numSpoilsPerPlayer);
@@ -220,7 +231,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // 5. Render the new decision cards (from state.play_pile)
-                    //    Clear previous play pile content first
                     p0PileEl.innerHTML = '';
                     p1PileEl.innerHTML = '';
                     
@@ -239,11 +249,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } else {
                     // B) This is NOT a war state.
-                    // 1. Clear war piles
+                    // (Regular play logic remains unchanged)
                     p0WarPileEl.innerHTML = '';
                     p1WarPileEl.innerHTML = '';
                     
-                    // 2. Render play piles
                     p0PileEl.innerHTML = ''; // Clear
                     if (state.play_pile.length > 0) {
                         p0PileEl.innerHTML = createCardHTML(state.play_pile[0]);
@@ -262,18 +271,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     speedUpBtn.disabled = true;
                     speedDownBtn.disabled = true;
                 }
-            } catch (error) { // *** ADDED CATCH BLOCK ***
+            } catch (error) { 
                  console.error("Error processing game state update:", error);
-                 // Optionally, display an error to the user
                  messageEl.textContent = "An error occurred displaying the game state.";
                  messageEl.style.color = 'red';
-            } finally { // *** ADDED FINALLY BLOCK ***
-                 isProcessingUpdate = false; // Release the flag *after* all async operations are done or if an error occurred
+            } finally { 
+                 isProcessingUpdate = false; 
                  console.log("Processing finished, flag released.");
             }
         });
 
         // --- Button Event Listeners ---
+
+        // *** ADDED: Click listener for the start button ***
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                console.log("Start button clicked. Emitting 'start_game'.");
+                socket.emit('start_game', { room_code: roomCode });
+                startBtn.style.display = 'none'; // Hide button immediately
+                messageEl.textContent = "Starting game...";
+            });
+        }
+
         speedUpBtn.addEventListener('click', () => {
              if (isProcessingUpdate) return; 
             console.log('Emitting speed change: -0.1');
