@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('show_start_button', () => {
             console.log("Server signaled to show start button.");
             if (startBtn) {
-                startBtn.style.display = 'block';
+                startBtn.style.display = 'inline-block';
             }
         });
 
