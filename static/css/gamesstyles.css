@@ -1,586 +1,564 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM Elements ---
-    const startGameBtn = document.getElementById('start-game');
-    const playTurnBtn = document.getElementById('play-turn');
-    const autoPlayBtn = document.getElementById('auto-play');
-    const gameMessage = document.getElementById('game-message');
+/* --- General Game & Tool Page Styles --- */
 
-    const player1DeckCountEl = document.getElementById('player-1-deck-count');
-    const player1PlayPileEl = document.getElementById('player-1-play-pile');
-    const player1WarPileEl = document.getElementById('player-war-pile');
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
 
-    const player2DeckCountEl = document.getElementById('player-2-deck-count');
-    const player2PlayPileEl = document.getElementById('player-2-play-pile');
-    const player2WarPileEl = document.getElementById('opponent-war-pile');
+/* Added specificity */
+.game-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
 
-    // Stat DOM Elements
-    const player1AcesEl = document.getElementById('player-1-aces');
-    const player1KingsEl = document.getElementById('player-1-kings');
-    const player1WarsEl = document.getElementById('player-1-wars');
-    const player1CardsLeftEl = document.getElementById('player-1-cards-left');
-    const player1HandsEl = document.getElementById('player-1-hands'); 
-    const player1HandsPctEl = document.getElementById('player-1-hands-pct'); 
+.game-header, .tools-header { /* tools-header likely not needed here, but kept for consistency */
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
 
-    const player2AcesEl = document.getElementById('player-2-aces');
-    const player2KingsEl = document.getElementById('player-2-kings');
-    const player2WarsEl = document.getElementById('player-2-wars');
-    const player2CardsLeftEl = document.getElementById('player-2-cards-left');
-    const player2HandsEl = document.getElementById('player-2-hands'); 
-    const player2HandsPctEl = document.getElementById('player-2-hands-pct'); 
+.game-header h1, .tools-header h1 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
 
-    // Speed Control DOM Elements
-    const speedUpBtn = document.getElementById('speed-up-btn');
-    const speedDownBtn = document.getElementById('speed-down-btn');
-    const speedDisplayEl = document.getElementById('speed-display');
+.game-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 1rem;
+}
 
-    // --- Game State Variables ---
-    const SUITS = ['♥', '♦', '♠', '♣'];
-    const VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // J=11, Q=12, K=13, A=14
-    const VALUE_MAP = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
+/* Added specificity - Apply btn styles within game context */
+.game-container .btn {
+    display: inline-block;
+    background: #007bff;
+    color: #ffffff;
+    padding: 10px 18px; /* Slightly larger buttons */
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0 5px;
+}
 
-    let player1Deck, player2Deck;
-    let player1Discard, player2Discard;
-    let gameInProgress = false;
-    let turnInProgress = false;
+.game-container .btn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
 
-    let player1WarsWon = 0;
-    let player2WarsWon = 0;
-    let player1HandsWon = 0; 
-    let player2HandsWon = 0; 
-    let totalHandsPlayed = 0; 
+.game-container .btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
 
-    let isAutoPlaying = false;
-    let autoPlayInterval = null;
+.game-container .btn:disabled {
+    background-color: #c0c0c0;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.game-message {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    min-height: 2em;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eee;
+}
+
+/* --- Tool Card Styles (for tonys-time-traps.html specifically inside game-container) --- */
+/* Added specificity */
+.game-container .tool-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* --- Specific War Game Styles --- */
+/* The general .card styles below conflict with the main styles.css */
+/* We will only apply these specific styles within the .war-game context */
+
+.war-game .game-board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+/* On larger screens, show side-by-side */
+@media (min-width: 768px) {
+    .war-game .game-board {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.player-area {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player-info {
+    text-align: center;
+    min-height: 100px; /* Increased space for stats */
+    margin-bottom: 15px;
+}
+
+.player-info h2 {
+    margin: 0 0 5px 0; /* Reduced bottom margin */
+    color: #444;
+}
+
+.card-count {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 2px; /* Added spacing */
+}
+
+/* New "Cards Left" Stat Style */
+.cards-left-stat {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 8px; /* Space before main stats */
+}
+
+/* New Stats Container */
+.stats-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Reduced gap */
+    margin-top: 5px; /* Reduced top margin */
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    font-size: 0.85rem; /* Slightly smaller */
+    color: #555;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 2px 6px; /* Adjusted padding */
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+/* --- Card Piles --- */
+.deck-pile { /* Removed discard-pile-area */
+    min-height: 140px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.play-pile-area {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 150px; /* Ensure space for staggered cards */
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.card-pile {
+    width: 100px;
+    height: 140px;
+    position: relative;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Removed styles for .card-pile.discard and .discard-pile-area .card */
+
+/* Updated War Pile styles */
+.war-pile {
+    width: 180px; /* Widen to show staggered cards */
+    height: 140px;
+    position: relative;
+    margin-top: 0; /* Align with play pile */
+}
+
+.war-pile .card { /* Apply card styles only within war-pile for this context */
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Copied necessary card styles here */
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    background-color: #fff;
+    border: 1px solid #aaa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 5px 0;
+    box-sizing: border-box;
+}
+
+
+/* --- Card Visuals (Updated) Specific to .war-game --- */
+/* Added specificity .war-game */
+.war-game .card {
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    background-color: #fff;
+    border: 1px solid #aaa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: 5px 0;
+    box-sizing: border-box;
+    /* IMPORTANT: Reset styles inherited from general .card definition */
+    padding: 5px 0; /* Keep game card padding */
+    text-align: center; /* Keep game card text align */
+    cursor: default; /* Game cards not clickable like tool cards */
+}
+
+/* Added specificity .war-game */
+.war-game .card .card-value {
+    font-size: 2.5rem; /* Main value size */
+    line-height: 1.1;
+    color: inherit; /* Ensure color is inherited from .red/.black */
+    margin: 0; /* Reset margin */
+}
+
+/* Added specificity .war-game */
+.war-game .card .card-suit {
+    font-size: 1.8rem; /* Suit size */
+    line-height: 1;
+    color: inherit; /* Ensure color is inherited from .red/.black */
+    margin: 0; /* Reset margin */
+}
+
+/* Added specificity .war-game */
+.war-game .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Added specificity .war-game */
+.war-game .card-back {
+    background: linear-gradient(135deg, #0d6efd, #0d47a1);
+    color: transparent; /* Hide text */
+    position: relative; /* For pseudo-element */
+    overflow: hidden;
+}
+
+/* Added specificity .war-game */
+.war-game .card-back::after {
+    content: '';
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    border: 3px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Added specificity .war-game */
+.war-game .card.red {
+    color: #dc3545; /* Red */
+}
+
+/* Added specificity .war-game */
+.war-game .card.black {
+    color: #212529; /* Black */
+}
+
+/* Added specificity .war-game */
+/* Highlight for Aces/Kings in war */
+.war-game .card.highlight-power-card {
+    box-shadow: 0 0 15px 5px #ffeb3b; /* Yellow glow */
+    border: 2px solid #fbc02d;
+    z-index: 100; /* Bring to front */
+}
+
+/* --- Auto Play Button Style --- */
+/* Added specificity .game-container */
+.game-container #auto-play.playing {
+    background-color: #dc3545; /* Red when active */
+    border-color: #dc3545;
+}
+
+.game-container #auto-play.playing:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* --- Mobile View Adjustments --- */
+/* Ensure these only apply within .war-game context */
+@media (max-width: 767px) {
     
-    // --- Speed Control Variables (Request 3) ---
-    let currentDelayFactor = 1.0; 
-    const MIN_DELAY_FACTOR = 0.5;
-    const MAX_DELAY_FACTOR = 3.0;
-    const DELAY_STEP = 0.2;
+    .game-container { /* General padding adjustment is fine */
+        padding: 1rem;
+    }
+
+    /* Request 1: Make player tiles smaller */
+    .war-game .player-area {
+        padding: 10px;
+    }
+
+    .war-game .player-info {
+        min-height: 80px; /* Reduced min-height */
+        margin-bottom: 10px;
+    }
+
+    /* Request 2: Flip Player 2's (Tony's) layout */
+    .war-game #player-1-area {
+        display: flex;
+        flex-direction: column-reverse; /* This flips the order */
+    }
     
-    // --- Low Card Slowdown Variables (Request 2) ---
-    const LOW_CARD_MULTIPLIER = 2.5; 
-    const LOW_CARD_THRESHOLD = 3; 
-
-    // --- Base Durations (in milliseconds) ---
-    const BASE_TURN_DURATION = 750;
-    const BASE_WAR_PACE_DURATION = 500;
-    const BASE_DRAMATIC_PAUSE_DURATION = 1000;
-    const BASE_RECYCLE_PAUSE_DURATION = 1000;
-    // Increased pause for war decision card (Request 1)
-    const BASE_WAR_DECISION_PAUSE = 2000; 
-
-    // --- Utility Functions ---
-    const sleep = (ms) => new Promise(res => setTimeout(res, ms));
-
-    /**
-     * Calculates the effective delay based on base duration, current delay factor,
-     * and the low card state. (Requests 2 & 3)
-     */
-    const getEffectiveDelay = (baseDuration) => {
-        let factor = currentDelayFactor;
-        
-        const p1Cards = player1Deck.length;
-        const p2Cards = player2Deck.length;
-        
-        // Request 2: Slow down if either player has 3 or fewer cards in their *deck*
-        if (p1Cards <= LOW_CARD_THRESHOLD || p2Cards <= LOW_CARD_THRESHOLD) {
-            factor *= LOW_CARD_MULTIPLIER;
-        }
-
-        return Math.round(baseDuration * factor);
-    };
-
-    // --- Speed Control Helpers (Request 3) ---
-    const updateSpeedDisplay = () => {
-        speedDisplayEl.textContent = `Delay: ${currentDelayFactor.toFixed(1)}x`;
-    };
-
-    const changeDelayFactor = (change) => {
-        let newFactor = currentDelayFactor + change;
-        newFactor = Math.max(MIN_DELAY_FACTOR, Math.min(MAX_DELAY_FACTOR, newFactor));
-        
-        // Round to nearest DELAY_STEP increment for clean display
-        newFactor = Math.round(newFactor / DELAY_STEP) * DELAY_STEP;
-        newFactor = parseFloat(newFactor.toFixed(1)); 
-
-        if (newFactor !== currentDelayFactor) {
-            currentDelayFactor = newFactor;
-            updateSpeedDisplay();
-        }
-    };
-
-    const createDeck = () => {
-        const deck = [];
-        for (const suit of SUITS) {
-            for (const value of VALUES) {
-                deck.push({ suit, value });
-            }
-        }
-        return deck;
-    };
-
-    const shuffleDeck = (deck) => {
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
-        }
-    };
-
-    /**
-     * Creates a card element with value and suit.
-     */
-    const createCardElement = (card, faceUp = true) => {
-        const cardEl = document.createElement('div');
-        cardEl.classList.add('card');
-        if (faceUp) {
-            const displayValue = VALUE_MAP[card.value] || card.value;
-            // Structure for value and suit
-            cardEl.innerHTML = `
-                <span class="card-value">${displayValue}</span>
-                <span class="card-suit">${card.suit}</span>
-            `;
-            cardEl.classList.add(card.suit === '♥' || card.suit === '♦' ? 'red' : 'black');
-            if (card.value === 14 || card.value === 13) {
-                cardEl.classList.add('power-card');
-            }
-        } else {
-            cardEl.classList.add('card-back');
-        }
-        return cardEl;
-    };
-
-    // --- Stat Update Functions ---
-
-    const countPowerCards = (deck, discard) => {
-        const allCards = deck.concat(discard);
-        return allCards.reduce((acc, card) => {
-            if (card.value === 14) acc.aces++;
-            if (card.value === 13) acc.kings++;
-            return acc;
-        }, { aces: 0, kings: 0 });
-    };
-
-    /**
-     * Updates all stat displays in the DOM.
-     */
-    const updateAllStats = () => {
-        // Calculate Percentages
-        const p1Pct = totalHandsPlayed === 0 ? 0 : Math.round((player1HandsWon / totalHandsPlayed) * 100);
-        const p2Pct = totalHandsPlayed === 0 ? 0 : Math.round((player2HandsWon / totalHandsPlayed) * 100);
-
-        // Player 1 (Tony) Stats
-        const p1Stats = countPowerCards(player1Deck, player1Discard);
-        player1AcesEl.innerText = `Aces: ${p1Stats.aces}`;
-        player1KingsEl.innerText = `Kings: ${p1Stats.kings}`;
-        player1WarsEl.innerText = `Wars Won: ${player1WarsWon}`;
-        player1DeckCountEl.innerText = `Cards: ${player1Deck.length + player1Discard.length}`;
-        player1CardsLeftEl.innerText = `Cards Left: ${player1Deck.length}`;
-        player1HandsEl.innerText = `Hands: ${player1HandsWon}`; 
-        player1HandsPctEl.innerText = `Win %: ${p1Pct}%`; 
-
-        // Player 2 (Player 1) Stats
-        const p2Stats = countPowerCards(player2Deck, player2Discard);
-        player2AcesEl.innerText = `Aces: ${p2Stats.aces}`;
-        player2KingsEl.innerText = `Kings: ${p2Stats.kings}`;
-        player2WarsEl.innerText = `Wars Won: ${player2WarsWon}`;
-        player2DeckCountEl.innerText = `Cards: ${player2Deck.length + player2Discard.length}`;
-        player2CardsLeftEl.innerText = `Cards Left: ${player2Deck.length}`;
-        player2HandsEl.innerText = `Hands: ${player2HandsWon}`; 
-        player2HandsPctEl.innerText = `Win %: ${p2Pct}%`; 
-    };
-
-    // --- Game Logic Functions ---
-
-    const initGame = () => {
-        const fullDeck = createDeck();
-        shuffleDeck(fullDeck);
-
-        const mid = Math.floor(fullDeck.length / 2);
-        player1Deck = fullDeck.slice(0, mid);
-        player2Deck = fullDeck.slice(mid);
-        player1Discard = [];
-        player2Discard = [];
-
-        // Reset all stats
-        player1WarsWon = 0;
-        player2WarsWon = 0;
-        player1HandsWon = 0;
-        player2HandsWon = 0;
-        totalHandsPlayed = 0;
-        currentDelayFactor = 1.0; // Reset speed on new game (Request 3)
-
-        gameInProgress = true;
-        turnInProgress = false;
-        if (isAutoPlaying) {
-            toggleAutoPlay();
-        }
-
-        playTurnBtn.disabled = false;
-        autoPlayBtn.disabled = false;
-        gameMessage.innerText = 'Game started! Click Play Turn or Auto Play.';
-
-        clearAllPiles();
-        updateAllStats();
-        updateSpeedDisplay(); // Update display on init (Request 3)
-    };
-
-    const clearAllPiles = () => {
-        player1PlayPileEl.innerHTML = '';
-        player2PlayPileEl.innerHTML = '';
-        player1WarPileEl.innerHTML = '';
-        player2WarPileEl.innerHTML = '';
-    };
-
-    /**
-     * Checks if a deck is empty and shuffles the discard pile into it.
-     * Returns true if a shuffle occurred, false otherwise.
-     */
-    const checkDeck = async (playerDeck, playerDiscardPile) => {
-        if (playerDeck.length === 0 && playerDiscardPile.length > 0) {
-            gameMessage.innerText = 'Shuffling...';
-            shuffleDeck(playerDiscardPile);
-            playerDeck.push(...playerDiscardPile);
-            playerDiscardPile.length = 0; // Clear the discard pile array
-
-            // Used getEffectiveDelay (Request 3, 2)
-            await sleep(getEffectiveDelay(BASE_RECYCLE_PAUSE_DURATION)); 
-            return true; // Deck was recycled
-        }
-        return false; // Deck was not recycled
-    };
-
-
-    const playTurn = async () => {
-        if (!gameInProgress || turnInProgress) return;
-        turnInProgress = true;
-        playTurnBtn.disabled = true; 
-        autoPlayBtn.disabled = true;
-
-        // Clear piles from previous turn/war
-        player1PlayPileEl.innerHTML = '';
-        player2PlayPileEl.innerHTML = '';
-        player1WarPileEl.innerHTML = '';
-        player2WarPileEl.innerHTML = '';
-
-        // Check and shuffle decks if empty
-        const p1Shuffled = await checkDeck(player1Deck, player1Discard);
-        const p2Shuffled = await checkDeck(player2Deck, player2Discard);
-
-        // If either shuffled, update stats immediately to show full 'Cards Left'
-        if (p1Shuffled || p2Shuffled) {
-             updateAllStats();
-        }
-
-        // Check for game over (after potential shuffle)
-        if (player1Deck.length === 0) {
-            endGame('Player 1'); 
-            return;
-        }
-        if (player2Deck.length === 0) {
-            endGame('Tony');
-            return;
-        }
-
-        // Update counts before playing card
-        updateAllStats();
-
-        const player1Card = player1Deck.pop();
-        const player2Card = player2Deck.pop();
-
-        const player1CardEl = createCardElement(player1Card);
-        const player2CardEl = createCardElement(player2Card);
-
-        player1PlayPileEl.appendChild(player1CardEl);
-        player2PlayPileEl.appendChild(player2CardEl);
-
-        const turnPile = [player1Card, player2Card]; 
-        
-        totalHandsPlayed++; 
-
-        // Apply speed control and auto-play modifier (Request 3)
-        const turnDelay = isAutoPlaying 
-            ? getEffectiveDelay(BASE_TURN_DURATION) / 2
-            : getEffectiveDelay(BASE_TURN_DURATION);
-        await sleep(turnDelay);
-
-        if (player1Card.value > player2Card.value) {
-            gameMessage.innerText = 'Tony wins the hand!';
-            player1HandsWon++; 
-            collectPiles(player1Discard, turnPile);
-        } else if (player2Card.value > player1Card.value) {
-            gameMessage.innerText = 'Player 1 wins the hand!'; 
-            player2HandsWon++; 
-            collectPiles(player2Discard, turnPile);
-        } else {
-            gameMessage.innerText = 'WAR!';
-            // Apply speed control (Request 3)
-            await sleep(getEffectiveDelay(BASE_TURN_DURATION));
-            await handleWar(turnPile); 
-        }
-
-        // Update stats after turn/war is fully resolved
-        updateAllStats();
-
-        // Check for game over again after collecting cards
-        if (player1Deck.length === 0 && player1Discard.length === 0) {
-            endGame('Player 1'); 
-        } else if (player2Deck.length === 0 && player2Discard.length === 0) {
-            endGame('Tony');
-        } else {
-            // Re-enable buttons if game not over
-             turnInProgress = false;
-             if (!isAutoPlaying) {
-                 playTurnBtn.disabled = false;
-                 autoPlayBtn.disabled = false;
-             }
-        }
-    };
-
-    const handleWar = async (turnPile) => {
-        gameMessage.innerText = 'WAR!';
-
-        // Check if players *can* play war (need at least 4 cards total)
-        const p1TotalCards = player1Deck.length + player1Discard.length;
-        const p2TotalCards = player2Deck.length + player2Discard.length;
-
-        // If a player has fewer than 4 cards TOTAL, they can't play war and lose immediately
-        if (p1TotalCards < 4) {
-            gameMessage.innerText = 'Tony doesn\'t have enough cards for War! Player 1 wins the game!'; 
-            collectPiles(player2Discard, turnPile);
-            collectPiles(player2Discard, player1Deck);
-            collectPiles(player2Discard, player1Discard);
-            player1Deck = [];
-            player1Discard = [];
-            return; 
-        }
-        if (p2TotalCards < 4) {
-            gameMessage.innerText = 'Player 1 doesn\'t have enough cards for War! Tony wins the game!'; 
-            collectPiles(player1Discard, turnPile);
-            collectPiles(player1Discard, player2Deck);
-            collectPiles(player1Discard, player2Discard);
-            player2Deck = [];
-            player2Discard = [];
-            return; 
-        }
-
-        // Both players have enough cards, proceed with war sequence
-        const player1WarCards = [];
-        const player2WarCards = [];
-
-        // Draw 3 spoil cards + 1 battle card for each player
-        for (let i = 0; i < 4; i++) {
-            await checkDeck(player1Deck, player1Discard);
-            if (player1Deck.length > 0) {
-                player1WarCards.push(player1Deck.pop());
-            } else {
-                gameMessage.innerText = 'Tony ran out of cards during War! Player 1 wins!'; 
-                collectPiles(player2Discard, turnPile);
-                collectPiles(player2Discard, player1WarCards); 
-                collectPiles(player2Discard, player1Discard); 
-                player1Deck = []; player1Discard = [];
-                return;
-            }
-
-            await checkDeck(player2Deck, player2Discard);
-            if (player2Deck.length > 0) {
-                player2WarCards.push(player2Deck.pop());
-            } else {
-                gameMessage.innerText = 'Player 1 ran out of cards during War! Tony wins!'; 
-                collectPiles(player1Discard, turnPile);
-                collectPiles(player1Discard, player2WarCards);
-                collectPiles(player1Discard, player2Discard);
-                player2Deck = [];
-                player2Discard = [];
-                return;
-            }
-        }
-         // If we reach here, both players successfully drew 4 cards
-
-        // Add all 8 war cards to the main turn pile to be collected by winner
-        turnPile.push(...player1WarCards, ...player2WarCards);
-        updateAllStats(); // Update counts after drawing
-
-        // --- Visual Staggered Display (Spoil Cards) ---
-        let dramaticPauseNeeded = false;
-        for (let i = 0; i < 3; i++) { // Loop for 3 spoil cards
-            gameMessage.innerText = `War: Playing spoil card ${i + 1}...`;
-
-            // Player 1 Spoil Card
-            const p1SpoilCard = player1WarCards[i];
-            const p1SpoilEl = createCardElement(p1SpoilCard, true); 
-            p1SpoilEl.style.left = `${i * 20}px`; 
-            player1WarPileEl.appendChild(p1SpoilEl);
-
-            if (p1SpoilCard.value === 14 || p1SpoilCard.value === 13) {
-                 p1SpoilEl.classList.add('highlight-power-card');
-                 dramaticPauseNeeded = true;
-            }
-
-            await sleep(getEffectiveDelay(BASE_WAR_PACE_DURATION));
-
-            // Player 2 Spoil Card
-            const p2SpoilCard = player2WarCards[i];
-            const p2SpoilEl = createCardElement(p2SpoilCard, true); 
-            p2SpoilEl.style.left = `${i * 20}px`; 
-            player2WarPileEl.appendChild(p2SpoilEl);
-
-            if (p2SpoilCard.value === 14 || p2SpoilCard.value === 13) {
-                 p2SpoilEl.classList.add('highlight-power-card');
-                 dramaticPauseNeeded = true;
-            }
-
-            if (dramaticPauseNeeded) {
-                 await sleep(getEffectiveDelay(BASE_DRAMATIC_PAUSE_DURATION));
-                 p1SpoilEl.classList.remove('highlight-power-card');
-                 p2SpoilEl.classList.remove('highlight-power-card');
-                 dramaticPauseNeeded = false; 
-            } else {
-                 await sleep(getEffectiveDelay(BASE_WAR_PACE_DURATION)); 
-            }
-        }
-
-        // --- Play the 4th (Battle) Card ---
-        gameMessage.innerText = 'War: Playing BATTLE cards!';
-        const player1BattleCard = player1WarCards[3];
-        const player2BattleCard = player2WarCards[3];
-
-        const p1BattleEl = createCardElement(player1BattleCard, true);
-        p1BattleEl.style.left = `${3 * 20}px`; 
-        player1WarPileEl.appendChild(p1BattleEl);
-
-        const p2BattleEl = createCardElement(player2BattleCard, true);
-        p2BattleEl.style.left = `${3 * 20}px`; 
-        player2WarPileEl.appendChild(p2BattleEl);
-
-        let winnerEl, loserEl;
-        
-        // --- Highlighting Logic (New Request) ---
-        if (player1BattleCard.value > player2BattleCard.value) {
-            winnerEl = p1BattleEl;
-            loserEl = p2BattleEl;
-        } else if (player2BattleCard.value > player1BattleCard.value) {
-            winnerEl = p2BattleEl;
-            loserEl = p1BattleEl;
-        }
-
-        if (winnerEl && loserEl) {
-             winnerEl.classList.add('highlight-win');
-             loserEl.classList.add('highlight-lose');
-        }
-
-        // Longer pause for the decision card (Request 1)
-        const battleCardDelay = isAutoPlaying 
-            ? getEffectiveDelay(BASE_WAR_DECISION_PAUSE) / 2 // Halved for auto-play
-            : getEffectiveDelay(BASE_WAR_DECISION_PAUSE);
-        await sleep(battleCardDelay);
-        
-        // --- Resolve War ---
-        if (player1BattleCard.value > player2BattleCard.value) {
-            gameMessage.innerText = 'Tony wins the WAR!';
-            player1WarsWon++;
-            player1HandsWon++; 
-            collectPiles(player1Discard, turnPile); 
-        } else if (player2BattleCard.value > player1BattleCard.value) {
-            gameMessage.innerText = 'Player 1 wins the WAR!'; 
-            player2WarsWon++;
-            player2HandsWon++; 
-            collectPiles(player2Discard, turnPile); 
-        } else {
-            gameMessage.innerText = 'WAR... AGAIN!';
-             // Clear only the war piles visually before the next round of war
-             player1WarPileEl.innerHTML = '';
-             player2WarPileEl.innerHTML = '';
-             
-             // Remove highlights before recursive call
-             if (winnerEl && loserEl) {
-                 winnerEl.classList.remove('highlight-win');
-                 loserEl.classList.remove('highlight-lose');
-             }
-             
-            await sleep(getEffectiveDelay(BASE_TURN_DURATION));
-            await handleWar(turnPile); 
-            return; // Stop execution here if war is recursive
-        }
-        
-        // Remove highlights after final resolution
-        if (winnerEl && loserEl) {
-             winnerEl.classList.remove('highlight-win');
-             loserEl.classList.remove('highlight-lose');
-        }
-    };
-
-    /**
-     * Adds all cards from the pile array to the winner's discard array.
-     */
-    const collectPiles = (winnerDiscard, pile) => {
-        winnerDiscard.push(...pile);
-    };
-
-    const endGame = (winner) => {
-        gameInProgress = false;
-        turnInProgress = false;
-        if (isAutoPlaying) {
-            toggleAutoPlay(); // Stop auto-play
-        }
-        playTurnBtn.disabled = true;
-        autoPlayBtn.disabled = true;
-        gameMessage.innerText = `${winner} wins the game! Click Start Game to play again.`;
-    };
-
-    const toggleAutoPlay = () => {
-        isAutoPlaying = !isAutoPlaying;
-        if (isAutoPlaying) {
-            autoPlayBtn.innerText = 'Pause Auto';
-            autoPlayBtn.classList.add('playing');
-            playTurnBtn.disabled = true; // Disable manual play
-
-            const autoPlayLoop = async () => {
-                if (isAutoPlaying && gameInProgress && !turnInProgress) { 
-                    await playTurn();
-                    if(isAutoPlaying) { 
-                        // Small fixed delay between turns when auto-playing
-                        autoPlayInterval = setTimeout(autoPlayLoop, 100); 
-                    }
-                } else if (!isAutoPlaying) {
-                    playTurnBtn.disabled = !gameInProgress;
-                    autoPlayBtn.disabled = !gameInProgress;
-                }
-            };
-            autoPlayLoop();
-
-        } else {
-            autoPlayBtn.innerText = 'Auto Play';
-            autoPlayBtn.classList.remove('playing');
-            if (autoPlayInterval) {
-                clearTimeout(autoPlayInterval);
-                autoPlayInterval = null;
-            }
-             playTurnBtn.disabled = !gameInProgress;
-             autoPlayBtn.disabled = !gameInProgress;
-             turnInProgress = false; 
-        }
-    };
-
-    // --- Event Listeners ---
-    startGameBtn.addEventListener('click', initGame);
-    playTurnBtn.addEventListener('click', () => {
-        if (!turnInProgress) playTurn(); 
-    });
-    autoPlayBtn.addEventListener('click', toggleAutoPlay);
+    .war-game #player-1-area .player-info {
+        margin-bottom: 0; /* Remove bottom margin */
+        margin-top: 10px;   /* Add top margin to space it from cards */
+    }
+
+    /* --- Make cards 50% smaller --- */
+    .war-game .card,
+    .war-game .card-pile {
+        width: 50px;
+        height: 70px;
+        /* Adjust border radius for smaller size if needed */
+        border-radius: 4px;
+    }
+
+    .war-game .war-pile {
+        width: 90px; /* 180px * 0.5 */
+        height: 70px;
+    }
     
-    // --- Speed Control Event Listeners (Request 3) ---
-    speedUpBtn.addEventListener('click', () => {
-        changeDelayFactor(-DELAY_STEP); // Faster
-    });
-    
-    speedDownBtn.addEventListener('click', () => {
-        changeDelayFactor(DELAY_STEP); // Slower
-    });
+    /* Adjust staggering for smaller war cards */
+    .war-game .war-pile .card {
+        width: 50px; /* Match smaller card size */
+        height: 70px; /* Match smaller card size */
+    }
+    .war-game .war-pile .card:nth-child(1) { left: 0px; }
+    .war-game .war-pile .card:nth-child(2) { left: 10px; } /* Adjust staggering */
+    .war-game .war-pile .card:nth-child(3) { left: 20px; } /* Adjust staggering */
+    .war-game .war-pile .card:nth-child(4) { left: 30px; } /* Adjust staggering */
 
-    // Initial setup on load
-    initGame(); 
-    playTurnBtn.disabled = true; 
-    autoPlayBtn.disabled = true;
-    gameMessage.innerText = 'Welcome to War! Click Start Game to begin.';
-});
+
+    .war-game .deck-pile {
+        min-height: 70px;
+    }
+
+    .war-game .play-pile-area {
+        min-height: 75px;
+    }
+
+    .war-game .card .card-value {
+        font-size: 1.25rem; /* 2.5rem * 0.5 */
+    }
+
+    .war-game .card .card-suit {
+        font-size: 0.9rem; /* 1.8rem * 0.5 */
+    }
+    
+    /* Adjust card back design for smaller size */
+    .war-game .card-back::after {
+        border-width: 2px;
+        border-radius: 4px;
+    }
+}
+
+/* --- NEW MODAL STYLES (for war_lobby.html) --- */
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    color: #333; /* Darker text for readability */
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 30px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    text-align: center; /* Center content inside */
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #007bff;
+}
+
+.modal-content p {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.modal-content pre {
+    background-color: #eee;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: left;
+    white-space: pre-wrap; /* Wrap long lines */
+    word-wrap: break-word; /* Break long words */
+    margin-bottom: 1.5rem;
+}
+
+.modal-content .btn-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+/* Modal buttons will use these styles */
+.modal-content .btn {
+     display: inline-block;
+    background: #007bff;
+    color: #ffffff;
+    padding: 10px 18px; 
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 0 5px;
+}
+.modal-content .btn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+ .modal-content .btn-secondary {
+    background-color: #6c757d;
+ }
+ .modal-content .btn-secondary:hover {
+    background-color: #5a6268;
+ }
+/* --- Additions for War 2-Player --- */
+
+/* Make secondary buttons (like speed) less prominent */
+.game-container .btn-secondary {
+    background-color: #6c757d;
+}
+.game-container .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Container for war pile cards */
+#war-pile-container {
+    width: 180px; /* Widen to show staggered cards */
+    height: 140px;
+    position: relative;
+    margin-top: 0;
+}
+
+/* Style for cards inside the war pile container */
+#war-pile-container .card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Copy of card styles from .war-game .card */
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    background-color: #fff;
+    border: 1px solid #aaa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+    padding: 5px 0;
+    box-sizing: border-box;
+}
+
+/* Ensure mobile styles also apply to new war pile container */
+@media (max-width: 767px) {
+    #war-pile-container {
+        width: 90px; /* 180px * 0.5 */
+        height: 70px;
+    }
+    
+    #war-pile-container .card {
+        width: 50px; /* Match smaller card size */
+        height: 70px; /* Match smaller card size */
+        border-radius: 4px;
+    }
+}
+
+/* Green highlight for winning decision card */
+.highlight-win {
+    box-shadow: 0 0 15px 5px #4CAF50, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Green Glow */
+    transform: scale(1.05);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Red highlight for losing decision card */
+.highlight-lose {
+    box-shadow: 0 0 15px 5px #F44336, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Red Glow */
+    transform: scale(0.95);
+    transition: all 0.2s ease-in-out;
+    opacity: 0.8;
+}
+
+/* Ensure power card highlight is defined for spoil cards */
+.highlight-power-card {
+    box-shadow: 0 0 15px 5px #007bff, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Blue Glow */
+    transform: scale(1.05);
+    transition: all 0.2s ease-in-out;
+}
