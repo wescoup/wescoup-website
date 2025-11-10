@@ -455,6 +455,22 @@ document.addEventListener('DOMContentLoaded', () => {
         p2BattleEl.style.left = `${3 * 20}px`; 
         player2WarPileEl.appendChild(p2BattleEl);
 
+        let winnerEl, loserEl;
+        
+        // --- Highlighting Logic (THIS IS THE CODE BLOCK) ---
+        if (player1BattleCard.value > player2BattleCard.value) {
+            winnerEl = p1BattleEl;
+            loserEl = p2BattleEl;
+        } else if (player2BattleCard.value > player1BattleCard.value) {
+            winnerEl = p2BattleEl;
+            loserEl = p1BattleEl;
+        }
+
+        if (winnerEl && loserEl) {
+             winnerEl.classList.add('highlight-win');  // <-- Winning card class added
+             loserEl.classList.add('highlight-lose');  // <-- Losing card class added
+        }
+
         // Longer pause for the decision card (Request 1)
         const battleCardDelay = isAutoPlaying 
             ? getEffectiveDelay(BASE_WAR_DECISION_PAUSE) / 2 // Halved for auto-play
