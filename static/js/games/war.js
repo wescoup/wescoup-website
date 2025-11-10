@@ -8,27 +8,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const player1DeckCountEl = document.getElementById('player-1-deck-count');
     const player1PlayPileEl = document.getElementById('player-1-play-pile');
     const player1WarPileEl = document.getElementById('player-war-pile');
-    // Removed player1DiscardPileEl
 
     const player2DeckCountEl = document.getElementById('player-2-deck-count');
     const player2PlayPileEl = document.getElementById('player-2-play-pile');
     const player2WarPileEl = document.getElementById('opponent-war-pile');
-    // Removed player2DiscardPileEl
 
     // New Stat DOM Elements
     const player1AcesEl = document.getElementById('player-1-aces');
     const player1KingsEl = document.getElementById('player-1-kings');
     const player1WarsEl = document.getElementById('player-1-wars');
     const player1CardsLeftEl = document.getElementById('player-1-cards-left');
-    const player1HandsEl = document.getElementById('player-1-hands'); // New
-    const player1HandsPctEl = document.getElementById('player-1-hands-pct'); // New
+    const player1HandsEl = document.getElementById('player-1-hands'); 
+    const player1HandsPctEl = document.getElementById('player-1-hands-pct'); 
 
     const player2AcesEl = document.getElementById('player-2-aces');
     const player2KingsEl = document.getElementById('player-2-kings');
     const player2WarsEl = document.getElementById('player-2-wars');
     const player2CardsLeftEl = document.getElementById('player-2-cards-left');
-    const player2HandsEl = document.getElementById('player-2-hands'); // New
-    const player2HandsPctEl = document.getElementById('player-2-hands-pct'); // New
+    const player2HandsEl = document.getElementById('player-2-hands'); 
+    const player2HandsPctEl = document.getElementById('player-2-hands-pct'); 
+
+    // --- Added for Speed Control (Request 3) ---
+    const speedUpBtn = document.getElementById('speed-up-btn');
+    const speedDownBtn = document.getElementById('speed-down-btn');
+    const speedDisplayEl = document.getElementById('speed-display');
 
     // --- Game State Variables ---
     const SUITS = ['♥', '♦', '♠', '♣'];
@@ -42,19 +45,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let player1WarsWon = 0;
     let player2WarsWon = 0;
-    let player1HandsWon = 0; // New
-    let player2HandsWon = 0; // New
-    let totalHandsPlayed = 0; // New
+    let player1HandsWon = 0; 
+    let player2HandsWon = 0; 
+    let totalHandsPlayed = 0; 
 
     let isAutoPlaying = false;
     let autoPlayInterval = null;
-    const TURN_DURATION = 750;
-    const WAR_PACE_DURATION = 500;
-    const DRAMATIC_PAUSE_DURATION = 1000;
-    const RECYCLE_PAUSE_DURATION = 1000;
+    
+    // --- Speed Control Variables (Request 3) ---
+    let currentDelayFactor = 1.0; 
+    const MIN_DELAY_FACTOR = 0.5;
+    const MAX_DELAY_FACTOR = 3.0;
+    const DELAY_STEP = 0.2;
+    
+    // --- Low Card Slowdown Variables (Request 2) ---
+    const LOW_CARD_MULTIPLIER = 2.5; 
+    const LOW_CARD_THRESHOLD = 3; 
+
+    // --- Base Durations (in milliseconds) - All delays will use these bases ---
+    const BASE_TURN_DURATION = 750;
+    const BASE_WAR_PACE_DURATION = 500;
+    const BASE_DRAMATIC_PAUSE_DURATION = 1000;
+    const BASE_RECYCLE_PAUSE_DURATION = 1000;
+    const BASE_WAR_DECISION_PAUSE = 1500; // Longer pause for war battle card (Request 1)
 
     // --- Utility Functions ---
     const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+    /**
+     * Calculates the effective delay based on base duration, current delay factor,
+     * and the low card state. (Requests 2 & 3)
+     */
+    const getEffectiveDelay = (baseDuration) => {
+        let factor = currentDelayFactor;
+        
+        const p1Cards = player1Deck.length;
+        const p2Cards = player2Deck.length;
+        
+        // Request 2: Slow down if either player has 3 or fewer cards in their *deck*
+        if (p1Cards <= LOW_CARD_THRESHOLD || p2Cards <= LOW_CARD_THRESHOLD) {
+            factor *= LOW_CARD_MULTIPLIER;
+        }
+
+        return Math.round(baseDuration * factor);
+    };
+
+    // --- Speed Control Helpers (Request 3) ---
+    const updateSpeedDisplay = () => {
+        speedDisplayEl.textContent = `Delay: ${currentDelayFactor.toFixed(1)}x`;
+    };
+
+    const changeDelayFactor = (change) => {
+        let newFactor = currentDelayFactor + change;
+        newFactor = Math.max(MIN_DELAY_FACTOR, Math.min(MAX_DELAY_FACTOR, newFactor));
+        
+        // Round to nearest DELAY_STEP increment for clean display
+        newFactor = Math.round(newFactor / DELAY_STEP) * DELAY_STEP;
+        newFactor = parseFloat(newFactor.toFixed(1)); 
+
+        if (newFactor !== currentDelayFactor) {
+            currentDelayFactor = newFactor;
+            updateSpeedDisplay();
+        }
+    };
 
     const createDeck = () => {
         const deck = [];
@@ -122,8 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
         player1WarsEl.innerText = `Wars Won: ${player1WarsWon}`;
         player1DeckCountEl.innerText = `Cards: ${player1Deck.length + player1Discard.length}`;
         player1CardsLeftEl.innerText = `Cards Left: ${player1Deck.length}`;
-        player1HandsEl.innerText = `Hands: ${player1HandsWon}`; // New
-        player1HandsPctEl.innerText = `Win %: ${p1Pct}%`; // New
+        player1HandsEl.innerText = `Hands: ${player1HandsWon}`; 
+        player1HandsPctEl.innerText = `Win %: ${p1Pct}%`; 
 
         // Player 2 (Player 1) Stats
         const p2Stats = countPowerCards(player2Deck, player2Discard);
@@ -132,8 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
         player2WarsEl.innerText = `Wars Won: ${player2WarsWon}`;
         player2DeckCountEl.innerText = `Cards: ${player2Deck.length + player2Discard.length}`;
         player2CardsLeftEl.innerText = `Cards Left: ${player2Deck.length}`;
-        player2HandsEl.innerText = `Hands: ${player2HandsWon}`; // New
-        player2HandsPctEl.innerText = `Win %: ${p2Pct}%`; // New
+        player2HandsEl.innerText = `Hands: ${player2HandsWon}`; 
+        player2HandsPctEl.innerText = `Win %: ${p2Pct}%`; 
     };
 
     // --- Game Logic Functions ---
@@ -154,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         player1HandsWon = 0;
         player2HandsWon = 0;
         totalHandsPlayed = 0;
+        currentDelayFactor = 1.0; // Reset speed on new game (Request 3)
 
         gameInProgress = true;
         turnInProgress = false;
@@ -167,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clearAllPiles();
         updateAllStats();
+        updateSpeedDisplay(); // Update display on init (Request 3)
     };
 
     const clearAllPiles = () => {
@@ -174,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
         player2PlayPileEl.innerHTML = '';
         player1WarPileEl.innerHTML = '';
         player2WarPileEl.innerHTML = '';
-        // No discard piles to clear visually
     };
 
     /**
@@ -188,7 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
             playerDeck.push(...playerDiscardPile);
             playerDiscardPile.length = 0; // Clear the discard pile array
 
-            await sleep(RECYCLE_PAUSE_DURATION); // Pause for shuffle effect
+            // Used getEffectiveDelay (Request 3, 2)
+            await sleep(getEffectiveDelay(BASE_RECYCLE_PAUSE_DURATION)); 
             return true; // Deck was recycled
         }
         return false; // Deck was not recycled
@@ -198,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playTurn = async () => {
         if (!gameInProgress || turnInProgress) return;
         turnInProgress = true;
-        playTurnBtn.disabled = true; // Disable during turn
+        playTurnBtn.disabled = true; 
         autoPlayBtn.disabled = true;
 
         // Clear piles from previous turn/war
@@ -218,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Check for game over (after potential shuffle)
         if (player1Deck.length === 0) {
-            endGame('Player 1'); // Updated name
+            endGame('Player 1'); 
             return;
         }
         if (player2Deck.length === 0) {
@@ -238,35 +293,37 @@ document.addEventListener('DOMContentLoaded', () => {
         player1PlayPileEl.appendChild(player1CardEl);
         player2PlayPileEl.appendChild(player2CardEl);
 
-        const turnPile = [player1Card, player2Card]; // Cards involved in this specific turn/battle
+        const turnPile = [player1Card, player2Card]; 
         
-        totalHandsPlayed++; // A hand is played (whether simple win or war)
+        totalHandsPlayed++; 
 
-        // Pause shorter if auto-playing
-        await sleep(isAutoPlaying ? TURN_DURATION / 2 : TURN_DURATION);
+        // Apply speed control and auto-play modifier (Request 3)
+        const turnDelay = isAutoPlaying 
+            ? getEffectiveDelay(BASE_TURN_DURATION) / 2
+            : getEffectiveDelay(BASE_TURN_DURATION);
+        await sleep(turnDelay);
 
         if (player1Card.value > player2Card.value) {
             gameMessage.innerText = 'Tony wins the hand!';
-            player1HandsWon++; // Increment simple hand win
+            player1HandsWon++; 
             collectPiles(player1Discard, turnPile);
         } else if (player2Card.value > player1Card.value) {
-            gameMessage.innerText = 'Player 1 wins the hand!'; // Updated name
-            player2HandsWon++; // Increment simple hand win
+            gameMessage.innerText = 'Player 1 wins the hand!'; 
+            player2HandsWon++; 
             collectPiles(player2Discard, turnPile);
         } else {
             gameMessage.innerText = 'WAR!';
-            // Pause longer before war starts
-            await sleep(TURN_DURATION);
-            await handleWar(turnPile); // turnPile accumulates all war cards
+            // Apply speed control (Request 3)
+            await sleep(getEffectiveDelay(BASE_TURN_DURATION));
+            await handleWar(turnPile); 
         }
 
         // Update stats after turn/war is fully resolved
         updateAllStats();
 
         // Check for game over again after collecting cards
-        // Check includes discard pile - game ends only when a player has ZERO cards total
         if (player1Deck.length === 0 && player1Discard.length === 0) {
-            endGame('Player 1'); // Updated name
+            endGame('Player 1'); 
         } else if (player2Deck.length === 0 && player2Discard.length === 0) {
             endGame('Tony');
         } else {
@@ -288,24 +345,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // If a player has fewer than 4 cards TOTAL, they can't play war and lose immediately
         if (p1TotalCards < 4) {
-            gameMessage.innerText = 'Tony doesn\'t have enough cards for War! Player 1 wins the game!'; // Updated name
-            // Give all remaining cards to opponent
+            gameMessage.innerText = 'Tony doesn\'t have enough cards for War! Player 1 wins the game!'; 
             collectPiles(player2Discard, turnPile);
             collectPiles(player2Discard, player1Deck);
             collectPiles(player2Discard, player1Discard);
             player1Deck = [];
             player1Discard = [];
-            return; // War ends, let playTurn finish
+            return; 
         }
         if (p2TotalCards < 4) {
-            gameMessage.innerText = 'Player 1 doesn\'t have enough cards for War! Tony wins the game!'; // Updated name
-            // Give all remaining cards to Tony
+            gameMessage.innerText = 'Player 1 doesn\'t have enough cards for War! Tony wins the game!'; 
             collectPiles(player1Discard, turnPile);
             collectPiles(player1Discard, player2Deck);
             collectPiles(player1Discard, player2Discard);
             player2Deck = [];
             player2Discard = [];
-            return; // War ends, let playTurn finish
+            return; 
         }
 
         // Both players have enough cards, proceed with war sequence
@@ -318,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (player1Deck.length > 0) {
                 player1WarCards.push(player1Deck.pop());
             } else {
-                gameMessage.innerText = 'Tony ran out of cards during War! Player 1 wins!'; // Updated name
+                gameMessage.innerText = 'Tony ran out of cards during War! Player 1 wins!'; 
                 collectPiles(player2Discard, turnPile);
                 collectPiles(player2Discard, player1WarCards); 
                 collectPiles(player2Discard, player1Discard); 
@@ -330,11 +385,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (player2Deck.length > 0) {
                 player2WarCards.push(player2Deck.pop());
             } else {
-                gameMessage.innerText = 'Player 1 ran out of cards during War! Tony wins!'; // Updated name
+                gameMessage.innerText = 'Player 1 ran out of cards during War! Tony wins!'; 
                 collectPiles(player1Discard, turnPile);
                 collectPiles(player1Discard, player2WarCards);
                 collectPiles(player1Discard, player2Discard);
-                player2Deck = []; player2Discard = [];
+                player2Deck = [];
+                player2Discard = [];
                 return;
             }
         }
@@ -351,8 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Player 1 Spoil Card
             const p1SpoilCard = player1WarCards[i];
-            const p1SpoilEl = createCardElement(p1SpoilCard, true); // FACE UP
-            p1SpoilEl.style.left = `${i * 20}px`; // Stagger
+            const p1SpoilEl = createCardElement(p1SpoilCard, true); 
+            p1SpoilEl.style.left = `${i * 20}px`; 
             player1WarPileEl.appendChild(p1SpoilEl);
 
             if (p1SpoilCard.value === 14 || p1SpoilCard.value === 13) {
@@ -360,12 +416,13 @@ document.addEventListener('DOMContentLoaded', () => {
                  dramaticPauseNeeded = true;
             }
 
-            await sleep(WAR_PACE_DURATION);
+            // Used getEffectiveDelay (Request 3, 2)
+            await sleep(getEffectiveDelay(BASE_WAR_PACE_DURATION));
 
             // Player 2 Spoil Card
             const p2SpoilCard = player2WarCards[i];
-            const p2SpoilEl = createCardElement(p2SpoilCard, true); // FACE UP
-            p2SpoilEl.style.left = `${i * 20}px`; // Stagger
+            const p2SpoilEl = createCardElement(p2SpoilCard, true); 
+            p2SpoilEl.style.left = `${i * 20}px`; 
             player2WarPileEl.appendChild(p2SpoilEl);
 
             if (p2SpoilCard.value === 14 || p2SpoilCard.value === 13) {
@@ -374,12 +431,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (dramaticPauseNeeded) {
-                 await sleep(DRAMATIC_PAUSE_DURATION);
+                 // Used getEffectiveDelay (Request 3, 2)
+                 await sleep(getEffectiveDelay(BASE_DRAMATIC_PAUSE_DURATION));
                  p1SpoilEl.classList.remove('highlight-power-card');
                  p2SpoilEl.classList.remove('highlight-power-card');
                  dramaticPauseNeeded = false; 
             } else {
-                 await sleep(WAR_PACE_DURATION); 
+                 // Used getEffectiveDelay (Request 3, 2)
+                 await sleep(getEffectiveDelay(BASE_WAR_PACE_DURATION)); 
             }
         }
 
@@ -389,33 +448,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const player2BattleCard = player2WarCards[3];
 
         const p1BattleEl = createCardElement(player1BattleCard, true);
-        p1BattleEl.style.left = `${3 * 20}px`; // Stagger
+        p1BattleEl.style.left = `${3 * 20}px`; 
         player1WarPileEl.appendChild(p1BattleEl);
 
         const p2BattleEl = createCardElement(player2BattleCard, true);
-        p2BattleEl.style.left = `${3 * 20}px`; // Stagger
+        p2BattleEl.style.left = `${3 * 20}px`; 
         player2WarPileEl.appendChild(p2BattleEl);
 
-        await sleep(isAutoPlaying ? TURN_DURATION / 2 : TURN_DURATION); // Pause to see battle cards
+        // Longer pause for the decision card (Request 1)
+        const battleCardDelay = isAutoPlaying 
+            ? getEffectiveDelay(BASE_WAR_DECISION_PAUSE) / 2 // Halved for auto-play
+            : getEffectiveDelay(BASE_WAR_DECISION_PAUSE);
+        await sleep(battleCardDelay);
 
         // --- Resolve War ---
         if (player1BattleCard.value > player2BattleCard.value) {
             gameMessage.innerText = 'Tony wins the WAR!';
             player1WarsWon++;
-            player1HandsWon++; // <<< FIX IS HERE
-            collectPiles(player1Discard, turnPile); // Winner gets ALL cards from turnPile
+            player1HandsWon++; 
+            collectPiles(player1Discard, turnPile); 
         } else if (player2BattleCard.value > player1BattleCard.value) {
-            gameMessage.innerText = 'Player 1 wins the WAR!'; // Updated name
+            gameMessage.innerText = 'Player 1 wins the WAR!'; 
             player2WarsWon++;
-            player2HandsWon++; // <<< FIX IS HERE
-            collectPiles(player2Discard, turnPile); // Winner gets ALL cards from turnPile
+            player2HandsWon++; 
+            collectPiles(player2Discard, turnPile); 
         } else {
             gameMessage.innerText = 'WAR... AGAIN!';
              // Clear only the war piles visually before the next round of war
              player1WarPileEl.innerHTML = '';
              player2WarPileEl.innerHTML = '';
-            await sleep(TURN_DURATION);
-            await handleWar(turnPile); // Recursive call - turnPile carries over
+            // Used getEffectiveDelay (Request 3, 2)
+            await sleep(getEffectiveDelay(BASE_TURN_DURATION));
+            await handleWar(turnPile); 
         }
     };
 
@@ -448,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isAutoPlaying && gameInProgress && !turnInProgress) { 
                     await playTurn();
                     if(isAutoPlaying) { 
+                        // Small fixed delay between turns when auto-playing
                         autoPlayInterval = setTimeout(autoPlayLoop, 100); 
                     }
                 } else if (!isAutoPlaying) {
@@ -476,6 +541,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!turnInProgress) playTurn(); 
     });
     autoPlayBtn.addEventListener('click', toggleAutoPlay);
+    
+    // --- Speed Control Event Listeners (Request 3) ---
+    speedUpBtn.addEventListener('click', () => {
+        changeDelayFactor(-DELAY_STEP); // Faster
+    });
+    
+    speedDownBtn.addEventListener('click', () => {
+        changeDelayFactor(DELAY_STEP); // Slower
+    });
 
     // Initial setup on load
     initGame(); 
