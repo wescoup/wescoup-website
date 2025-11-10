@@ -316,6 +316,21 @@ body, html {
     z-index: 100; /* Bring to front */
 }
 
+/* Green highlight for winning decision card */
+.war-game .card.highlight-win {
+    box-shadow: 0 0 15px 5px #4CAF50, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Green Glow */
+    transform: scale(1.05);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Red highlight for losing decision card */
+.war-game .card.highlight-lose {
+    box-shadow: 0 0 15px 5px #F44336, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Red Glow */
+    transform: scale(0.95);
+    transition: all 0.2s ease-in-out;
+    opacity: 0.8;
+}
+
 /* --- Auto Play Button Style --- */
 /* Added specificity .game-container */
 .game-container #auto-play.playing {
@@ -539,26 +554,4 @@ body, html {
         height: 70px; /* Match smaller card size */
         border-radius: 4px;
     }
-}
-
-/* Green highlight for winning decision card */
-.highlight-win {
-    box-shadow: 0 0 15px 5px #4CAF50, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Green Glow */
-    transform: scale(1.05);
-    transition: all 0.2s ease-in-out;
-}
-
-/* Red highlight for losing decision card */
-.highlight-lose {
-    box-shadow: 0 0 15px 5px #F44336, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Red Glow */
-    transform: scale(0.95);
-    transition: all 0.2s ease-in-out;
-    opacity: 0.8;
-}
-
-/* Ensure power card highlight is defined for spoil cards */
-.highlight-power-card {
-    box-shadow: 0 0 15px 5px #007bff, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Blue Glow */
-    transform: scale(1.05);
-    transition: all 0.2s ease-in-out;
 }
