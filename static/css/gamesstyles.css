@@ -328,7 +328,6 @@ body, html {
     box-shadow: 0 0 15px 5px #F44336, 0 0 10px 3px rgba(0, 0, 0, 0.5); /* Red Glow */
     transform: scale(0.95);
     transition: all 0.2s ease-in-out;
-    opacity: 0.8;
 }
 
 /* --- Auto Play Button Style --- */
