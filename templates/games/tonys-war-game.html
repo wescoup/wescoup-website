@@ -15,15 +15,18 @@
             <button id="play-turn" class="btn" disabled>Play Turn</button>
             <button id="auto-play" class="btn" disabled>Auto Play</button>
         </div>
-    </header>
+        <div class="game-speed-controls" style="text-align: center; margin-top: 10px;">
+            <button id="speed-down-btn" class="btn btn-secondary" title="Slower (Increase Delay)">🐢 Slower</button>
+            <span id="speed-display" style="font-weight: bold; margin: 0 15px;">Delay: 1.0x</span>
+            <button id="speed-up-btn" class="btn btn-secondary" title="Faster (Decrease Delay)">🐇 Faster</button>
+        </div>
+        </header>
 
     <div id="game-message" class="game-message">Welcome to War! Click Start Game to begin.</div>
 
     <div class="game-board">
-        <!-- Player 1 (Opponent) Area - Renamed -->
         <div class="player-area" id="player-2-area">
             <div class="player-info">
-                <!-- Changed Opponent to Player 1 -->
                 <h2>Player 1</h2>
                 <div class="card-count" id="player-2-deck-count">Cards: 26</div>
                 <div class="cards-left-stat" id="player-2-cards-left">Cards Left: 26</div>
@@ -31,7 +34,6 @@
                     <div id="player-2-aces" class="stat-item">Aces: 0</div>
                     <div id="player-2-kings" class="stat-item">Kings: 0</div>
                     <div id="player-2-wars" class="stat-item">Wars Won: 0</div>
-                    <!-- New Stats -->
                     <div id="player-2-hands" class="stat-item">Hands Won: 0</div>
                     <div id="player-2-hands-pct" class="stat-item">Win %: 0%</div>
                 </div>
@@ -45,7 +47,6 @@
             </div>
         </div>
 
-        <!-- Player 2 (User) Area -->
         <div class="player-area" id="player-1-area">
             <div class="player-info">
                 <h2>Tony</h2>
@@ -55,7 +56,6 @@
                     <div id="player-1-aces" class="stat-item">Aces: 0</div>
                     <div id="player-1-kings" class="stat-item">Kings: 0</div>
                     <div id="player-1-wars" class="stat-item">Wars Won: 0</div>
-                    <!-- New Stats -->
                     <div id="player-1-hands" class="stat-item">Hands Won: 0</div>
                     <div id="player-1-hands-pct" class="stat-item">Win %: 0%</div>
                 </div>
