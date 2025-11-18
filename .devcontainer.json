@@ -1,11 +1,6 @@
 {
-{
   "name": "Python Codespace",
   "image": "mcr.microsoft.com/devcontainers/python:3.10", 
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
   "customizations": {
     "vscode": {
       "settings": {
@@ -25,9 +20,9 @@
   },
   "remoteUser": "vscode",
   "postCreateCommand": "pip install -r requirements.txt",
-  "workspaceFolder": "/workspaces/website-code",
+  "workspaceFolder": "/workspaces/wescoup-website", 
   "containerEnv": {
     "PYTHON_VERSION": "3.10.14"
   }
-
 }
+
