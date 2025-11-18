@@ -1,5 +1,7 @@
 {
-  "name": "Python 3",
+{
+  "name": "Python Codespace",
+  "image": "mcr.microsoft.com/devcontainers/python:3.10", 
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
@@ -27,4 +29,5 @@
   "containerEnv": {
     "PYTHON_VERSION": "3.10.14"
   }
+
 }
