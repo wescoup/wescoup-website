@@ -1,7 +1,6 @@
 {
-  "name": "Python Codespace",
+  "name": "Minimal Test Container",
   "image": "mcr.microsoft.com/devcontainers/python:3.10",
-  "postCreateCommand": "python --version",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -11,6 +10,8 @@
     }
   }
 }
+
+
 
 
 
