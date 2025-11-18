@@ -1,0 +1,30 @@
+{
+  "name": "Python 3",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.analysis.autoSearchPaths": true,
+        "python.analysis.extraPaths": [
+          "./src"
+        ]
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "pip install -r requirements.txt",
+  "workspaceFolder": "/workspaces/website-code",
+  "containerEnv": {
+    "PYTHON_VERSION": "3.10.14"
+  }
+}
