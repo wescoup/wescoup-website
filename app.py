@@ -41,14 +41,42 @@ except Exception as e:
 def index():
     return render_template('index.html')
 
+# --- Tennis & Pickleblall Routes ---
 @app.route('/tonys-tennis-tools')
 def tonys_tennis_tools():
     return render_template('tennis/tonys-tennis-tools.html')
 
-# Add other standard tool routes if they exist...
+@app.route('/tonys-tracker-instructions')
+def tonys_tracker_instructions():
+    return render_template('tennis/tonys-tracker-instructions.html')
+
+@app.route('/tonys-tennis-tracker')
+def tonys_tennis_tracker():
+    return render_template('tennis/tonys-tennis-tracker.html')
+
+@app.route('/tonys-doubles-tracker')
+def tonys_doubles_tracker():
+    return render_template('tennis/tonys-doubles-tracker.html')
+
 @app.route('/tonys-pickleball-tools')
 def tonys_pickleball_tools():
     return render_template('pickleball/tonys-pickleball-tools.html')
+
+@app.route('/tonys-strategy-calculator-instructions')
+def tonys_strategy_calculator_instructions():
+    return render_template('tennis/tonys-strategy-calculator-instructions.html')
+
+@app.route('/tonys-strategy-calculator-2x2')
+def tonys_strategy_calculator_2x2():
+    return render_template('tennis/tonys-strategy-calculator-2x2.html')
+
+@app.route('/tonys-strategy-calculator-3x3')
+def tonys_strategy_calculator_3x3():
+    return render_template('tennis/tonys-strategy-calculator-3x3.html')
+
+@app.route('/tonys-strategy-calculator-NxN')
+def tonys_strategy_calculator_NxN():
+    return render_template('tennis/tonys-strategy-calculator-NxN.html')
 
 
 # --- Game Routes ---
