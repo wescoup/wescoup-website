@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="math-page-container">
+    <header class="page-header">
+        <h1>Redefining Gravity: The Energy-Mass Equivalence Perspective</h1>
+        <p class="author-info">Felipe A. Wescoup, PE</p>
+        <p class="date-info">Original Draft: 2005 (Unpublished) | Latest Revision: 2023</p>
+    </header>
+
+    <section class="content-section">
+        <h2>A Hypothesis Grounded in Energy</h2>
+        <p>This paper presents a hypothesis that redefines the fundamental nature of gravity by integrating Einstein's foundational energy-mass equivalence principle ($E=mc^2$) into the universal law of attraction. The conventional definition, based on the attraction between two **massive bodies**, is expanded to encompass a more fundamental concept:</p>
+
+        <h3 style="text-align: left; color: #cc0000; margin: 1.5rem 0;">The Proposed Definition of Gravity</h3>
+        <p style="text-align: left;">
+            <strong>Gravity is the natural force of attraction between any two energy bodies,
+            which is directly proportional to the product of their energies and inversely 
+            proportional to the square of the distance between them.</strong>
+        </p>
+        <p>This subtle shift in definition has significant implications, reframing gravitational interaction as an exchange between energy fields rather than just a property of mass. [Image of conceptual diagram comparing gravitational attraction between two masses vs two energy bodies]</p>
+    </section>
+
+    <section class="content-section">
+        <h2>Key Implications</h2>
+        <p>The energy-centric definition offers pathways toward unifying forces and addressing longstanding issues in physics:</p>
+        
+        <ul class="key-points">
+            <li>
+                <strong>Predicts the Bending of Light:</strong> Since light (photons) possesses energy but not rest mass, this definition inherently accounts for the bending of light by massive bodies, a phenomenon previously explained by General Relativity.
+            </li>
+            <li>
+                <strong>Galaxy Rotation Problem:</strong> By considering the total energy content of galaxies—including the energy equivalent of mass—the hypothesis offers a novel lens for examining galactic rotational dynamics, potentially informing the need for and nature of Dark Matter.
+            </li>
+            <li>
+                <strong>Particle Physics Reframing:</strong> As demonstrated in the supplement to the paper, this paradigm suggests reframing the Standard Model of Elementary Particles in terms of particle energies rather than masses, potentially simplifying unification efforts.
+            </li>
+        </ul>
+        
+    </section>
+
+    <section class="content-section">
+        <h2>Historical Context</h2>
+        <p>The initial mathematical formulation of this paper was developed in **2005** but was never formally submitted for publication. It represents an early, foundational exploration of energy equivalence that paved the way for later musings on the nature of cosmology and physics, such as the Alternative Cosmological Redshift Hypothesis.</p>
+        <p>The current version includes supplementary analysis and a revised particle model based on more recent data and frameworks.</p>
+    </section>
+
+    <p><a href="{{ url_for('tonys_math_musings') }}">&larr; Back to Tony's Axioms</a></p>
+</div>
+
+<!-- Basic MathJax setup for LaTeX rendering -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+{% endblock %}

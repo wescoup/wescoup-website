@@ -1,67 +1,66 @@
 {% extends "layout.html" %}
 
-{% block title %}
-    User Profile
-{% endblock %}
+{% block title %}User Profile{% endblock %}
 
-{% block main %}
-<div class="container">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3 class="text-center">User Profile</h3>
-                </div>
-                <div class="card-body text-center">
-                    <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" alt="Profile Picture">
-                    <h4>Felipe Wescoup</h4>
-                    <p class="text-muted">Tennis & Pickleball Enthusiast</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Account Information</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-4"><strong>Username</strong></div>
-                        <div class="col-sm-8">wescoup</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4"><strong>Email</strong></div>
-                        <div class="col-sm-8">felipe@wescoup.com</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4"><strong>Member Since</strong></div>
-                        <div class="col-sm-8">August 2025</div>
-                    </div>
-                </div>
-            </div>
+{% block content %}
+<div class="user-profile-container">
+    <h1>User Profile</h1>
+    
+    {% if user and user.is_authenticated %}
+    
+        <div class="profile-section authenticated-user">
+            <h2>Welcome Back, {{ user.username }}!</h2>
+            <p class="account-status">You are logged in with a **permanent, cross-browser account**.</p>
 
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h3>Quick Stats</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 text-center">
-                            <h4>Tennis Matches</h4>
-                            <p class="display-4">24</p>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <h4>Pickleball Games</h4>
-                            <p class="display-4">36</p>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <h4>Win Rate</h4>
-                            <p class="display-4">62%</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="user-details">
+                <p><strong>Username:</strong></p>
+                <form method="POST" action="{{ url_for('change_username') }}" class="username-form">
+                    <input type="text" name="username" value="{{ user.username }}" required>
+                    <button type="submit" class="btn-secondary">Change</button>
+                </form>
+                
+                <p><strong>Email:</strong> {{ user.email }}</p>
             </div>
+            
+            <hr>
+            
+            <h3>Account Management</h3>
+            <ul class="management-links">
+                <li><a href="#" data-link="change_password">Change Password</a></li>
+                <li><a href="#" data-link="change_email">Change Email</a></li>
+            </ul>
         </div>
-    </div>
+        
+    {% else %}
+    
+        <div class="profile-section anonymous-user">
+            <h2>Hello, {{ user.username|default('Player1') }}</h2>
+            <p class="account-status">
+                Your current identity is browser-specific and saved as a long-term cookie.
+            </p>
+
+            <div class="user-details">
+                <p><strong>Change User Name:</strong></p>
+                <form method="POST" action="{{ url_for('change_username') }}" class="username-form">
+                    <input type="text" name="username" value="{{ user.username|default('Player1') }}" required>
+                    <button type="submit" class="btn-secondary">Change</button>
+                </form>
+                </div>
+            
+            <hr>
+            
+            <h3>Login for Cross-Browser Access</h3>
+            <p>Sync your progress and settings across your devices.</p>
+            
+            <ul class="upgrade-links">
+                <li><a href="#" data-link="register" class="btn-primary">Sign Up</a></li>
+                <li><a href="#" data-link="login">Log In</a></li>
+                <span>(If you have an existing account, login to sync this device.)</span>
+            </ul>
+        </div>
+        
+    {% endif %}
+
 </div>
 {% endblock %}
+

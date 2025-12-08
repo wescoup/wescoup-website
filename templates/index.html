@@ -5,10 +5,14 @@
 {% block content %}
 <div class="container">
     <header class="header">
-        <h1>Welcome to Wescoup</h1>
-        <p>A collection of tools and projects.</p>
+        <h1>Welcome to Wescoup.com</h1>
+        <p>My collection of tools, projects, and games.</p>
     </header>
     <div class="tool-cards">
+        <div class="card" onclick="location.href='{{ url_for('tonys_math_musings') }}'">
+            <h2 class="card-title">Tony's Math Musings</h2>
+            <p class="card-description">Tony's Axioms: A repository of original mathematical and physical hypotheses.</p>
+        </div>
         <div class="card" onclick="location.href='{{ url_for('tonys_tennis_tools') }}'">
             <h2 class="card-title">Tony's Tennis Tools</h2>
             <p class="card-description">Track your tennis match stats, analyze strategies, and more.</p>
@@ -26,12 +30,6 @@
             <h2 class="card-title">User Profile (Optional)</h2>
             <p class="card-description">View and manage your account.</p>
         </div>
-        <!--
-        <div class="card" onclick="location.href='#'">
-            <h2 class="card-title">Tony's Math Musings (Coming Soon)</h2>
-            <p class="card-description">Explorations and thoughts on mathematical concepts and curiosities.</p>
-        </div>
-        -->
     </div>
 </div>
 {% endblock %}

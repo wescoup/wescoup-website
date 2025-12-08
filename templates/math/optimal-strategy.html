@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="math-page-container">
+    <header class="page-header">
+        <h1>Optimal Mixed Strategy Calculation</h1>
+        <p class="author-info">Based on: A Practical Guide to Finding Optimal Strategy</p>
+    </header>
+
+    <section class="content-section">
+        <h2>The Strategist's Dilemma</h2>
+        <p>In competitive scenarios, such as sports, business, or military strategy, relying solely on your strongest option often leads to predictable patterns that opponents can exploit. This creates **The Strategist's Dilemma**: the conflict between using the most effective individual move and maintaining enough uncertainty to keep the opponent guessing.</p>
+
+        <h2>Finding the Unbeatable Strategy</h2>
+        <p>The solution lies in determining a **mixed strategy**—the precise frequency with which each available option should be chosen to maximize your minimum expected payoff, assuming your opponent is playing optimally. This strategy ensures you cannot be consistently beaten, regardless of what your opponent tries to predict.</p>
+        
+        <p>This method provides a practical and intuitive approach for calculating this optimal mixed strategy (also known as the Nash Equilibrium for zero-sum games). It begins with the simple 2x2 matrix, a format widely applicable to binary-choice duels (e.g., fastball vs. curveball), and systematically extends that logic to solve much larger NxN game scenarios.</p>
+    </section>
+
+    <section class="content-section calculator-links">
+        <h2>Calculator Tools</h2>
+
+        <div class="tile-container">
+
+            <!-- Link 1: Instructions -->
+            <div class="tile">
+                <p>
+                    Start here! Learn the principles behind constructing payoff matrices and
+                    interpreting the results of the optimal strategy calculation.
+                </p>
+                <a href="{{ url_for('tonys_strategy_calculator_instructions') }}" class="tile-link">
+                    <h2>Instructions & Concepts</h2>
+                </a>
+            </div>
+            <!-- Link 2: 2x2 Calculator -->
+            <div class="tile">
+                <p>The foundational mixed strategy calculator for scenarios involving two options for each player. Ideal for pitching, serving, or simple pricing duels.</p>
+                <a href="{{ url_for('tonys_strategy_calculator_2x2') }}" class="tile-link">
+                        <h2>2x2 Game Calculator</h2>
+                </a>
+            </div>
+            <!-- Link 3: 3x3 Calculator -->
+            <div class="tile">
+                <p>Apply the concepts to scenarios where each player has three options. Used for deeper analysis like multiple pitch selection or multi-zone serves.</p>
+                <a href="{{ url_for('tonys_strategy_calculator_3x3') }}" class="tile-link">
+                    <h2>3x3 Game Calculator</h2>
+                </a>
+            </div>
+            
+            <!-- Link 4: NxN Calculator -->
+            <div class="tile">
+                <p>The universal tool. Input any matrix size (NxN) to solve complex mixed strategy problems for highly variable games.</p>
+                <a href="{{ url_for('tonys_strategy_calculator_NxN') }}" class="tile-link">
+                    <h2>NxN General Calculator</h2>
+                </a>
+            </div>         
+        </div>
+    </section>
+
+    <p><a href="{{ url_for('tonys_math_musings') }}">&larr; Back to Tony's Axioms</a></p>
+</div>
+
+<!-- Basic MathJax setup for LaTeX rendering -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+{% endblock %}

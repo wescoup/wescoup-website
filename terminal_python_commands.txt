@@ -6,3 +6,18 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+### Testing the database ###
+flask shell
+
+# Enter the following commands at the Python prompt
+from app import db, User
+
+# Fetch all User objects from the database
+users = db.session.execute(db.select(User)).scalars().all()
+
+# Print the list of user objects
+users
+
+# Loop through the results to print formatted details
+for user in users: print(f"ID: {user.id}, Username: {user.username}, Email: {user.email}")

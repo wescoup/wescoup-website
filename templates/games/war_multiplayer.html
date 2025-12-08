@@ -14,9 +14,9 @@
     </div>
 
     <div class="game-controls">
-        <button id="speed-down-btn" class="btn btn-secondary" title="Slower (Increase Delay)">🐢 Slower</button>
+        <button id="speed-down-btn" class="btn btn-secondary" title="Slower (Increase Delay)">Slower</button>
         <span id="speed-display" style="font-weight: bold; margin: 0 15px;">Delay: 1.0s</span>
-        <button id="speed-up-btn" class="btn btn-secondary" title="Faster (Decrease Delay)">🐇 Faster</button>
+        <button id="speed-up-btn" class="btn btn-secondary" title="Faster (Decrease Delay)">Faster</button>
     </div>
 
     <div class="game-start-controls" style="text-align: center; margin-top: 20px;">
@@ -28,7 +28,7 @@
     <div class="game-board">
         <div id="player-0-area" class="player-area">
             <div class="player-info">
-                <h2 id="player-0-name">Player 1 (You)</h2>
+                <h2 id="player-0-name">Opponent</h2>
                 <div class="card-count" id="player-0-count">Cards: 26</div>
                 
                 <div class="cards-left-stat">Cards Left: <span id="player-0-recycle">26</span></div> 
@@ -55,7 +55,7 @@
 
         <div id="player-1-area" class="player-area">
              <div class="player-info">
-                <h2 id="player-1-name">Player 2 (Opponent)</h2>
+                <h2 id="player-1-name">{{ player_username }}</h2>
                 <div class="card-count" id="player-1-count">Cards: 26</div>
                 
                 <div class="cards-left-stat">Cards Left: <span id="player-1-recycle">26</span></div>
@@ -79,15 +79,19 @@
                     </div>
             </div>
         </div>
-    </div>
 
-    <div class="play-pile-area">
-        <div id="war-pile-container" class="war-pile">
-            </div>
+        <div class="play-pile-area">
+            <div id="war-pile-container" class="war-pile">
+                </div>
+        </div>
     </div>
-
 </div>
+
+<script>
+    const PLAYER_USERNAME = "{{ player_username }}";
+</script>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="{{ url_for('static', filename='js/games/war2.js') }}"></script>
 {% endblock %}
+

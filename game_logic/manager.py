@@ -53,8 +53,12 @@ class Deck:
 class WarGame:
     def __init__(self, room_code):
         self.room_code = room_code
-        self.players = {} # { 'sid': player_index (0 or 1) }
+        # MODIFIED: self.players now stores {'sid': {'index': 0/1, 'username': 'Name'}}
+        self.players = {} 
         self.player_hands = {0: [], 1: []}
+        # ADDED: Structure to hold permanent player data (names, sids) by index
+        self.player_data = {0: {'sid': None, 'username': 'Player 1'}, 
+                            1: {'sid': None, 'username': 'Player 2'}}
         self.base_delay = DEFAULT_SPEED_DELAY
         self.game_in_progress = False
         self.game_over = False
@@ -67,30 +71,46 @@ class WarGame:
         }
         self.total_hands_played = 0
 
-    def add_player(self, sid):
+    # MODIFIED: add username argument
+    def add_player(self, sid, username):
         """Adds a player SID to the game, returns player_index (0 or 1) or None if full."""
         if len(self.players) >= 2 and sid not in self.players:
             return None # Game is full
         
         if sid in self.players:
-            return self.players[sid] # Player is rejoining
+            # Player is rejoining, update username and player_data
+            self.players[sid]['username'] = username
+            self.player_data[self.players[sid]['index']]['username'] = username
+            return self.players[sid]['index'] 
 
         player_index = 0
         if len(self.players) == 1:
             player_index = 1
             
-        self.players[sid] = player_index
-        log.info(f"Player {sid} joined {self.room_code} as Player {player_index + 1}")
+        # Store comprehensive player data
+        self.players[sid] = {'index': player_index, 'username': username}
+        self.player_data[player_index]['sid'] = sid
+        self.player_data[player_index]['username'] = username
+
+        log.info(f"Player {username} ({sid}) joined {self.room_code} as Player {player_index + 1}")
         return player_index
 
+    # MODIFIED: use the username in the log message and end_game
     def remove_player(self, sid):
         """Removes a player. If game in progress, ends it."""
         if sid in self.players:
-            player_index = self.players.pop(sid)
-            log.info(f"Player {player_index + 1} ({sid}) left {self.room_code}")
-            # Only end the game if it was actually in progress
+            player_data = self.players.pop(sid)
+            player_index = player_data['index']
+            
+            # Clear the SID but keep the name until cleanup
+            self.player_data[player_index]['sid'] = None 
+            
+            log.info(f"Player {player_data['username']} ({sid}) left {self.room_code}")
+            
+            # MODIFIED: Use the username in the end_game message
+            message = f"{player_data['username']} disconnected."
             if self.game_in_progress and not self.game_over:
-                self.end_game(f"Player {player_index + 1} disconnected.")
+                self.end_game(message)
             return True
         return False
         
@@ -114,10 +134,13 @@ class WarGame:
         self.player_hands[1] = hands[1]
         
         # Spawn the game loop as a background task
+        global sio
         self.game_loop_task = sio.start_background_task(self.game_loop)
 
     def end_game(self, message):
         """Stops the game and notifies clients."""
+        global sio # ADD THIS LINE TO MAKE THE GLOBAL SIO OBJECT VISIBLE
+
         if not self.game_in_progress: # Prevent multiple end-game calls
              if not self.game_over: # But if game is over, we may still need to broadcast
                   self.broadcast_state(message, game_over=True)
@@ -132,6 +155,8 @@ class WarGame:
 
     def cleanup_game(self):
         """Waits and then removes the game from global dict."""
+        global sio # ADD THIS LINE TO MAKE THE GLOBAL SIO OBJECT VISIBLE
+
         sio.sleep(10) # Wait 10s for clients to see final message
         if self.room_code in games:
             log.info(f"Cleaning up game object {self.room_code}")
@@ -153,8 +178,11 @@ class WarGame:
         # Notify players of new speed
         self.broadcast_state(f"Speed set to {self.base_delay}s")
 
-    def broadcast_state(self, message, play_pile=None, war_pile=None, game_over=False):
-        """Emits the current game state to all players in the room."""
+    # MODIFIED: Added to_sid=None for single-player state sync
+    def broadcast_state(self, message, play_pile=None, war_pile=None, game_over=False, to_sid=None):
+        """Emits the current game state to all players in the room or a single player."""
+        global sio # ADD THIS LINE TO MAKE THE GLOBAL SIO OBJECT VISIBLE
+
         if not sio:
             log.error("Socket.IO instance (sio) not registered in manager.")
             return
@@ -204,12 +232,15 @@ class WarGame:
             "total_hands_played": self.total_hands_played
         }
         try:
-            sio.emit('game_state_update', state, to=self.room_code)
+            # Use to_sid if provided, otherwise broadcast to the whole room
+            sio.emit('game_state_update', state, to=to_sid if to_sid else self.room_code)
         except Exception as e:
              log.error(f"Error emitting game state for {self.room_code}: {e}")
 
     def game_loop(self):
         """Main server-side game loop."""
+        global sio # ADD THIS LINE TO MAKE THE GLOBAL SIO OBJECT VISIBLE
+        
         log.info(f"Game loop started for {self.room_code}")
         # Note: self.total_hands_played is now the turn counter
         while self.game_in_progress and not self.game_over:
@@ -231,10 +262,10 @@ class WarGame:
                 p1_cards_total = len(self.player_hands[1])
                 
                 if p0_cards_total == 0:
-                    self.end_game("Player 2 wins the game!")
+                    self.end_game(f"{self.player_data[1]['username']} wins the game!")
                     return
                 if p1_cards_total == 0:
-                    self.end_game("Player 1 wins the game!")
+                    self.end_game(f"{self.player_data[0]['username']} wins the game!")
                     return
 
                 # --- 2. Determine Speed ---
@@ -259,11 +290,11 @@ class WarGame:
                 if p0_card.rank > p1_card.rank:
                     self.player_hands[0].extend(play_pile)
                     self.stats[0]['hands_won'] += 1 # *** ADDED ***
-                    self.broadcast_state("Player 1 wins the hand!", play_pile=play_pile)
+                    self.broadcast_state(f"{self.player_data[0]['username']} wins the hand!", play_pile=play_pile)
                 elif p1_card.rank > p0_card.rank:
                     self.player_hands[1].extend(play_pile)
                     self.stats[1]['hands_won'] += 1 # *** ADDED ***
-                    self.broadcast_state("Player 2 wins the hand!", play_pile=play_pile)
+                    self.broadcast_state(f"{self.player_data[1]['username']} wins the hand!", play_pile=play_pile)
                 else:
                     # --- 5. Handle War ---
                     self.broadcast_state("It's WAR!", play_pile=play_pile)
@@ -282,71 +313,119 @@ class WarGame:
         log.info(f"Game loop finished for {self.room_code}. In progress: {self.game_in_progress}, Over: {self.game_over}")
 
     def handle_war(self, current_spoils):
-        """Recursive function to handle a War. current_spoils contains all cards from the tie."""
+        """
+        Recursive function to handle a War.
+        current_spoils contains all cards from the tie (and any prior wars).
+        New rule: 3 spoil cards (face-up visually) + 1 battle card per player.
+        """
         war_pile_this_round = []
-        
+
+        p0_name = self.player_data[0]['username']
+        p1_name = self.player_data[1]['username']
+
         # --- 1. Check if players have enough cards for war ---
-        # Need 2 cards: 1 face down, 1 face up
-        if len(self.player_hands[0]) < 2:
-            self.player_hands[1].extend(current_spoils) # Give spoils to P1
-            self.player_hands[1].extend(self.player_hands[0]) # Give P1 all P0's remaining cards
-            self.player_hands[0] = [] # P0 is out
-            # *** ADDED: P1 wins hand and war by default ***
-            self.stats[1]['hands_won'] += 1 
+        # Need 4 cards: 3 spoil cards + 1 battle card
+        if len(self.player_hands[0]) < 4:
+            # Player 0 cannot continue → Player 1 wins by default
+            self.player_hands[1].extend(current_spoils)
+            self.player_hands[1].extend(self.player_hands[0])
+            self.player_hands[0] = []
+            self.stats[1]['hands_won'] += 1
             self.stats[1]['wars_won'] += 1
-            self.broadcast_state("Player 1 doesn't have enough cards for war! Player 2 wins!", play_pile=[], war_pile=current_spoils)
+            self.broadcast_state(
+                f"{p0_name} doesn't have enough cards for war! {p1_name} wins!",
+                play_pile=[],
+                war_pile=current_spoils
+            )
             return
-            
-        if len(self.player_hands[1]) < 2:
+
+        if len(self.player_hands[1]) < 4:
+            # Player 1 cannot continue → Player 0 wins by default
             self.player_hands[0].extend(current_spoils)
             self.player_hands[0].extend(self.player_hands[1])
             self.player_hands[1] = []
-            # *** ADDED: P0 wins hand and war by default ***
             self.stats[0]['hands_won'] += 1
             self.stats[0]['wars_won'] += 1
-            self.broadcast_state("Player 2 doesn't have enough cards for war! Player 1 wins!", play_pile=[], war_pile=current_spoils)
+            self.broadcast_state(
+                f"{p1_name} doesn't have enough cards for war! {p0_name} wins!",
+                play_pile=[],
+                war_pile=current_spoils
+            )
             return
 
-        # --- 2. Both players have enough cards, draw 1 face down ---
-        face_down_p0 = self.player_hands[0].pop(0)
-        face_down_p1 = self.player_hands[1].pop(0)
-        war_pile_this_round.extend([face_down_p0, face_down_p1])
-        
-        # Show spoils + face down cards
-        self.broadcast_state("Players place 1 card face down...", play_pile=[], war_pile=current_spoils + war_pile_this_round)
-        sio.sleep(self.base_delay)
-        if not self.game_in_progress: return
-        
-        # --- 3. Draw 1 face up (battle card) ---
+        global sio
+
+        # --- 2. Draw and reveal the 3 SPOIL cards (face-up visually) ---
+        # We draw one card from each player per spoil step and broadcast between each.
+        p0_war_cards = []
+        p1_war_cards = []
+
+        for i in range(3):
+            p0_card = self.player_hands[0].pop(0)
+            p1_card = self.player_hands[1].pop(0)
+
+            p0_war_cards.append(p0_card)
+            p1_war_cards.append(p1_card)
+
+            # Maintain P0,P1,P0,P1 order so even indices belong to P0, odd to P1
+            war_pile_this_round.extend([p0_card, p1_card])
+            all_cards_in_play = war_pile_this_round
+
+            # Message + slight pause for each spoil card pair
+            self.broadcast_state(
+                f"War: Spoil card {i + 1}...",
+                play_pile=current_spoils,
+                war_pile=all_cards_in_play
+            )
+            sio.sleep(self.base_delay * 2)
+            if not self.game_in_progress:
+                return
+
+        # --- 3. Draw and reveal the BATTLE card (4th card) ---
         p0_battle_card = self.player_hands[0].pop(0)
         p1_battle_card = self.player_hands[1].pop(0)
-        war_pile_this_round.extend([p0_battle_card, p1_battle_card])
-        
-        all_cards_in_play = current_spoils + war_pile_this_round
-        
-        self.broadcast_state("...and 1 card face up!", play_pile=[], war_pile=all_cards_in_play)
-        sio.sleep(self.base_delay)
-        if not self.game_in_progress: return
 
-        # --- 4. Compare war cards ---
+        p0_war_cards.append(p0_battle_card)
+        p1_war_cards.append(p1_battle_card)
+
+        war_pile_this_round.extend([p0_battle_card, p1_battle_card])
+        all_cards_in_play = war_pile_this_round
+
+        # Show the battle cards with a longer dramatic pause
+        self.broadcast_state("War: BATTLE cards!", play_pile=current_spoils, war_pile=all_cards_in_play)
+        sio.sleep(self.base_delay * 3)
+        if not self.game_in_progress:
+            return
+
+        # --- 4. Compare battle cards and award spoils ---
         if p0_battle_card.rank > p1_battle_card.rank:
-            self.player_hands[0].extend(all_cards_in_play)
-            # *** ADDED: Update P0 stats for war win ***
+            self.player_hands[0].extend(current_spoils)
+            self.player_hands[0].extend(war_pile_this_round)
             self.stats[0]['hands_won'] += 1
             self.stats[0]['wars_won'] += 1
-            self.broadcast_state("Player 1 wins the WAR!", play_pile=[], war_pile=all_cards_in_play)
+            self.broadcast_state(
+                f"{p0_name} wins the WAR!",
+                play_pile=current_spoils,
+                war_pile=all_cards_in_play
+            )
         elif p1_battle_card.rank > p0_battle_card.rank:
-            self.player_hands[1].extend(all_cards_in_play)
-            # *** ADDED: Update P1 stats for war win ***
+            self.player_hands[1].extend(current_spoils)
+            self.player_hands[1].extend(war_pile_this_round)
             self.stats[1]['hands_won'] += 1
             self.stats[1]['wars_won'] += 1
-            self.broadcast_state("Player 2 wins the WAR!", play_pile=[], war_pile=all_cards_in_play)
+            self.broadcast_state(
+                f"{p1_name} wins the WAR!",
+                play_pile=current_spoils,
+                war_pile=all_cards_in_play
+            )
         else:
-            # --- 5. Another War! ---
+            # --- 5. Another WAR! (battle cards tied again) ---
             self.broadcast_state("ANOTHER WAR!", play_pile=[], war_pile=all_cards_in_play)
             sio.sleep(self.base_delay)
-            if not self.game_in_progress: return
-            self.handle_war(all_cards_in_play) # Recurse
+            if not self.game_in_progress:
+                return
+            # Recurse with EVERYTHING currently at stake
+            self.handle_war(all_cards_in_play)
 
 
 # --- Public Manager Functions ---
@@ -432,47 +511,64 @@ def register_handlers(socketio):
     @socketio.on('join_game')
     def on_join_game(data):
         sid = request.sid
-        if not data or 'room_code' not in data:
-             log.warning(f"Join request from {sid} missing room_code.")
-             emit('join_error', {'message': 'Room code missing.'})
-             return
+        # MODIFIED: Check for and retrieve username
+        if not data or 'room_code' not in data or 'username' not in data: 
+             log.warning(f"Join request from {sid} missing room_code or username.")
+             # CRITICAL: Do NOT emit error here, the client side handles the name check now.
+             return 
 
-        room_code = data.get('room_code').lower() # Normalize room code
-        log.info(f"Received join_game request from {sid} for room {room_code}")
+        room_code = data.get('room_code').lower()
+        username = data.get('username') # <-- Retrieve username
+        log.info(f"Received join_game request from {sid} for room {room_code}, user: {username}")
 
         game = get_game(room_code)
         if not game:
             log.warning(f"Player {sid} tried to join non-existent room: {room_code}")
-            emit('join_error', {'message': 'Game not found. It may have expired.'})
+            emit('join_error', {'message': 'Game not found. It may have expired.'}, to=sid)
             return
 
         if game.game_over:
              log.warning(f"Player {sid} tried to join finished game: {room_code}")
-             emit('join_error', {'message': 'This game has already finished.'})
+             emit('join_error', {'message': 'This game has already finished.'}, to=sid)
              return
         
-        player_index = game.add_player(sid)
+        # MODIFIED: Pass username to add_player
+        player_index = game.add_player(sid, username) 
         
         if player_index is None:
             log.warning(f"Player {sid} tried to join full room: {room_code}")
-            emit('join_error', {'message': 'This game is already full.'})
+            emit('join_error', {'message': 'This game is already full.'}, to=sid)
             return
 
         join_room(room_code)
         log.info(f"Added {sid} to socket.io room {room_code}")
 
-        emit('you_joined', {'player_index': player_index})
+        emit('you_joined', {'player_index': player_index}, to=sid)
 
-        if len(game.players) == 2 and not game.game_in_progress:
-            # (From previous step: Show start button)
-            sio.emit('status_update', {'message': 'Both players are in the room. Press Start to begin!'}, to=room_code)
-            log.info(f"Two players in {room_code}, ready to start.")
-            sio.emit('show_start_button', to=room_code)
+        # MODIFIED: Broadcast names and handle game state sync
+        if len(game.players) == 2: # Check if room is full
+            names = {
+                'p0': game.player_data[0]['username'],
+                'p1': game.player_data[1]['username']
+            }
+            
+            if game.game_in_progress:
+                # CRITICAL FIX: Game is running. Sync Player 2 to the ongoing game.
+                sio.emit('players_ready', {'message': f"Game in progress. {username} reconnected.", 'names': names}, to=room_code)
+                game.broadcast_state(f"{username} joined running game.", to_sid=sid) # Send state only to the new player
+                log.info(f"Player {username} synced to running game {room_code}.")
+                
+            elif not game.game_in_progress:
+                # Game is not running (pre-start). Broadcast to show start button.
+                sio.emit('players_ready', {'message': 'Both players are in the room. Press Start to begin!', 'names': names}, to=room_code)
+                sio.emit('show_start_button', to=room_code)
+                log.info(f"Two players in {room_code}, ready to start. Names: {names}")
+
         elif len(game.players) == 1:
-            emit('status_update', {'message': 'Waiting for Player 2 to join...'})
+            emit('status_update', {'message': 'Waiting for Player 2 to join...'}, to=sid)
         else:
              if game.game_in_progress:
-                game.broadcast_state("Player reconnected")
+                emit('status_update', {'message': 'Player reconnected, waiting for opponent.'}, to=sid) 
 
     @socketio.on('change_speed')
     def on_change_speed(data):

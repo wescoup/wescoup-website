@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<header class="page-header">
+    <h1>Alternative Hypothesis for Cosmological Redshift</h1>
+    <p>A different look at the source of cosmological redshift based on energy conservation.</p>
+</header>
+
+<section class="content-section">
+    <h2>The Hypothesis: IGM Energy Transfer</h2>
+    <p>This hypothesis suggests an alternative to the "expanding universe" model, proposing that photons lose energy to the **Intergalactic Medium (IGM)** during their travel.</p>
+    <p>The core mechanism is based on the conservation of energy, where $\Delta E_{\text{IGM}} = -\Delta E_{\text{photon}}$, resulting in the observed redshift following an exponential decay model ($A(t) = A_0(1-r)^t$).</p>
+    
+    <h2>Distinction from "Tired Light"</h2>
+    <p>While related to historical "Tired Light" concepts, this model differs by proposing a specific mechanism of energy transfer with the IGM and providing a quantitative, testable model for the energy loss rate ($r$).</p>
+</section>
+
+<p><a href="{{ url_for('tonys_math_musings') }}">&larr; Back to Math Musings</a></p>
+
+{% endblock %}

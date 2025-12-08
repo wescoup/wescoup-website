@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<header class="page-header">
+    <h1>Prime Number Generation: A Constructive Approach</h1>
+    <p>Based on the paper: "A Method for Generating Prime Numbers (A Constructive Approach)".</p>
+</header>
+
+<section class="content-section">
+    <h2>The Core Concept</h2>
+    <p>This method approaches prime generation not by testing divisibility (like the Sieve of Eratosthenes), but by calculating the set of all composite numbers up to a limit, and defining primes as the remaining complement.</p>
+    
+    <h2>Performance and Implementation</h2>
+    <p>The core mathematical concept is refined through four iterative levels of optimization, with the final level capable of calculating all primes up to 20 million in seconds within a standard web browser using JavaScript implementation. </p>
+    </section>
+
+<p><a href="{{ url_for('tonys_math_musings') }}">&larr; Back to Math Musings</a></p>
+
+{% endblock %}

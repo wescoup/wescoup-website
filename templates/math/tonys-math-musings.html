@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <header class="header">
+        <h1>Tony's Math Musings</h1>
+        <p>A collection of my papers and mathematical explorations.  </p>
+    </header>
+
+    <div class="tool-cards">
+        <div class="card" onclick="location.href='{{ url_for('space_launch_assist') }}'">
+                <h2 class="card-title">Space Launch Assist</h2>
+                <p class="card-description">Presents the mechanical advantage of a horizontal electromagnetic rail launch system.</p>
+        </div>
+        <div class="card" onclick="location.href='{{ url_for('optimal_strategy') }}'">
+                <h2 class="card-title">Optimal Strategy</h2>
+                <p class="card-description">Determine the optimal strategy for competitive games.</p>
+        </div>
+        <div class="card" onclick="location.href='{{ url_for('prime_number_generation') }}'">
+                <h2 class="card-title">Prime Number Generation</h2>
+                <p class="card-description">A constructive approach for generating highly optimized lists of prime numbers.</p>
+        </div>
+        <div class="card" onclick="location.href='{{ url_for('cosmological_redshift_hypothesis') }}'">
+                <h2 class="card-title">Alternative Cosmological Redshift Hypothesis</h2>
+                <p class="card-description">Proposing an alternative hypothesis based on energy conservation and the Intergalactic Medium (IGM).</p>
+        </div>
+        <div class="card" onclick="location.href='{{ url_for('redefining_gravity') }}'">
+                <h2 class="card-title">Redefining Gravity Hypothesis</h2>
+                <p class="card-description">Redefines gravity as the natural force of attraction between any two energy bodies.</p>
+        </div>
+    </div>
+
+    <footer>
+        <h3>External Papers</h3>
+        <p>You can find more of my work on the viXra e-Print archive: 
+        <a href="https://vixra.org/author/felipe_wescoup" target="_blank">Felipe Wescoup on viXra.org</a>.</p>
+    </footer>
+</div>
+
+{% endblock %}
