@@ -104,6 +104,9 @@ def war_game_room(code):
     # Pass the room code to the template so JavaScript can access it
     return render_template('games/war_multiplayer.html', room_code=code)
 
+@app.route('/profile')
+def user_profile():
+    return render_template('user_profile.html')
 
 # --- Test/Utility Routes (Keep or remove as needed) ---
 @app.route("/socketio-test")
