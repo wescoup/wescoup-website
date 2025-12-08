@@ -4,6 +4,9 @@ python -m venv .venv
 # Activate virtual environment
 source .venv/bin/activate
 
+# Deactivate virtual environment
+deactivate
+
 # Install dependencies
 pip install -r requirements.txt
 
@@ -21,3 +24,8 @@ users
 
 # Loop through the results to print formatted details
 for user in users: print(f"ID: {user.id}, Username: {user.username}, Email: {user.email}")
+
+# git codespace commands
+git add .
+git commit -m "Commit message describing your latest changes"
+git push origin feature/auth

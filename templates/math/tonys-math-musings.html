@@ -2,6 +2,39 @@
 
 {% block content %}
 <div class="container">
+    <style>
+        .tooltip-card {
+            position: relative;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background-color: #f2f2f2;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 10px 14px;
+            border-radius: 6px;
+            z-index: 10;
+            font-size: 0.9rem;
+
+            /* Fixes your issue */
+            max-width: 350px;       /* adjust as needed */
+            white-space: normal;    /* allows wrapping */
+            text-align: left;       /* optional, looks better for paragraphs */
+            pointer-events: none;
+        }
+
+        .tooltip-card:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
     <header class="header">
         <h1>Tony's Math Musings</h1>
         <p>A collection of my papers and mathematical explorations.  </p>
@@ -27,6 +60,42 @@
         <div class="card" onclick="location.href='{{ url_for('redefining_gravity') }}'">
                 <h2 class="card-title">Redefining Gravity Hypothesis</h2>
                 <p class="card-description">Redefines gravity as the natural force of attraction between any two energy bodies.</p>
+        </div>
+    </div>
+    <div class="header">
+        <h2>2026 Math Musings</h2>
+    </div>
+    <div class="tool-cards">
+        <div class="card" onclick="return false;" style="cursor: default; background:#f2f2f2;">
+                <h2 class="card-title" style="color:#666;">Beal Conjecture</h2>
+                <p class="card-description">Tony's initial musings on the Beal Conjecture.</p>
+        </div>
+        <div class="card" onclick="return false;" style="cursor: default; background:#f2f2f2;">
+                <h2 class="card-title" style="color:#666;">Redefining Gravity V4</h2>
+                <p class="card-description">Redefining gravity in Plank units.</p>
+                <p class="card-description" style="margin-top: 0;">Supplement on projective geometry.</p>
+        </div>
+        <div class="card" onclick="return false;" style="cursor: default; background:#f2f2f2;">
+                <h2 class="card-title" style="color:#666;">Cosmological Redshift Study</h2>
+                <p class="card-description">Incorporate observational data for a testable/falsifiable theory.</p>
+        </div>
+    </div>
+    <div class="header">
+        <h2>Future Math Musings</h2>
+    </div>
+    <div class="tool-cards">
+        <div class="card inactive-hover tooltip-card" onclick="return false;" style="cursor: default; background:#f2f2f2;">
+            <span class="tooltip-text">
+                The aim of this project is to advance the unification foreseen in Lev's Relativity Memoir by employing 
+                the framework of projective geometry to extend to all four fundamental interactions, including electromagnetism, 
+                the strong and weak nuclear forces, and gravity, within the geometric structure of a single higher-dimensional field.
+            </span>
+            <h2 class="card-title" style="color:#666;">Unified Field Theory: Projective Geometry Foundation</h2>
+            <p class="card-description">Initial work to unify fundamental forces using a projective geometric extension of relativistic theory.</p>
+        </div>
+        <div class="card" onclick="return false;" style="cursor: default; background:#f2f2f2;">
+            <h2 class="card-title" style="color:#666;">Qutrit Quantum Computer</h2>
+            <p class="card-description">Patent application for a qutrit-based quantum processor, enabling an exponential increase in information encoding and computational throughput.</p>
         </div>
     </div>
 
