@@ -7,6 +7,19 @@
         <p>Select a game to play. Engaging games for when you need a break.</p>
     </header>
     <div class="tool-cards">
+        <div class="card"
+            role="link"
+            tabindex="0"
+            onclick="window.open('https://cardgames.io/', '_blank', 'noopener,noreferrer')"
+            onkeypress="if(event.key === 'Enter' || event.key === ' ') { window.open('https://cardgames.io/', '_blank', 'noopener,noreferrer'); }">
+        <h2 class="card-title">cardgames.io</h2>
+        <p class="card-description">
+            (External site.) This is my biggest time trap. I find many of their games absolutely addicting.
+        </p>
+        <p class="card-description" style="font-size: 0.9em; opacity: 0.8; margin-top: 0.75rem;">
+            Not affiliated with this site.
+        </p>
+        </div>
         <div class="card" onclick="location.href='{{ url_for('tonys_war_game') }}'">
             <h2 class="card-title">War</h2>
             <p class="card-description">The classic card game of chance. Flip cards and battle for the whole deck!</p>

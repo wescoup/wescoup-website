@@ -397,159 +397,333 @@ function generateAllResultsViewsHTML() {
     return html;
 }
 
+/* =========================================================================
+   CHANGE 1: calculateAllStats()
+   - FIX: Compute *player* serving stats using point.server (not opponent/team return stats).
+   - FIX: Compute *player* returning stats consistently (ret1st/ret2nd totals + won).
+   - FIX: Outcome in pointHistory is stored as '1'/'0' (see recordReturn), not 'w'/'l').
+   - ADD: Per-side serving breakdown fields (servDeuce* / servAd*) so player tables can
+          show real serving-by-side numbers instead of reusing return fields.
+   ========================================================================= */
 function calculateAllStats() {
+    /* =========================================================================
+       CHANGE 1: calculateAllStats()
+       - FIX: Build stats for BOTH match + each set using consistent keys: 'match', 'set0', 'set1', ...
+       - FIX: Compute *player* serving stats from point.server (NOT opponent return stats).
+       - FIX: Compute *player* returning stats from point.returner.
+       - FIX: point.outcome is stored as '1'/'0' (see recordReturn), not 'w'/'l'.
+       - FIX: secondShotMiss uses point.position (recordSecondShotMiss), not missPosition.
+       - ADD: Per-side serving breakdown fields (servDeuce / servAd) so player tables use real serve-side data.
+       ========================================================================= */
+
     const numSets = matchData.scores.team1.length;
-    const stats = {}; 
 
-    for (let i = -1; i < numSets; i++) {
-        const key = i === -1 ? 'match' : `set${i}`;
-        const periodStats = stats[key] = {
-            team1: {}, team2: {}, player1: {}, player2: {}, player3: {}, player4: {}
-        };
-        const pointsInPeriod = i === -1 ? matchData.pointHistory : matchData.pointHistory.filter(p => p.setIndex === i);
-        
-        ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
-            const pStats = periodStats[pKey] = {
-                retDeuceFirstWon: 0, retDeuceFirstTotal: 0, retDeuceSecondWon: 0, retDeuceSecondTotal: 0,
-                retAdFirstWon: 0, retAdFirstTotal: 0, retAdSecondWon: 0, retAdSecondTotal: 0,
-                ssMisses: { S: 0, N: 0, D: 0, A: 0 }
-            };
-            pointsInPeriod.filter(p => p.type === 'return' && p.returner === pKey).forEach(p => {
-                if (p.side === 'deuce' && p.serve === 'first') { pStats.retDeuceFirstTotal++; if (p.outcome === '1') pStats.retDeuceFirstWon++; }
-                if (p.side === 'deuce' && p.serve === 'second') { pStats.retDeuceSecondTotal++; if (p.outcome === '1') pStats.retDeuceSecondWon++; }
-                if (p.side === 'ad' && p.serve === 'first') { pStats.retAdFirstTotal++; if (p.outcome === '1') pStats.retAdFirstWon++; }
-                if (p.side === 'ad' && p.serve === 'second') { pStats.retAdSecondTotal++; if (p.outcome === '1') pStats.retAdSecondWon++; }
-            });
-            pointsInPeriod.filter(p => p.type === 'secondShotMiss' && p.playerKey === pKey).forEach(p => pStats.ssMisses[p.position]++);
-        });
+    const stats = { match: {} };
+    for (let i = 0; i < numSets; i++) stats[`set${i}`] = {};
 
-        ['team1', 'team2'].forEach(teamKey => {
-            const tStats = periodStats[teamKey];
-            tStats.ret1stWon = 0; tStats.ret1stTotal = 0; tStats.ret2ndWon = 0; tStats.ret2ndTotal = 0;
-            tStats.ssServing = 0; tStats.ssReturning = 0;
+    const allPlayers = ['player1', 'player2', 'player3', 'player4'];
+    const allTeams = ['team1', 'team2'];
 
-            matchData.teams[teamKey].forEach(pKey => {
-                const pStats = periodStats[pKey];
-                tStats.ret1stWon += pStats.retDeuceFirstWon + pStats.retAdFirstWon;
-                tStats.ret1stTotal += pStats.retDeuceFirstTotal + pStats.retAdFirstTotal;
-                tStats.ret2ndWon += pStats.retDeuceSecondWon + pStats.retAdSecondWon;
-                tStats.ret2ndTotal += pStats.retDeuceSecondTotal + pStats.retAdSecondTotal;
-                tStats.ssServing += pStats.ssMisses.S + pStats.ssMisses.N;
-                tStats.ssReturning += pStats.ssMisses.D + pStats.ssMisses.A;
-            });
-        });
-        
-        ['team1', 'team2'].forEach(teamKey => {
-             const tStats = periodStats[teamKey];
-             const oppStats = periodStats[teamKey === 'team1' ? 'team2' : 'team1'];
-             tStats.serv1stTotal = oppStats.ret1stTotal;
-             tStats.serv1stWon = tStats.serv1stTotal - oppStats.ret1stWon;
-             tStats.serv2ndTotal = oppStats.ret2ndTotal;
-             tStats.serv2ndWon = tStats.serv2ndTotal - oppStats.ret2ndWon;
-             tStats.serv1stInPct = (tStats.serv1stTotal + tStats.serv2ndTotal) > 0 ? (tStats.serv1stTotal / (tStats.serv1stTotal + tStats.serv2ndTotal)) * 100 : 0;
-             tStats.serv1stWonPct = tStats.serv1stTotal > 0 ? (tStats.serv1stWon / tStats.serv1stTotal) * 100 : 0;
-             tStats.serv2ndWonPct = tStats.serv2ndTotal > 0 ? (tStats.serv2ndWon / tStats.serv2ndTotal) * 100 : 0;
-             tStats.ret1stWonPct = tStats.ret1stTotal > 0 ? (tStats.ret1stWon / tStats.ret1stTotal) * 100 : 0;
-             tStats.ret2ndWonPct = tStats.ret2ndTotal > 0 ? (tStats.ret2ndWon / tStats.ret2ndTotal) * 100 : 0;
+    const pointCategories = [
+        // Serving totals
+        'serv1stTotal', 'serv1stWon', 'serv2ndTotal', 'serv2ndWon',
+        // Serving by side + serve
+        'servDeuceFirstTotal', 'servDeuceFirstWon',
+        'servDeuceSecondTotal', 'servDeuceSecondWon',
+        'servAdFirstTotal', 'servAdFirstWon',
+        'servAdSecondTotal', 'servAdSecondWon',
+
+        // Returning totals
+        'ret1stTotal', 'ret1stWon', 'ret2ndTotal', 'ret2ndWon',
+        // Returning by side + serve
+        'retDeuceFirstTotal', 'retDeuceFirstWon',
+        'retDeuceSecondTotal', 'retDeuceSecondWon',
+        'retAdFirstTotal', 'retAdFirstWon',
+        'retAdSecondTotal', 'retAdSecondWon',
+
+        // Second-shot misses
+        'ssMisses'
+    ];
+
+    function initEntity(obj) {
+        pointCategories.forEach(cat => {
+            obj[cat] = (cat === 'ssMisses')
+                ? { S: 0, N: 0, D: 0, A: 0 }
+                : 0;
         });
     }
 
-    const matchStats = stats['match'];
-    const totalPoints = matchStats.team1.serv1stTotal + matchStats.team1.serv2ndTotal + matchStats.team2.serv1stTotal + matchStats.team2.serv2ndTotal;
-    matchStats.team1.pointsWon = matchStats.team1.serv1stWon + matchStats.team1.serv2ndWon + matchStats.team1.ret1stWon + matchStats.team1.ret2ndWon;
-    matchStats.team2.pointsWon = matchStats.team2.serv1stWon + matchStats.team2.serv2ndWon + matchStats.team2.ret1stWon + matchStats.team2.ret2ndWon;
+    // Initialize all periods + entities
+    const periodKeys = ['match', ...Array.from({ length: numSets }, (_, i) => `set${i}`)];
+    periodKeys.forEach(pk => {
+        stats[pk].team1 = {}; stats[pk].team2 = {};
+        allPlayers.forEach(p => { stats[pk][p] = {}; });
+
+        allTeams.forEach(t => initEntity(stats[pk][t]));
+        allPlayers.forEach(p => initEntity(stats[pk][p]));
+    });
+
+    // --- Aggregate from point history ---
+    matchData.pointHistory.forEach(point => {
+        // Only set-based points exist in history; also roll them into 'match'
+        const setKey = (typeof point.setIndex === 'number') ? `set${point.setIndex}` : null;
+        const targets = ['match'];
+        if (setKey && stats[setKey]) targets.push(setKey);
+
+        if (point.type === 'return') {
+            const serveType = point.serve;          // 'first' | 'second'
+            const side = point.side;                // 'deuce' | 'ad'
+            const returnWon = (point.outcome === '1');
+                const serverWon = !returnWon; // return-based tracking: server win is inverse     // recordReturn stores '1'/'0'
+
+            targets.forEach(pk => {
+                // 1) RETURN stats (credited to RETURNER)
+                if (point.returner && stats[pk][point.returner]) {
+                    const r = stats[pk][point.returner];
+
+                    if (serveType === 'first') {
+                        r.ret1stTotal++;
+                        if (returnWon) r.ret1stWon++;
+                    } else {
+                        r.ret2ndTotal++;
+                        if (returnWon) r.ret2ndWon++;
+                    }
+
+                    if (side === 'deuce') {
+                        if (serveType === 'first') {
+                            r.retDeuceFirstTotal++;
+                            if (returnWon) r.retDeuceFirstWon++;
+                        } else {
+                            r.retDeuceSecondTotal++;
+                            if (returnWon) r.retDeuceSecondWon++;
+                        }
+                    } else if (side === 'ad') {
+                        if (serveType === 'first') {
+                            r.retAdFirstTotal++;
+                            if (returnWon) r.retAdFirstWon++;
+                        } else {
+                            r.retAdSecondTotal++;
+                            if (returnWon) r.retAdSecondWon++;
+                        }
+                    }
+                }
+
+                // 2) SERVE stats (credited to SERVER)
+                if (point.server && stats[pk][point.server]) {
+                    const s = stats[pk][point.server];
+
+                    if (serveType === 'first') {
+                        s.serv1stTotal++;
+                        if (serverWon) s.serv1stWon++;
+                    } else {
+                        s.serv2ndTotal++;
+                        if (serverWon) s.serv2ndWon++;
+                    }
+
+                    if (side === 'deuce') {
+                        if (serveType === 'first') {
+                            s.servDeuceFirstTotal++;
+                            if (serverWon) s.servDeuceFirstWon++;
+                        } else {
+                            s.servDeuceSecondTotal++;
+                            if (serverWon) s.servDeuceSecondWon++;
+                        }
+                    } else if (side === 'ad') {
+                        if (serveType === 'first') {
+                            s.servAdFirstTotal++;
+                            if (serverWon) s.servAdFirstWon++;
+                        } else {
+                            s.servAdSecondTotal++;
+                            if (serverWon) s.servAdSecondWon++;
+                        }
+                    }
+                }
+            });
+        }
+
+        if (point.type === 'secondShotMiss') {
+            // recordSecondShotMiss stores "position" (S/N/D/A)
+            const pos = point.position;
+            const who = point.playerKey;
+            if (!who || !pos) return;
+
+            targets.forEach(pk => {
+                if (!stats[pk][who]) return;
+                const ss = stats[pk][who].ssMisses;
+                ss[pos] = (ss[pos] || 0) + 1;
+            });
+        }
+    });
+
+    // --- Roll up PLAYER → TEAM stats for each period ---
+    periodKeys.forEach(pk => {
+        allTeams.forEach(teamKey => {
+            const teamPlayers = matchData.teams[teamKey] || [];
+
+            pointCategories.forEach(cat => {
+                if (cat === 'ssMisses') return;
+                stats[pk][teamKey][cat] = teamPlayers.reduce((sum, p) => sum + (stats[pk][p][cat] || 0), 0);
+            });
+
+            const ss = stats[pk][teamKey].ssMisses;
+            ss.S = teamPlayers.reduce((sum, p) => sum + (stats[pk][p].ssMisses.S || 0), 0);
+            ss.N = teamPlayers.reduce((sum, p) => sum + (stats[pk][p].ssMisses.N || 0), 0);
+            ss.D = teamPlayers.reduce((sum, p) => sum + (stats[pk][p].ssMisses.D || 0), 0);
+            ss.A = teamPlayers.reduce((sum, p) => sum + (stats[pk][p].ssMisses.A || 0), 0);
+
+            // Derived team serving percentages (used by existing UI)
+            const t = stats[pk][teamKey];
+            const totalServes = t.serv1stTotal + t.serv2ndTotal;
+            t.serv1stInPct = totalServes > 0 ? (t.serv1stTotal / totalServes) * 100 : 0;
+            t.serv1stWonPct = t.serv1stTotal > 0 ? (t.serv1stWon / t.serv1stTotal) * 100 : 0;
+            t.serv2ndWonPct = t.serv2ndTotal > 0 ? (t.serv2ndWon / t.serv2ndTotal) * 100 : 0;
+        });
+    });
+
+    // --- Match summary fields (points won) ---
+    const matchStats = stats.match;
+
+    // Total points = all serves by both teams (each point has exactly one server)
+    const totalPoints = (matchStats.team1.serv1stTotal + matchStats.team1.serv2ndTotal) +
+                        (matchStats.team2.serv1stTotal + matchStats.team2.serv2ndTotal);
+
+    matchStats.team1.pointsWon = matchStats.team1.serv1stWon + matchStats.team1.serv2ndWon;
+    matchStats.team2.pointsWon = matchStats.team2.serv1stWon + matchStats.team2.serv2ndWon;
+
     matchStats.team1.pointsWonPct = totalPoints > 0 ? (matchStats.team1.pointsWon / totalPoints) * 100 : 0;
     matchStats.team2.pointsWonPct = totalPoints > 0 ? (matchStats.team2.pointsWon / totalPoints) * 100 : 0;
-    
+
     return stats;
 }
 
 function populateAllResultsViews() {
-    const allStats = calculateAllStats();
-    const matchStats = allStats.match;
+    /* =========================================================================
+       CHANGE 2: populateAllResultsViews()
+       - FIX: Use the same period keys produced by calculateAllStats(): 'match', 'set0', 'set1', ...
+       - FIX: Player "Serving Performance" must use player.serv* fields (NOT player.ret*).
+       - FIX: Player "Serving Breakdown" must use servDeuce / servAd fields.
+       - FIX: Labels: Set numbers are 1-based in the UI.
+       ========================================================================= */
 
+    const allStats = calculateAllStats();
+    const numSets = matchData.scores.team1.length;
+    const periods = ['match', ...Array.from({ length: numSets }, (_, i) => `set${i}`)];
+
+    // --- Summary ---
     document.getElementById('summary-content').innerHTML = `
-        <h3 class="results-subtitle">🏆 Final Score</h3>
-        <div class="final-score">🔵 ${matchData.scores.team1.join('-')} &nbsp; | &nbsp; 🔴 ${matchData.scores.team2.join('-')}</div>
-        <div class="match-details">${matchData.location} • ${matchData.surface} • ${matchData.date}</div>
-        <h3 class="results-subtitle">Players</h3>
-        <div class="stats-grid" style="grid-template-columns: 1fr 1fr; text-align: left; padding: 0 1rem;">
-            <div><b>🔵 Team 1:</b><br>${matchData.players.player1}<br>${matchData.players.player2}</div>
-            <div><b>🔴 Team 2:</b><br>${matchData.players.player3}<br>${matchData.players.player4}</div>
-        </div>
-        <h3 class="results-subtitle">Points Won</h3>
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player1')}/${getAbbrev('player2')}</div><div class="stat-value">${matchStats.team1.pointsWon} (${matchStats.team1.pointsWonPct.toFixed(0)}%)</div></div>
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player3')}/${getAbbrev('player4')}</div><div class="stat-value">${matchStats.team2.pointsWon} (${matchStats.team2.pointsWonPct.toFixed(0)}%)</div></div>
-        </div>
+        <h3 class="results-subtitle">🏆 Match Summary</h3>
+        <table class="results-table">
+            <thead><tr><th>Team</th><th>Points Won</th><th>%</th></tr></thead>
+            <tbody>
+                <tr><td>Team 1</td><td>${allStats.match.team1.pointsWon}</td><td>${allStats.match.team1.pointsWonPct.toFixed(0)}%</td></tr>
+                <tr><td>Team 2</td><td>${allStats.match.team2.pointsWon}</td><td>${allStats.match.team2.pointsWonPct.toFixed(0)}%</td></tr>
+            </tbody>
+        </table>
     `;
 
-    const numSets = matchData.scores.team1.length;
-    const periods = ['match', ...Array.from({length: numSets}, (_, i) => `set${i}`)];
-    
-    ['team1', 'team2'].forEach((teamKey, i) => {
-        document.getElementById(`${teamKey}-title`).innerHTML = `${i===0 ? '🔵' : '🔴'} ${matchData.players[matchData.teams[teamKey][0]]} & ${matchData.players[matchData.teams[teamKey][1]]}`;
-        let table = `<table class="results-table"><thead><tr><th>Serving</th><th>1st In %</th><th>1st Won %</th><th>2nd Won %</th></tr></thead><tbody>`;
-        periods.forEach((p, i) => table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${allStats[p][teamKey].serv1stInPct.toFixed(0)}%</td><td>${allStats[p][teamKey].serv1stWonPct.toFixed(0)}%</td><td>${allStats[p][teamKey].serv2ndWonPct.toFixed(0)}%</td></tr>`);
-        table += `</tbody><thead><tr><th>Returning</th><th>vs 1st</th><th>vs 2nd</th><th></th></tr></thead><tbody>`;
-        periods.forEach((p, i) => table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${allStats[p][teamKey].ret1stWonPct.toFixed(0)}%</td><td>${allStats[p][teamKey].ret2ndWonPct.toFixed(0)}%</td><td></td></tr>`);
-        table += `</tbody><thead><tr><th>2nd Shot Misses</th><th>Serving</th><th>Returning</th><th></th></tr></thead><tbody>`;
-        periods.forEach((p, i) => table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${allStats[p][teamKey].ssServing}</td><td>${allStats[p][teamKey].ssReturning}</td><td></td></tr>`);
+    // --- Team Results ---
+    ['team1', 'team2'].forEach(teamKey => {
+        document.getElementById(`${teamKey}-title`).innerHTML =
+            `👥 ${matchData.teams[teamKey].map(p => matchData.players[p]).join(' & ')}`;
+
+        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3>
+            <table class="results-table">
+            <thead><tr><th>Period</th><th>1st In %</th><th>1st Won %</th><th>2nd Won %</th><th>Double Faults</th><th>Missed Serving</th><th>Missed Returning</th></tr></thead><tbody>`;
+
+        periods.forEach((pk) => {
+            const teamStats = allStats[pk][teamKey];
+
+            const df = 0; // placeholder
+            const ssMissServing = 0;
+            const ssMissReturning = 0;
+
+            const label = (pk === 'match') ? 'Match' : `Set ${Number(pk.replace('set', '')) + 1}`;
+
+            table += `<tr>
+                <td>${label}</td>
+                <td>${teamStats.serv1stInPct.toFixed(0)}%</td>
+                <td>${teamStats.serv1stWonPct.toFixed(0)}%</td>
+                <td>${teamStats.serv2ndWonPct.toFixed(0)}%</td>
+                <td>${df}</td>
+                <td>${ssMissServing}</td>
+                <td>${ssMissReturning}</td>
+            </tr>`;
+        });
+
         table += `</tbody></table>`;
         document.getElementById(`${teamKey}-results-card`).innerHTML = table;
     });
 
+    // --- Individual Player Results ---
     ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
         document.getElementById(`${pKey}-title`).innerHTML = `👤 ${matchData.players[pKey]}`;
-        
-        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Overall</th><th>1st In %</th><th>1st Won %</th><th>2nd Won %</th></tr></thead><tbody>`;
-        periods.forEach((p, i) => {
-            const playerStats = allStats[p][pKey];
-            const oppTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
-            const oppStats = allStats[p][oppTeamKey];
-            
-            // Player's serving performance is the inverse of the opponent's returning performance
-            const servTotal = oppStats.ret1stTotal + oppStats.ret2ndTotal;
-            const serv1stTotal = oppStats.ret1stTotal;
-            const serv1stWon = serv1stTotal - oppStats.ret1stWon;
-            const serv2ndWon = (oppStats.ret2ndTotal - oppStats.ret2ndWon);
 
-            const s1In = servTotal > 0 ? (serv1stTotal / servTotal) * 100 : 0;
-            const s1Won = serv1stTotal > 0 ? (serv1stWon / serv1stTotal) * 100 : 0;
-            const s2Won = (oppStats.ret2ndTotal) > 0 ? (serv2ndWon / oppStats.ret2ndTotal) * 100 : 0;
+        let table = `<h3 class="results-subtitle">📤 Serving Performance</h3>
+            <table class="results-table">
+            <thead><tr><th>Period</th><th>1st In %</th><th>1st Won %</th><th>2nd Won %</th></tr></thead><tbody>`;
 
-            table += `<tr><td>${p === 'match' ? 'Match' : `Set ${i}`}</td><td>${s1In.toFixed(0)}%</td><td>${s1Won.toFixed(0)}%</td><td>${s2Won.toFixed(0)}%</td></tr>`;
+        periods.forEach(pk => {
+            const ps = allStats[pk][pKey];
+
+            const totalServes = ps.serv1stTotal + ps.serv2ndTotal;
+            const s1In = totalServes > 0 ? (ps.serv1stTotal / totalServes) * 100 : 0;
+            const s1Won = ps.serv1stTotal > 0 ? (ps.serv1stWon / ps.serv1stTotal) * 100 : 0;
+            const s2Won = ps.serv2ndTotal > 0 ? (ps.serv2ndWon / ps.serv2ndTotal) * 100 : 0;
+
+            const label = (pk === 'match') ? 'Match' : `Set ${Number(pk.replace('set', '')) + 1}`;
+
+            table += `<tr>
+                <td>${label}</td>
+                <td>${s1In.toFixed(0)}%</td>
+                <td>${s1Won.toFixed(0)}%</td>
+                <td>${s2Won.toFixed(0)}%</td>
+            </tr>`;
         });
 
-        table += `</tbody></table><table class="results-table"><thead><tr><th>By Side</th><th colspan="2">Deuce Side (1st/2nd)</th><th colspan="2">Ad Side (1st/2nd)</th></tr></thead><tbody>`;
-        for(let i=0; i < numSets; i++) {
-             const setStats = allStats[`set${i}`];
-             const oppTeamKey = matchData.teams.team1.includes(pKey) ? 'team2' : 'team1';
-             const deuceReturnerKey = matchData.returnerHistory[oppTeamKey].deuce;
-             const adReturnerKey = matchData.returnerHistory[oppTeamKey].ad;
+        table += `</tbody></table>`;
 
-             const s_d1_w = setStats[deuceReturnerKey].retDeuceFirstTotal - setStats[deuceReturnerKey].retDeuceFirstWon;
-             const s_d2_w = setStats[deuceReturnerKey].retDeuceSecondTotal - setStats[deuceReturnerKey].retDeuceSecondWon;
-             const s_a1_w = setStats[adReturnerKey].retAdFirstTotal - setStats[adReturnerKey].retAdFirstWon;
-             const s_a2_w = setStats[adReturnerKey].retAdSecondTotal - setStats[adReturnerKey].retAdSecondWon;
-
-            table += `<tr><td>Set ${i+1}</td><td>${s_d1_w}/${setStats[deuceReturnerKey].retDeuceFirstTotal}</td><td>${s_d2_w}/${setStats[deuceReturnerKey].retDeuceSecondTotal}</td><td>${s_a1_w}/${setStats[adReturnerKey].retAdFirstTotal}</td><td>${s_a2_w}/${setStats[adReturnerKey].retAdSecondTotal}</td></tr>`;
-        }
-
-        table += `</tbody></table><h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Set</th><th colspan="2">Deuce Side (1st/2nd)</th><th colspan="2">Ad Side (1st/2nd)</th></tr></thead><tbody>`;
-        for(let i=0; i < numSets; i++) {
+        // Serving breakdown by side (per set)
+        table += `<table class="results-table">
+            <thead><tr><th>Serving Breakdown</th><th>Deuce Side (1st/2nd)</th><th>Ad Side (1st/2nd)</th></tr></thead><tbody>`;
+        for (let i = 0; i < numSets; i++) {
             const s = allStats[`set${i}`][pKey];
-            table += `<tr><td>Set ${i+1}</td><td>${s.retDeuceFirstWon}/${s.retDeuceFirstTotal}</td><td>${s.retDeuceSecondWon}/${s.retDeuceSecondTotal}</td><td>${s.retAdFirstWon}/${s.retAdFirstTotal}</td><td>${s.retAdSecondWon}/${s.retAdSecondTotal}</td></tr>`;
-        }
-        table += `</tbody></table><h3 class="results-subtitle">🎯 2nd Shot Misses</h3><table class="results-table"><thead><tr><th>Set</th><th>Server</th><th>Net</th><th>Deuce Ret</th><th>Ad Ret</th></tr></thead><tbody>`;
-        for(let i=0; i < numSets; i++) {
-            const s = allStats[`set${i}`][pKey];
-            table += `<tr><td>Set ${i+1}</td><td>${s.ssMisses.S}</td><td>${s.ssMisses.N}</td><td>${s.ssMisses.D}</td><td>${s.ssMisses.A}</td></tr>`;
+            table += `<tr>
+                <td>Set ${i + 1}</td>
+                <td>${s.servDeuceFirstWon}/${s.servDeuceFirstTotal}<br>${s.servDeuceSecondWon}/${s.servDeuceSecondTotal}</td>
+                <td>${s.servAdFirstWon}/${s.servAdFirstTotal}<br>${s.servAdSecondWon}/${s.servAdSecondTotal}</td>
+            </tr>`;
         }
         table += `</tbody></table>`;
+
+        // Return breakdown (kept as-is structurally, but remove empty filler <td>s)
+        table += `<h3 class="results-subtitle">🔥 Return Breakdown</h3>
+            <table class="results-table">
+            <thead><tr><th>Set</th><th>Deuce Side (1st/2nd)</th><th>Ad Side (1st/2nd)</th></tr></thead><tbody>`;
+        for (let i = 0; i < numSets; i++) {
+            const s = allStats[`set${i}`][pKey];
+            table += `<tr>
+                <td>Set ${i + 1}</td>
+                <td>${s.retDeuceFirstWon}/${s.retDeuceFirstTotal}<br>${s.retDeuceSecondWon}/${s.retDeuceSecondTotal}</td>
+                <td>${s.retAdFirstWon}/${s.retAdFirstTotal}<br>${s.retAdSecondWon}/${s.retAdSecondTotal}</td>
+            </tr>`;
+        }
+        table += `</tbody></table>`;
+
+        // Second-shot misses
+        table += `<h3 class="results-subtitle">🎯 2nd Shot Misses</h3>
+            <table class="results-table">
+            <thead><tr><th>Set</th><th>Serve</th><th>Net</th><th>Deuce Ret</th><th>Ad Ret</th></tr></thead><tbody>`;
+        for (let i = 0; i < numSets; i++) {
+            const ss = allStats[`set${i}`][pKey].ssMisses;
+            table += `<tr><td>Set ${i + 1}</td><td>${ss.S}</td><td>${ss.N}</td><td>${ss.D}</td><td>${ss.A}</td></tr>`;
+        }
+        table += `</tbody></table>`;
+
         document.getElementById(`${pKey}-results-card`).innerHTML = table;
     });
 }
+
+
 
 function generatePdf() {
     if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
@@ -589,3 +763,6 @@ function generatePdf() {
         pdf.save(filename);
     });
 }
+
+
+

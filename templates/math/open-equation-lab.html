@@ -1,0 +1,207 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="math-page-container">
+  <header class="page-header">
+    <h1>Open Equation Lab</h1>
+    <p class="author-info">A public, test-driven effort to reduce nature to its fundamental equations</p>
+
+    <p class="project-kickoff">
+      <strong>Project kickoff:</strong> May 2026 &nbsp;·&nbsp; Early contributors welcome
+    </p>
+
+  </header>
+
+  <!-- Executive Summary -->
+  <section id="executive-summary" class="content-section">
+    <h2>Executive Summary</h2>
+
+    <h3>What this is</h3>
+    <p>
+      <strong>Open Equation Lab</strong> is a public, test-driven effort to identify the smallest possible set of equations
+      that fully describe our universe. We begin from today’s successful models across physics and chemistry and make them
+      compete under shared stress tests to discover what is fundamental, what is emergent, and what is redundant.
+    </p>
+
+    <h3>The end goal</h3>
+    <p>
+      Reduce thousands of equations down to a minimal explanatory core—possibly a small set, possibly even one—that reproduces
+      observed physical and chemical phenomena within stated tolerances.
+    </p>
+
+    <h3>How it works</h3>
+    <p>
+      Contributors submit <strong>Equation Cards</strong> (equations + definitions + domain + observable outputs + a minimal test).
+      The community proposes <strong>Stress Tests</strong>. Each model earns a profile: <em>Pass / Partial / Fail / Untested</em>.
+      Over time we track equivalence, incompatibility, and subsumption to enable iterative reduction.
+    </p>
+
+    <h3>Why a big library?</h3>
+    <p>
+      The equation library is the <strong>selection environment</strong>, not the destination. Selection requires abundance.
+      Even if ultimate reduction succeeds, the library remains a valuable public record of what works, what fails, and why.
+    </p>
+
+  </section>
+
+  <!-- Full Description -->
+  <section id="full-description" class="content-section">
+    <h2>Full Description</h2>
+
+    <h3>What this is</h3>
+    <p>
+      <strong>Open Equation Lab is a public, test-driven effort to identify the smallest possible set of equations that fully
+      describe our universe.</strong>
+    </p>
+    <p>
+      Modern science relies on many overlapping models—classical mechanics, quantum mechanics, quantum field theory,
+      general relativity, cosmology, and chemical interaction laws—each successful within specific domains. Open Equation Lab
+      does not assume which equations are fundamental. Instead, it collects equations that describe real physical and chemical
+      phenomena, evaluates them against shared stress tests, tracks redundancy and subsumption, and iteratively reduces the set
+      toward a minimal explanatory core.
+    </p>
+
+    <h3>Why this project exists</h3>
+    <p>
+      Science advances by proposing many partial explanations, testing them against observation, retaining what works,
+      and discarding or absorbing what does not. Open Equation Lab makes that competitive process explicit and public.
+      The project asks: what does each equation explain, where does it fail, and which equations survive the widest range
+      of observations with the fewest assumptions?
+    </p>
+
+    <h3>The end goal</h3>
+    <p>
+      The end goal is conceptual compression: reduce our description of the universe to the smallest possible set of equations
+      that reproduces observed physical and chemical phenomena within stated tolerances. The current Standard Model of particle
+      physics and the Standard Model of cosmology are examples of intermediate compressions—not assumed endpoints.
+    </p>
+
+    <h3>Why build a large equation library at all?</h3>
+    <p>
+      Although reduction is the goal, selection requires abundance. The library is the method, not the destination: a testing
+      ground, a record of failures and partial successes, a map of what is explained (and how), and a repository of reusable
+      structures for future unifying models.
+    </p>
+  </section>
+
+  <!-- Scope -->
+  <section id="scope" class="content-section">
+    <h2>Scope</h2>
+
+    <h3>Included</h3>
+    <ul>
+      <li><strong>Physics</strong> (classical, quantum, relativistic, cosmological)</li>
+      <li><strong>Chemistry</strong> (as the bridge layer between fundamental laws and structured matter)</li>
+    </ul>
+
+    <h3>Excluded (for now)</h3>
+    <ul>
+      <li>Climate science</li>
+      <li>Biology</li>
+    </ul>
+
+    <p>
+      These are excluded not because they are unimportant, but because they depend heavily on coarse-graining choices,
+      historical contingency, and boundary conditions far removed from fundamental description.
+    </p>
+  </section>
+
+  <!-- How it works -->
+  <section id="how-it-works" class="content-section">
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>Equation submission:</strong> contributors submit Equation Cards describing equations that model physical or chemical phenomena.</li>
+      <li><strong>Stress testing:</strong> equations are evaluated against shared sanity checks and observation-linked tests relevant to their stated domain.</li>
+      <li><strong>Relationship tracking:</strong> we record subsumption, equivalence, incompatibility, and complementarity.</li>
+      <li><strong>Iterative reduction:</strong> over time, equations fully subsumed or consistently failing lose standing, while robust structures persist and recombine.</li>
+    </ol>
+
+    <p>
+      No equation is accepted or rejected by vote. Observations and consistency constraints do the selecting.
+    </p>
+  </section>
+
+  <!-- Equation Card -->
+  <section id="equation-card" class="content-section">
+    <h2>The Equation Card (submission standard)</h2>
+    <p>Every contribution is an Equation Card with minimum clarity standards:</p>
+    <ul>
+      <li><strong>Title</strong></li>
+      <li><strong>Equation(s)</strong></li>
+      <li><strong>Variables &amp; units</strong></li>
+      <li><strong>Claimed domain</strong> (scale + regime)</li>
+      <li><strong>Phenomena claimed</strong></li>
+      <li><strong>Observational outputs</strong> (what is compared to data)</li>
+      <li><strong>Minimal test proposal</strong> (at least one discriminating check)</li>
+    </ul>
+
+    <p>
+      Encouraged: limiting cases, known failures/caveats, and relation to existing models. Novel ideas are allowed.
+      Authority is not required. Clarity is.
+    </p>
+  </section>
+
+  <!-- Stress Tests -->
+  <section id="stress-tests" class="content-section">
+    <h2>Stress tests</h2>
+
+    <h3>Universal sanity checks</h3>
+    <ul>
+      <li>Dimensional consistency</li>
+      <li>Conservation laws (when relevant)</li>
+      <li>Causality constraints (when relevant)</li>
+      <li>Stability under realistic inputs</li>
+      <li>Sensible limiting behavior</li>
+    </ul>
+
+    <h3>Observation-linked tests</h3>
+    <ul>
+      <li>Orbital dynamics, precession, and weak-field behavior</li>
+      <li>Redshift and lensing behavior</li>
+      <li>Scattering, spectra, and cross sections</li>
+      <li>Diffusion/transport rates and scaling laws</li>
+      <li>Binding energy trends and chemical constraints</li>
+    </ul>
+
+    <p>
+      An equation is evaluated only against tests relevant to its claimed domain.
+    </p>
+  </section>
+
+  <!-- Optional: Tiles/Links area, like your example -->
+  <section class="content-section calculator-links">
+    <h2>Next steps</h2>
+
+    <div class="tile-container">
+      <div class="tile">
+        <p>
+          Read the submission standard and see what an Equation Card looks like.
+        </p>
+        <a href="#" class="tile-link">
+          <h2>Equation Card Template (coming soon)</h2>
+        </a>
+      </div>
+
+      <div class="tile">
+        <p>
+          Propose an initial stress-test suite to help structure early evaluation.
+        </p>
+        <a href="#" class="tile-link">
+          <h2>Stress Tests (coming soon)</h2>
+        </a>
+      </div>
+
+      <div class="tile">
+        <p>
+          Learn how subsumption, equivalence, and “fossil equations” are handled.
+        </p>
+        <a href="#" class="tile-link">
+          <h2>Relationships &amp; Reduction (coming soon)</h2>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <p><a href="{{ url_for('tonys_math_musings') }}">&larr; Back to Tony's Math Musings</a></p>
+</div>
+{% endblock %}

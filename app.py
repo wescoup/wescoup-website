@@ -166,6 +166,10 @@ def cosmological_redshift_hypothesis():
 def redefining_gravity():
     return render_template('math/redefining-gravity.html')
 
+@app.route('/open-equation-lab')
+def open_equation_lab():
+    return render_template('math/open-equation-lab.html')
+
 # --- Tennis & Pickleblall Routes ---
 @app.route('/tonys-tennis-tools')
 def tonys_tennis_tools():
