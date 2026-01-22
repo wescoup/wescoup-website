@@ -18,12 +18,15 @@ from flask import g, make_response, redirect, url_for, flash
 # --- App Setup ---
 app = Flask(__name__)
 # --- Database Configuration ---
-# Heroku uses 'postgres://', but SQLAlchemy 2+ expects 'postgresql://'
-if 'DATABASE_URL' in os.environ:
-    uri = os.environ.get('DATABASE_URL').replace("://", "ql://", 1)
+# Heroku used to provide 'postgres://', but SQLAlchemy expects 'postgresql://'
+_db_url = os.environ.get('DATABASE_URL')
+if _db_url:
+    uri = _db_url
+    if uri.startswith('postgres://'):
+        uri = uri.replace('postgres://', 'postgresql://', 1)
 else:
     # Use SQLite for local development
-    uri = 'sqlite:///site.db' 
+    uri = 'sqlite:///site.db'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # Recommended to silence a warning
@@ -44,12 +47,25 @@ class User(db.Model):
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
 
+
+# --- Create tables (simple bootstrap for first deploy) ---
+# This is safe to run on startup; it will create missing tables if needed.
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception as e:
+        app.logger.error(f"DB table creation failed: {e}")
 # --- Identity Management ---
 USER_ID_COOKIE_NAME = 'user_id' # The key for the cookie
 
 @app.before_request
 def load_or_create_user():
     """Checks for a user cookie; loads the user or creates a new one."""
+
+    # Skip identity work for static assets
+    if request.path.startswith('/static') or request.path == '/favicon.ico':
+        return
+
     user_id_cookie = request.cookies.get(USER_ID_COOKIE_NAME)
 
     user = None # Initialize user object
@@ -101,12 +117,24 @@ def load_or_create_user():
     
 @app.after_request
 def set_user_cookie(response):
-    """Sets the long-term cookie if g.user is new or missing the cookie."""
-    if not request.cookies.get(USER_ID_COOKIE_NAME):
-        # Only set if the cookie is not already present from the request
-        # Setting a cookie requires a response object, which is why we do this here.
-        # We set a long-term cookie (e.g., 5 years)
-        response.set_cookie(USER_ID_COOKIE_NAME, g.user.id, max_age=60*60*24*365*5) 
+    """Ensure the browser has a stable user_id cookie.
+
+    We set/overwrite the cookie when:
+      - the request had no cookie, OR
+      - the request cookie doesn't match the resolved g.user.id (e.g., stale/invalid cookie)
+    """
+    try:
+        resolved_user_id = getattr(getattr(g, 'user', None), 'id', None)
+        if not resolved_user_id:
+            return response
+
+        incoming_cookie = request.cookies.get(USER_ID_COOKIE_NAME)
+        if (not incoming_cookie) or (incoming_cookie != resolved_user_id):
+            # Long-term cookie (5 years)
+            response.set_cookie(USER_ID_COOKIE_NAME, resolved_user_id, max_age=60*60*24*365*5)
+    except Exception as e:
+        app.logger.error(f"Failed setting user cookie: {e}")
+
     return response
 
 # (Your existing app.config['SECRET_KEY'] should be here or moved up)
@@ -319,3 +347,4 @@ if __name__ == '__main__':
 
 # Note: The Procfile uses gunicorn, which is correct for Heroku deployment.
 # The `if __name__ == '__main__':` block is only for running locally (e.g., `python app.py`).
+
