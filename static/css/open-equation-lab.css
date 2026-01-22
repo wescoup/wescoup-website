@@ -1,0 +1,109 @@
+/* Page-specific styles for Open Equation Lab */
+/* Keep this file small: only what global styles.css doesn’t already cover */
+
+.open-eq-lab .subtitle {
+  margin-top: 0.25rem;
+  color: #555;
+  font-size: 1.05rem;
+}
+
+.kickoff-banner {
+  margin: 1rem auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.03);
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.kickoff-sep {
+  opacity: 0.6;
+}
+
+.view-toggle {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.view-tab {
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #333;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.view-tab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}
+
+.view-tab.active {
+  border-color: #007bff;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.view-panel {
+  display: none;
+  margin-top: 1.5rem;
+}
+
+.view-panel.active {
+  display: block;
+}
+
+.left-align {
+  text-align: left;
+}
+
+.minor-heading {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+  color: #333;
+}
+
+.numbered {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.bulleted {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.quick-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}

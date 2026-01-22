@@ -1,0 +1,181 @@
+:root {
+  --snake-bg: #0f1115;
+  --snake-card: #161a22;
+  --snake-border: #2a3142;
+  --snake-text: #e8ecf4;
+  --snake-muted: #aeb6c8;
+}
+
+body {
+  background: var(--snake-bg);
+  color: var(--snake-text);
+}
+
+.snake-wrap {
+  max-width: 1100px;
+}
+
+.snake-title {
+  font-size: 1.75rem;
+  letter-spacing: 0.2px;
+}
+
+.snake-status {
+  font-size: 0.95rem;
+}
+
+.snake-status-row {
+  line-height: 1.1;
+}
+
+.snake-label {
+  color: var(--snake-muted);
+  margin-right: 0.25rem;
+}
+
+.snake-value {
+  font-weight: 700;
+}
+
+.snake-banner {
+  min-height: 1.25rem;
+  color: #ffd479;
+}
+
+.snake-card {
+  background: var(--snake-card);
+  border: 1px solid var(--snake-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.snake-card-body {
+  padding: 1rem;
+}
+
+.snake-bullets {
+  padding-left: 1.1rem;
+  color: var(--snake-muted);
+}
+
+.snake-muted {
+  color: var(--snake-muted);
+  font-size: 0.9rem;
+}
+
+.snake-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #2e7dff;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+
+.snake-canvas-wrap {
+  width: 100%;
+  border: 1px solid var(--snake-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+
+canvas#game {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #000;
+}
+
+.snake-controls .btn {
+  font-weight: 600;
+}
+
+/* Mobile comfort: give turn buttons a bit more height */
+@media (max-width: 575px) {
+  #btnLeft,
+  #btnRight {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+/* Mobile landscape: maximize canvas space (no scroll), big side paddles */
+@media (max-width: 991.98px) and (orientation: landscape) {
+  body.snake-playing {
+    overflow: hidden;
+  }
+
+  /* Hide the big header while playing to prevent the canvas from being pushed off-screen */
+  body.snake-playing header {
+    display: none !important;
+  }
+
+  body.snake-playing .container {
+    max-width: none;
+    width: 100vw;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Make the canvas area use the available viewport height */
+  body.snake-playing #gameArea {
+    position: relative;
+    height: 100dvh;
+    /* Fallback "safe area" so the playfield never sits under the paddles */
+    padding-left: calc(18vw + 1.25rem);
+    padding-right: calc(18vw + 1.25rem);
+  }
+
+  /* Big, fixed paddles on the sides (slightly smaller than before) */
+  body.snake-playing #btnLeft,
+  body.snake-playing #btnRight {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18vw;        /* was 22vw */
+    height: 54dvh;      /* was 62dvh */
+    z-index: 1000;
+    opacity: 0.95;
+  }
+
+  body.snake-playing #btnLeft {
+    left: 0.5rem;
+  }
+
+  body.snake-playing #btnRight {
+    right: 0.5rem;
+  }
+
+  /* Ensure the canvas does not sit under the paddles (now works because HTML has snake-playfield) */
+  body.snake-playing .snake-playfield {
+    width: calc(100vw - (18vw * 2) - 2.5rem);
+    margin: 0 auto;
+  }
+
+  body.snake-playing canvas#game {
+    max-height: 86dvh;
+  }
+
+	/* Mobile landscape: center Pause/Quit as a fixed, readable pair */
+	body.snake-playing #btnPause,
+	body.snake-playing #btnQuit {
+	  position: fixed;             /* 🔑 REQUIRED */
+	  left: 50%;
+	  width: min(42vw, 220px);
+	  display: inline-block;
+	  white-space: nowrap;
+	  z-index: 1000;
+	}
+
+
+  body.snake-playing #btnPause {
+    transform: translateX(calc(-100% - 0.5rem)); /* sit left of center */
+  }
+
+  body.snake-playing #btnQuit {
+    transform: translateX(0.5rem);               /* sit right of center */
+  }
+
+}

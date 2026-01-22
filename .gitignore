@@ -1,0 +1,47 @@
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# -------------------------
+# Flask / instance data
+# -------------------------
+instance/
+*.sqlite
+*.db
+
+# -------------------------
+# Environment / secrets
+# -------------------------
+.env
+.env.*
+*.key
+
+# -------------------------
+# Logs
+# -------------------------
+*.log
+
+# -------------------------
+# OS junk
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Editor / IDE
+# -------------------------
+.vscode/
+.idea/
+
+# -------------------------
+# Project-specific ignores
+# -------------------------
+terminal_python_commands.txt

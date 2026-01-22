@@ -1,0 +1,67 @@
+{
+  "level": 5,
+  "name": "Level 5",
+  "snake": {
+    "spawn": {
+      "x": 10,
+      "y": 12
+    },
+    "direction": "right",
+    "speedMs": 110
+  },
+  "winCondition": {
+    "targetScore": 8
+  },
+  "randomBadApples": {
+    "enabled": true,
+    "maxCount": 3
+  },
+  "obstacles": [
+    {
+      "type": "segment",
+      "orientation": "horizontal",
+      "start": {
+        "x": 21,
+        "y": 4
+      },
+      "length": 15
+    },
+    {
+      "type": "segment",
+      "orientation": "horizontal",
+      "start": {
+        "x": 21,
+        "y": 19
+      },
+      "length": 15
+    },
+    {
+      "type": "segment",
+      "orientation": "vertical",
+      "start": {
+        "x": 35,
+        "y": 4
+      },
+      "length": 16
+    },
+    {
+      "type": "segment",
+      "orientation": "vertical",
+      "start": {
+        "x": 21,
+        "y": 4
+      },
+      "length": 6
+    },
+    {
+      "type": "segment",
+      "orientation": "vertical",
+      "start": {
+        "x": 21,
+        "y": 14
+      },
+      "length": 6
+    }
+  ],
+  "notes": "Box shape with a left-side gap."
+}

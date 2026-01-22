@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="user-profile-container">
+    <h1>User Profile</h1>
+    
+    {% if user and user.is_authenticated %}
+    
+        <div class="profile-section authenticated-user">
+            <h2>Welcome Back, {{ user.username }}!</h2>
+            <p class="account-status">You are logged in with a **permanent, cross-browser account**.</p>
+
+            <div class="user-details">
+                <p><strong>Username:</strong></p>
+                <form method="POST" action="{{ url_for('change_username') }}" class="username-form">
+                    <input type="text" name="username" value="{{ user.username }}" required>
+                    <button type="submit" class="btn-secondary">Change</button>
+                </form>
+                
+                <p><strong>Email:</strong> {{ user.email }}</p>
+            </div>
+            
+            <hr>
+            
+            <h3>Account Management</h3>
+            <ul class="management-links">
+                <li><a href="#" data-link="change_password">Change Password</a></li>
+                <li><a href="#" data-link="change_email">Change Email</a></li>
+            </ul>
+        </div>
+        
+    {% else %}
+    
+        <div class="profile-section anonymous-user">
+            <h2>Hello, {{ user.username|default('Player1') }}</h2>
+            <p class="account-status">
+                Your current identity is browser-specific and saved as a long-term cookie.
+            </p>
+
+            <div class="user-details">
+                <p><strong>Change User Name:</strong></p>
+                <form method="POST" action="{{ url_for('change_username') }}" class="username-form">
+                    <input type="text" name="username" value="{{ user.username|default('Player1') }}" required>
+                    <button type="submit" class="btn-secondary">Change</button>
+                </form>
+                </div>
+            
+            <hr>
+            
+            <h3>Login for Cross-Browser Access</h3>
+            <p>Sync your progress and settings across your devices.</p>
+            
+            <ul class="upgrade-links">
+                <li><a href="#" data-link="register" class="btn-primary">Sign Up</a></li>
+                <li><a href="#" data-link="login">Log In</a></li>
+                <span>(If you have an existing account, login to sync this device.)</span>
+            </ul>
+        </div>
+        
+    {% endif %}
+
+</div>
+{% endblock %}
+
