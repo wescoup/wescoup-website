@@ -1,0 +1,21 @@
+{
+  "level": 2,
+  "name": "Level 2",
+  "snake": {
+    "spawn": {
+      "x": 10,
+      "y": 12
+    },
+    "direction": "right",
+    "speedMs": 110
+  },
+  "winCondition": {
+    "targetScore": 8
+  },
+  "randomBadApples": {
+    "enabled": true,
+    "maxCount": 3
+  },
+  "obstacles": [],
+  "notes": "Introduces random bad apples. No fixed obstacles."
+}

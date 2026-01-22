@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tony's Snake Game</title>
+
+    <!-- Low-tech styling: Bootstrap for layout + a small custom stylesheet -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/snake.css') }}">
+  </head>
+
+  <body>
+    <div class="container snake-wrap py-3">
+      <header class="snake-header mb-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+          <h1 class="snake-title mb-0">Tony's Snake Game</h1>
+
+          <div class="snake-status text-right">
+            <div class="snake-status-row">
+              <span class="snake-label">Level:</span>
+              <span id="uiLevel" class="snake-value">1</span>
+            </div>
+            <div class="snake-status-row">
+              <span class="snake-label">Score:</span>
+              <span id="uiScore" class="snake-value">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="uiBanner" class="snake-banner mt-2" aria-live="polite"></div>
+      </header>
+
+      <!-- Lobby (single-page "screen") -->
+      <section id="lobby" class="snake-card mb-3">
+        <div class="snake-card-body">
+          <div class="row align-items-end">
+            <div class="col-md-7">
+              <p class="mb-2">
+                Use the keyboard arrow keys (or the Left/Right buttons on mobile) to turn.
+                Eat the red apple, avoid the blue apples, and clear the score target to
+                unlock the next level.
+              </p>
+              <ul class="snake-bullets mb-0">
+                <li><strong>Left Arrow</strong> = turn left</li>
+                <li><strong>Right Arrow</strong> = turn right</li>
+                <li><strong>Space</strong> = pause / resume</li>
+              </ul>
+            </div>
+
+            <div class="col-md-5 mt-3 mt-md-0">
+              <label for="levelSelect" class="snake-label mb-1">Choose a level</label>
+              <select id="levelSelect" class="form-control">
+                <option value="1" selected>Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+              </select>
+
+              <div class="d-flex mt-2">
+                <button id="btnStart" type="button" class="btn btn-success flex-fill mr-2">
+                  Start
+                </button>
+                <button id="btnReset" type="button" class="btn btn-outline-secondary flex-fill">
+                  Reset
+                </button>
+              </div>
+
+              <div class="snake-muted mt-2">
+                <span class="snake-dot"></span>
+                Levels above what you've cleared (this session) will be locked.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game area -->
+      <section id="gameArea" class="snake-card" hidden>
+        <div class="snake-card-body">
+          <div class="row align-items-center">
+            <div class="col-12 col-lg-2 mb-2 mb-lg-0">
+              <div class="snake-controls">
+                <button id="btnLeft" type="button" class="btn btn-dark btn-block">
+                  Left
+                </button>
+              </div>
+            </div>
+
+            <!-- CHANGE: add snake-playfield so mobile CSS can reserve space -->
+            <div class="col-12 col-lg-8 snake-playfield">
+              <div class="snake-canvas-wrap">
+                <canvas id="game" width="800" height="400"></canvas>
+              </div>
+            </div>
+
+            <div class="col-12 col-lg-2 mt-2 mt-lg-0">
+              <div class="snake-controls">
+                <button id="btnRight" type="button" class="btn btn-dark btn-block">
+                  Right
+                </button>
+
+                <button id="btnPause" type="button" class="btn btn-outline-light btn-block mt-2">
+                  Pause
+                </button>
+                <button id="btnQuit" type="button" class="btn btn-outline-danger btn-block mt-2">
+                  Quit to Lobby
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/games/snake.js') }}"></script>
+  </body>
+</html>

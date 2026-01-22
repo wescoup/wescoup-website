@@ -1,0 +1,21 @@
+{
+  "level": 1,
+  "name": "Level 1",
+  "snake": {
+    "spawn": {
+      "x": 10,
+      "y": 12
+    },
+    "direction": "right",
+    "speedMs": 110
+  },
+  "winCondition": {
+    "targetScore": 8
+  },
+  "randomBadApples": {
+    "enabled": false,
+    "maxCount": 0
+  },
+  "obstacles": [],
+  "notes": "No bad apples. No fixed obstacles."
+}

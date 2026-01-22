@@ -243,6 +243,11 @@ def war_new_game():
         player_username=g.user.username
     )
 
+@app.route('/tonys-snake-game')
+def tonys_snake_game():
+    # I need to set this up for g.user in the future.
+    # player_username = g.user.username
+    return render_template('games/tonys-snake-game.html')
 
 @app.route('/war/game/<code>')
 def war_game_room(code):

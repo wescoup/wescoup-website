@@ -1,0 +1,58 @@
+{
+  "level": 3,
+  "name": "Level 3",
+  "snake": {
+    "spawn": {
+      "x": 10,
+      "y": 12
+    },
+    "direction": "right",
+    "speedMs": 110
+  },
+  "winCondition": {
+    "targetScore": 8
+  },
+  "randomBadApples": {
+    "enabled": true,
+    "maxCount": 3
+  },
+  "obstacles": [
+    {
+      "type": "segment",
+      "orientation": "vertical",
+      "start": {
+        "x": 21,
+        "y": 3
+      },
+      "length": 8
+    },
+    {
+      "type": "segment",
+      "orientation": "vertical",
+      "start": {
+        "x": 21,
+        "y": 13
+      },
+      "length": 8
+    },
+    {
+      "type": "segment",
+      "orientation": "vertical",
+      "start": {
+        "x": 29,
+        "y": 3
+      },
+      "length": 8
+    },
+    {
+      "type": "segment",
+      "orientation": "vertical",
+      "start": {
+        "x": 29,
+        "y": 13
+      },
+      "length": 8
+    }
+  ],
+  "notes": "Two columns split into upper/lower bars with a gap."
+}
