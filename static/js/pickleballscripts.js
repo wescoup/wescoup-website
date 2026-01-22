@@ -1,573 +1,724 @@
-// Tony's Pickleball Tracker JavaScript
+// Tony's Pickleball Singles Tracker JavaScript
+// Dynamic scoring + automatic server tracking for singles
+// Supports: side-out scoring and rally scoring
+//
+// Public functions referenced by HTML (do not rename):
+// initializeTracker, startNewMatch, updateScoringType, showSection, collectMatchInfo,
+// updateAllDisplays, updateReturnerDisplay, adjustGame, updateScoreDisplay, toggleServer,
+// updateServerButton, recordReturn, recordUnforcedError, recordThirdShotMiss, undoLastPoint,
+// saveCurrentMatch, loadAllMatches, activateMatch, deleteMatch, renderSavedMatchesList,
+// renderResults, showResultsView, generatePdf
 
-document.addEventListener('DOMContentLoaded', initializeTracker);
+(() => {
+  "use strict";
 
-let matchData = {};
-let allMatches = [];
-let currentView = 'match-info';
-let currentResultsView = 0;
-const totalResultsViews = 3; // Summary, P1, P2
+  const STORAGE_KEY = "singlesPickleballMatches";
 
-const initialMatchData = {
-    id: null,
-    players: { player1: 'P1', player2: 'P2' },
-    location: 'Local Court',
-    date: new Date().toISOString().split('T')[0],
-    scores: { player1: [0], player2: [0] },
-    pointHistory: [],
-    scoringType: 'rally'
-};
+  // Views
+  let currentView = "match-info";
+  let currentResultsView = 0;
+  const totalResultsViews = 3; // Summary, P1, P2
 
-function initializeTracker() {
-    document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
+  // In-memory state
+  let matchData = null;
+  let allMatches = [];
+
+  // ---------- State helpers ----------
+  function todayISO() {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+    function newMatchTemplate() {
+    return {
+      id: null,
+      players: { player1: "P1", player2: "P2" },
+      location: "Local Court",
+      date: todayISO(),
+      scoringType: "rally", // 'rally' | 'sideout'
+      // scores are per-game arrays, always append/pop the last game
+      scores: { player1: [0], player2: [0] },
+      currentServer: "player1",
+      pointHistory: [], // chronological events
+      // Event-based UI flag: true only immediately after a side-out rally (side-out scoring + returner won)
+      lastWasSideOut: false
+    };
+  }
+
+  function currentGameIndex() {
+    return matchData.scores.player1.length - 1;
+  }
+
+  function otherPlayer(pKey) {
+    return pKey === "player1" ? "player2" : "player1";
+  }
+
+  // Singles court-side is determined by the *server's* score parity for that game:
+  // even => deuce (right), odd => ad (left)
+  function getServerSideForCurrentGame() {
+    const g = currentGameIndex();
+    const s = matchData.currentServer;
+    const serverScore = matchData.scores[s][g] || 0;
+    return (serverScore % 2 === 0) ? "deuce" : "ad";
+  }
+
+  // Internal "expected next server" is the same as currentServer after applying rules.
+  function applySinglesRulesAfterRally({ returnWon }) {
+    const g = currentGameIndex();
+    const server = matchData.currentServer;
+    const returner = otherPlayer(server);
+
+    if (matchData.scoringType === "rally") {
+      const winner = returnWon ? returner : server;
+      matchData.scores[winner][g] = (matchData.scores[winner][g] || 0) + 1;
+      matchData.currentServer = winner; // winner serves next (standard rally convention)
+      return;
+    }
+
+    // side-out (traditional)
+    if (returnWon) {
+      // side-out, no point
+      matchData.currentServer = returner;
+      return;
+    }
+
+    // server won => point for server, keep serve
+    matchData.scores[server][g] = (matchData.scores[server][g] || 0) + 1;
+    // currentServer unchanged
+  }
+
+    function takeStateSnapshot() {
+    const g = currentGameIndex();
+    return {
+      gameIndex: g,
+      scores: {
+        player1: matchData.scores.player1[g],
+        player2: matchData.scores.player2[g]
+      },
+      currentServer: matchData.currentServer,
+      lastWasSideOut: !!matchData.lastWasSideOut
+    };
+  }
+
+    function restoreStateSnapshot(snap) {
+    if (!snap || typeof snap.gameIndex !== "number") return;
+
+    const g = snap.gameIndex;
+    // Ensure arrays are long enough (defensive)
+    while (matchData.scores.player1.length <= g) matchData.scores.player1.push(0);
+    while (matchData.scores.player2.length <= g) matchData.scores.player2.push(0);
+
+    matchData.scores.player1[g] = snap.scores.player1 ?? 0;
+    matchData.scores.player2[g] = snap.scores.player2 ?? 0;
+    matchData.currentServer = snap.currentServer || "player1";
+    matchData.lastWasSideOut = !!snap.lastWasSideOut;
+  }
+
+  // ---------- DOM helpers ----------
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function safeText(id, text) {
+    const el = $(id);
+    if (el) el.textContent = text;
+  }
+
+  function getAbbrev(playerKey) {
+    const name = matchData.players[playerKey] || (playerKey === "player1" ? "P1" : "P2");
+    return (name.trim()[0] || (playerKey === "player1" ? "P" : "P")).toUpperCase();
+  }
+
+  // ---------- Initialization ----------
+  document.addEventListener("DOMContentLoaded", initializeTracker);
+
+  function initializeTracker() {
     loadAllMatches();
     startNewMatch();
+
+    // Prefill match info inputs
+    $("player1").value = matchData.players.player1;
+    $("player2").value = matchData.players.player2;
+    $("location").value = matchData.location;
+    $("matchDate").value = matchData.date;
+    $("scoringType").value = matchData.scoringType;
+
+    renderSavedMatchesList();
+    showSection("match-info");
     initializeSwipeHandlers();
-}
+  }
 
-function startNewMatch() {
-    matchData = JSON.parse(JSON.stringify(initialMatchData));
-    matchData.id = Date.now();
-    
-    document.getElementById('player1').value = "P1";
-    document.getElementById('player2').value = "P2";
-    document.getElementById('location').value = "Local Court";
-    document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('scoringType').value = 'rally';
-    
-    showSection('match-info');
-    updateAllDisplays();
-}
+  // ---------- Navigation / Views ----------
+  function showSection(sectionId) {
+    // collect info when entering tracker
+    if (sectionId === "match-tracker") collectMatchInfo();
 
-function updateScoringType() {
-    matchData.scoringType = document.getElementById('scoringType').value;
-}
+    ["match-info", "match-tracker", "results", "saved-matches"].forEach(id => {
+      const el = $(id);
+      if (el) el.style.display = (id === sectionId ? "block" : "none");
+    });
 
-function showSection(sectionId) {
-    if (sectionId === 'match-tracker' && currentView === 'match-info') {
-        collectMatchInfo();
-    }
     currentView = sectionId;
 
-    document.querySelectorAll('.tennis-section').forEach(s => s.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
-
-    document.querySelectorAll('.tennis-nav-btn').forEach(b => b.classList.remove('active'));
-    const activeButton = document.querySelector(`.tennis-nav-btn[onclick="showSection('${sectionId}')"]`);
-    if (activeButton) activeButton.classList.add('active');
-    
-    if (sectionId === 'match-tracker') updateAllDisplays();
-    if (sectionId === 'results') {
-        renderResults();
-        populateAllResultsViews();
-        showResultsView(0);
+    if (sectionId === "match-tracker") {
+      updateAllDisplays();
+    } else if (sectionId === "results") {
+      renderResults();
+    } else if (sectionId === "saved-matches") {
+      renderSavedMatchesList();
     }
-    if (sectionId === 'saved-matches') renderSavedMatchesList();
-}
+  }
 
-function collectMatchInfo() {
-    ['player1', 'player2'].forEach(pKey => {
-        matchData.players[pKey] = document.getElementById(pKey).value.trim() || `P${pKey.slice(-1)}`;
-    });
-    matchData.location = document.getElementById('location').value.trim() || 'Local Court';
-    matchData.date = document.getElementById('matchDate').value;
-    matchData.scoringType = document.getElementById('scoringType').value;
-    matchData.currentServer = 'player1';
-}
+  function updateScoringType() {
+    if (!matchData) return;
+    matchData.scoringType = $("scoringType").value;
+  }
 
-function updateAllDisplays() {
-    if (currentView !== 'match-tracker' || !matchData.players) return;
+  function collectMatchInfo() {
+    if (!matchData) return;
+
+    matchData.players.player1 = $("player1").value.trim() || "P1";
+    matchData.players.player2 = $("player2").value.trim() || "P2";
+    matchData.location = $("location").value.trim() || "Local Court";
+    matchData.date = $("matchDate").value || todayISO();
+    matchData.scoringType = $("scoringType").value;
+
+    // If server was never set (new match), default to P1
+    if (!matchData.currentServer) matchData.currentServer = "player1";
+  }
+
+  // ---------- Display updates ----------
+  function updateAllDisplays() {
+    if (currentView !== "match-tracker" || !matchData) return;
+
     updateServerButton();
     updateScoreDisplay();
     updateReturnerDisplay();
-    updateThirdShotDisplay();
-    updateUnforcedErrorDisplay();
     updateReturnStringsDisplay();
-}
+    updateUnforcedErrorDisplay();
+    updateThirdShotDisplay();
+  }
 
-function updateReturnerDisplay() {
+  function updateScoreDisplay() {
+    if (!matchData) return;
+    const g = currentGameIndex();
+    safeText("player1NameScore", matchData.players.player1);
+    safeText("player2NameScore", matchData.players.player2);
+    safeText("player1Score", String(matchData.scores.player1[g] ?? 0));
+    safeText("player2Score", String(matchData.scores.player2[g] ?? 0));
+    safeText("currentGame", String(g + 1));
+  }
+
+    function updateServerButton() {
+    const btn = $("server-toggle-btn");
+    if (!btn || !matchData) return;
+
     const serverKey = matchData.currentServer;
-    const returnerKey = serverKey === 'player1' ? 'player2' : 'player1';
+    const serverName = matchData.players[serverKey];
+    const side = getServerSideForCurrentGame();
+
+    const sideOutSuffix = matchData.lastWasSideOut ? " - Side Out" : "";
+    btn.textContent = `Serving: ${serverName} (${side === "deuce" ? "Deuce" : "Ad"})${sideOutSuffix}`;
+  }
+
+  function updateReturnerDisplay() {
+    if (!matchData) return;
+    const returnerKey = otherPlayer(matchData.currentServer);
     const returnerName = matchData.players[returnerKey];
-    
-    const returnerDisplay = document.getElementById('currentReturner');
-    if (returnerDisplay) {
-        returnerDisplay.textContent = returnerName;
-    }
-}
+    safeText("currentReturner", `Current Returner: ${returnerName}`);
+  }
 
-// --- SCORE & GAME ---
-function adjustGame(change) {
+  // ---------- Match actions ----------
+  function startNewMatch() {
+    matchData = newMatchTemplate();
+  }
+
+    function adjustGame(change) {
     const newGameCount = matchData.scores.player1.length + change;
-    if (newGameCount > 0) {
-        if (change > 0) {
-            matchData.scores.player1.push(0);
-            matchData.scores.player2.push(0);
-        } else if (matchData.scores.player1.length > 1) {
-            matchData.scores.player1.pop();
-            matchData.scores.player2.pop();
-        }
+    if (newGameCount <= 0) return;
+
+    if (change > 0) {
+      matchData.scores.player1.push(0);
+      matchData.scores.player2.push(0);
+    } else if (matchData.scores.player1.length > 1) {
+      // Pop last game's score and remove any pointHistory entries tied to that game
+      const removedIndex = matchData.scores.player1.length - 1;
+      matchData.scores.player1.pop();
+      matchData.scores.player2.pop();
+      matchData.pointHistory = matchData.pointHistory.filter(p => p.gameIndex !== removedIndex);
     }
+
+    // Reset server to P1 when changing games (simple, consistent default)
+    matchData.currentServer = matchData.currentServer || "player1";
+    matchData.lastWasSideOut = false;
     updateAllDisplays();
-}
+  }
 
-function updateScoreDisplay() {
-    const gameIndex = matchData.scores.player1.length - 1;
-    document.getElementById('player1NameScore').textContent = getAbbrev('player1');
-    document.getElementById('player2NameScore').textContent = getAbbrev('player2');
-    document.getElementById('player1Score').textContent = matchData.scores.player1[gameIndex] || 0;
-    document.getElementById('player2Score').textContent = matchData.scores.player2[gameIndex] || 0;
-    document.getElementById('currentGame').textContent = matchData.scores.player1.length;
-}
-
-// --- SERVER & RETURNER ---
-function toggleServer() {
-    matchData.currentServer = matchData.currentServer === 'player1' ? 'player2' : 'player1';
+    function toggleServer() {
+    // Manual override: user can set server at any time
+    matchData.currentServer = otherPlayer(matchData.currentServer);
+    // Side-out label reflects the last rally outcome; manual changes should clear it.
+    matchData.lastWasSideOut = false;
     updateAllDisplays();
-}
+  }
 
-function updateServerButton() {
-    const serverName = matchData.players[matchData.currentServer] || 'P1';
-    const btn = document.getElementById('server-toggle-btn');
-    if (btn) {
-        btn.textContent = `${serverName}`;
-    }
-}
+  // ---------- Event recording ----------
+  // court: 'deuce' | 'ad' (receiver side that made the return)
+  // won: true if returner won the rally, false if server won
+    // court: 'deuce' | 'ad' (receiver side that made the return)
+  // won: true if returner won the rally, false if server won
+  function recordReturn(court, won) {
+    if (!matchData) return;
 
-function getAbbrev(playerKey) {
-    if (matchData && matchData.players[playerKey]) {
-        return matchData.players[playerKey].substring(0, 3);
-    }
-    return '';
-}
+    const g = currentGameIndex();
+    const server = matchData.currentServer;
+    const returner = otherPlayer(server);
 
-// --- POINT & GAME TRACKING ---
-function recordReturn(court, won) {
-    const returner = matchData.currentServer === 'player1' ? 'player2' : 'player1';
-    const lastPoint = {
-        gameIndex: matchData.scores.player1.length - 1,
-        server: matchData.currentServer,
-        returner: returner,
-        side: court,
-        outcome: won ? '1' : '0',
-        type: 'return'
-    };
-    matchData.pointHistory.push(lastPoint);
+    const prev = takeStateSnapshot();
 
-    const gameIndex = matchData.scores.player1.length - 1;
-    
-    if (won) {
-        matchData.scores[returner][gameIndex]++;
-        toggleServer();
-    } else {
-        matchData.scores[matchData.currentServer][gameIndex]++;
-        if (matchData.scoringType === 'sideout') {
-            toggleServer();
-        }
-    }
-    updateAllDisplays();
-}
+    // Side-out label is event-based: only true immediately after a side-out rally.
+    matchData.lastWasSideOut = (matchData.scoringType === "sideout" && !!won);
 
-function recordUnforcedError(playerKey) {
+    // Apply scoring + server rules
+    applySinglesRulesAfterRally({ returnWon: !!won });
+
+    // Store event for analytics + undo
     matchData.pointHistory.push({
-        gameIndex: matchData.scores.player1.length - 1,
-        playerKey: playerKey,
-        type: 'unforcedError'
+      type: "return",
+      gameIndex: g,
+      server,
+      returner,
+      side: court,              // receiver side that hit the return
+      outcome: won ? "R" : "S",  // rally winner relative to the return (R=returner won, S=server won)
+      prevState: prev
+    });
+
+    updateAllDisplays();
+  }
+
+  function recordUnforcedError(playerKey) {
+    if (!matchData) return;
+    matchData.pointHistory.push({
+      type: "unforcedError",
+      gameIndex: currentGameIndex(),
+      playerKey
     });
     updateUnforcedErrorDisplay();
-}
+  }
 
-function recordThirdShotMiss(playerKey) {
+  function recordThirdShotMiss(playerKey) {
+    if (!matchData) return;
     matchData.pointHistory.push({
-        gameIndex: matchData.scores.player1.length - 1,
-        playerKey: playerKey,
-        position: playerKey === matchData.currentServer ? 'S' : 'R',
-        type: 'thirdShotMiss'
+      type: "thirdShotMiss",
+      gameIndex: currentGameIndex(),
+      playerKey,
+      position: playerKey === matchData.currentServer ? "S" : "R"
     });
     updateThirdShotDisplay();
-}
+  }
 
-function undoLastPoint() {
-    if (matchData.pointHistory.length === 0) return;
-    const lastPoint = matchData.pointHistory.pop();
-    if (lastPoint.type === 'return') {
-        const gameIndex = matchData.scores.player1.length - 1;
-        if (lastPoint.outcome === '1') {
-            matchData.scores[lastPoint.returner][gameIndex] = Math.max(0, matchData.scores[lastPoint.returner][gameIndex] - 1);
-            if (matchData.scoringType === 'rally') {
-                 toggleServer();
-            }
-        } else {
-            matchData.scores[lastPoint.server][gameIndex] = Math.max(0, matchData.scores[lastPoint.server][gameIndex] - 1);
-            if (matchData.scoringType === 'sideout') {
-                 toggleServer();
-            }
-        }
+  function undoLastPoint() {
+    if (!matchData || matchData.pointHistory.length === 0) return;
+
+    const last = matchData.pointHistory.pop();
+    if (last && last.prevState) {
+      restoreStateSnapshot(last.prevState);
     }
+
     updateAllDisplays();
-}
+  }
 
-function updateReturnStringsDisplay() {
-    if (currentView !== 'match-tracker') return;
-    const currentGamePoints = matchData.pointHistory.filter(p => p.gameIndex === matchData.scores.player1.length - 1);
-    const currentReturner = matchData.currentServer === 'player1' ? 'player2' : 'player1';
-    
-    const strings = { deuce: '', ad: '' };
-    
-    currentGamePoints.forEach(p => {
-        if (p.type === 'return' && p.returner === currentReturner) {
-            strings[p.side] += p.outcome;
-        }
-    });
+  // ---------- Displays: return strings ----------
+  function updateReturnStringsDisplay() {
+    if (!matchData) return;
 
-    document.getElementById('deuce_return_str').textContent = strings.deuce || "-";
-    document.getElementById('ad_return_str').textContent = strings.ad || "-";
-}
-
-// --- UNFORCED ERROR & THIRD SHOT DISPLAYS (Per-Game) ---
-function updateUnforcedErrorDisplay() {
-    if (currentView !== 'match-tracker') return;
-    
-    document.getElementById('p1_ue').textContent = getAbbrev('player1');
-    document.getElementById('p2_ue').textContent = getAbbrev('player2');
-
-    const currentGameIndex = matchData.scores.player1.length - 1;
-    let tally = { player1:0, player2:0 };
-    matchData.pointHistory
-        .filter(p => p.type === 'unforcedError' && p.gameIndex === currentGameIndex)
-        .forEach(p => tally[p.playerKey]++);
-    
-    let tallyHTML = '';
-    ['player1', 'player2'].forEach(pKey => {
-        if (tally[pKey] > 0) tallyHTML += `<span>${getAbbrev(pKey)}: ${tally[pKey]}</span>`;
-    });
-    document.getElementById('ueTally').innerHTML = tallyHTML || '<span>No errors this game</span>';
-}
-
-function updateThirdShotDisplay() {
-    if (currentView !== 'match-tracker') return;
+    const g = currentGameIndex();
     const serverKey = matchData.currentServer;
-    
-    document.getElementById('p1_3rd').textContent = `${getAbbrev('player1')}-${'player1' === serverKey ? 'S' : 'R'}`;
-    document.getElementById('p2_3rd').textContent = `${getAbbrev('player2')}-${'player2' === serverKey ? 'R' : 'S'}`;
+    const returnerKey = otherPlayer(serverKey);
 
-    const currentGameIndex = matchData.scores.player1.length - 1;
-    let tally = { player1:0, player2:0 };
+    // Build strings for the *current returner* (so the UI aligns with "Current Returner")
+    const events = matchData.pointHistory.filter(p => p.type === "return" && p.gameIndex === g && p.returner === returnerKey);
+
+    const strings = { deuce: "", ad: "" };
+    for (const e of events) {
+      const symbol = (e.outcome === "R") ? "W" : "L"; // W/L from returner's perspective
+      if (e.side === "deuce") strings.deuce += symbol;
+      if (e.side === "ad") strings.ad += symbol;
+    }
+
+    safeText("deuce_return_str", strings.deuce || "-");
+    safeText("ad_return_str", strings.ad || "-");
+  }
+
+  // ---------- Displays: Unforced errors ----------
+  function updateUnforcedErrorDisplay() {
+    if (currentView !== "match-tracker" || !matchData) return;
+
+    const g = currentGameIndex();
+    const tally = { player1: 0, player2: 0 };
+
     matchData.pointHistory
-        .filter(p => p.type === 'thirdShotMiss' && p.gameIndex === currentGameIndex)
-        .forEach(p => tally[p.playerKey]++);
-    
-    let tallyHTML = '';
-    ['player1', 'player2'].forEach(pKey => {
-        if (tally[pKey] > 0) tallyHTML += `<span>${getAbbrev(pKey)}: ${tally[pKey]}</span>`;
-    });
-    document.getElementById('3rdShotMissTally').innerHTML = tallyHTML || '<span>No misses this game</span>';
-}
+      .filter(p => p.type === "unforcedError" && p.gameIndex === g)
+      .forEach(p => { if (tally[p.playerKey] != null) tally[p.playerKey] += 1; });
 
+    const p1 = `${getAbbrev("player1")}`;
+    const p2 = `${getAbbrev("player2")}`;
+    $("p1_ue").textContent = p1;
+    $("p2_ue").textContent = p2;
 
-// --- LOCAL STORAGE & MATCH MANAGEMENT ---
-function saveCurrentMatch() {
-    const existingIndex = allMatches.findIndex(m => m.id === matchData.id);
-    if (existingIndex > -1) {
-        allMatches[existingIndex] = JSON.parse(JSON.stringify(matchData));
+    $("ueTally").innerHTML = `
+      <div style="display:flex;justify-content:space-between;">
+        <span>${matchData.players.player1}: <b>${tally.player1}</b></span>
+        <span>${matchData.players.player2}: <b>${tally.player2}</b></span>
+      </div>`;
+  }
+
+  // ---------- Displays: Third shot misses ----------
+  function updateThirdShotDisplay() {
+    if (currentView !== "match-tracker" || !matchData) return;
+
+    const serverKey = matchData.currentServer;
+
+    $("p1_3rd").textContent = `${getAbbrev("player1")}-${("player1" === serverKey) ? "S" : "R"}`;
+    $("p2_3rd").textContent = `${getAbbrev("player2")}-${("player2" === serverKey) ? "R" : "S"}`;
+
+    const g = currentGameIndex();
+    const tally = { player1: 0, player2: 0 };
+    matchData.pointHistory
+      .filter(p => p.type === "thirdShotMiss" && p.gameIndex === g)
+      .forEach(p => { if (tally[p.playerKey] != null) tally[p.playerKey] += 1; });
+
+    $("3rdShotMissTally").innerHTML = `
+      <div style="display:flex;justify-content:space-between;">
+        <span>${matchData.players.player1}: <b>${tally.player1}</b></span>
+        <span>${matchData.players.player2}: <b>${tally.player2}</b></span>
+      </div>`;
+  }
+
+  // ---------- Persistence ----------
+  function loadAllMatches() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      allMatches = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(allMatches)) allMatches = [];
+    } catch {
+      allMatches = [];
+    }
+  }
+
+  function saveAllMatches() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allMatches));
+  }
+
+  function saveCurrentMatch() {
+    if (!matchData) return;
+
+    // Ensure match info is current
+    collectMatchInfo();
+
+    if (!matchData.id) {
+      matchData.id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      allMatches.unshift(deepClone(matchData));
     } else {
-        allMatches.push(JSON.parse(JSON.stringify(matchData)));
+      const idx = allMatches.findIndex(m => m.id === matchData.id);
+      if (idx >= 0) allMatches[idx] = deepClone(matchData);
+      else allMatches.unshift(deepClone(matchData));
     }
-    localStorage.setItem('singlesPickleballMatches', JSON.stringify(allMatches));
-    alert(`Match "${matchData.date}" saved!`);
-}
 
-function loadAllMatches() {
-    const saved = localStorage.getItem('singlesPickleballMatches');
-    if (saved) allMatches = JSON.parse(saved);
-}
+    saveAllMatches();
+    renderSavedMatchesList();
+    showSection("saved-matches");
+  }
 
-function activateMatch(id) {
-    const matchToLoad = allMatches.find(m => m.id === id);
-    if (matchToLoad) {
-        matchData = JSON.parse(JSON.stringify(matchToLoad));
-        
-        ['player1', 'player2'].forEach(pKey => {
-            document.getElementById(pKey).value = matchData.players[pKey];
-        });
-        document.getElementById('location').value = matchData.location;
-        document.getElementById('matchDate').value = matchData.date;
-        document.getElementById('scoringType').value = matchData.scoringType || 'rally';
+  function activateMatch(matchId) {
+    const found = allMatches.find(m => m.id === matchId);
+    if (!found) return;
+    matchData = deepClone(found);
 
-        showSection('match-tracker');
-    }
-}
+    // Sync inputs
+    $("player1").value = matchData.players.player1;
+    $("player2").value = matchData.players.player2;
+    $("location").value = matchData.location;
+    $("matchDate").value = matchData.date;
+    $("scoringType").value = matchData.scoringType;
 
-function deleteMatch(id) {
-    if (confirm('Are you sure you want to delete this match?')) {
-        allMatches = allMatches.filter(m => m.id !== id);
-        localStorage.setItem('singlesPickleballMatches', JSON.stringify(allMatches));
-        renderSavedMatchesList();
-    }
-}
+    showSection("match-tracker");
+  }
 
-function renderSavedMatchesList() {
-    const container = document.getElementById('saved-matches-list');
+  function deleteMatch(matchId) {
+    allMatches = allMatches.filter(m => m.id !== matchId);
+    saveAllMatches();
+    renderSavedMatchesList();
+  }
+
+  function renderSavedMatchesList() {
+    const list = $("saved-matches-list");
+    if (!list) return;
+
+    loadAllMatches();
+
     if (allMatches.length === 0) {
-        container.innerHTML = '<p style="text-align:center;">No saved matches yet. Complete a match and save it from the Results tab.</p>';
-        return;
+      list.innerHTML = `<div style="opacity:.8;">No saved matches yet.</div>`;
+      return;
     }
-    
-    let html = '';
-    [...allMatches].reverse().forEach(match => {
-        const p1 = match.players.player1;
-        const p2 = match.players.player2;
-        const score = `${match.scores.player1.join('-')} | ${match.scores.player2.join('-')}`;
-        html += `<div class="stat-card" style="margin-bottom: 1rem; text-align: left;">
-            <p style="font-weight: bold; font-size: 1.1rem;">${match.date} at ${match.location}</p>
-            <p><b>Players:</b> ${p1} vs ${p2}</p>
-            <p><b>Final Score:</b> ${score}</p>
-            <div class="tennis-btn-group" style="margin-top: 1rem;">
-                <button class="tennis-btn" onclick="activateMatch(${match.id})">Load & Continue Tracking</button>
-                <button class="tennis-btn" onclick="deleteMatch(${match.id})">Delete</button>
+
+    list.innerHTML = allMatches.map(m => {
+      const p1 = m.players?.player1 ?? "P1";
+      const p2 = m.players?.player2 ?? "P2";
+      const loc = m.location ?? "";
+      const date = m.date ?? "";
+      const st = m.scoringType ?? "rally";
+      return `
+        <div class="saved-match-card" style="margin:10px 0; padding:10px; border:1px solid #ccc; border-radius:10px;">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <div>
+              <div style="font-weight:700;">${p1} vs ${p2}</div>
+              <div style="font-size:.9em; opacity:.85;">${date} • ${loc} • ${st}</div>
             </div>
+            <div style="display:flex; gap:8px;">
+              <button onclick="activateMatch('${m.id}')">Open</button>
+              <button onclick="deleteMatch('${m.id}')" style="opacity:.8;">Delete</button>
+            </div>
+          </div>
         </div>`;
-    });
-    container.innerHTML = html;
-}
+    }).join("");
+  }
 
-// --- RESULTS RENDERING & CALCULATION ---
-function renderResults() {
-    const container = document.getElementById('results');
-    container.innerHTML = `
-        <div class="results-navigation">
-            ${Array.from({length: totalResultsViews}, (_, i) => `<div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="showResultsView(${i})"></div>`).join('')}
-        </div>
-        <div class="swipe-hint">← Swipe to navigate →</div>
-        <div id="results-views-container" style="overflow-x: hidden;">
-            ${generateAllResultsViewsHTML()}
-        </div>
-    `;
+  // ---------- Results ----------
+  function renderResults() {
+    const container = $("results");
+    if (!container || !matchData) return;
+
+    container.innerHTML = generateAllResultsViewsHTML();
     populateAllResultsViews();
-    showResultsView(0);
-}
+    showResultsView(currentResultsView);
+  }
 
-function showResultsView(index) {
-    currentResultsView = index;
-    document.querySelectorAll('.results-view').forEach(v => v.style.display = 'none');
-    const view = document.getElementById(`results-view-${index}`);
-    if (view) view.style.display = 'block';
-    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === index));
-}
+  function showResultsView(viewIndex) {
+    currentResultsView = Math.max(0, Math.min(totalResultsViews - 1, viewIndex));
 
-function initializeSwipeHandlers() {
-    let startX = 0;
-    const container = document.getElementById('results');
-    container.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
-    container.addEventListener('touchend', e => {
-        if (currentView !== 'results' || startX === 0) return;
-        const endX = e.changedTouches[0].clientX;
-        const diffX = startX - endX;
-        if (Math.abs(diffX) > 50) {
-            if (diffX > 0 && currentResultsView < totalResultsViews - 1) showResultsView(currentResultsView + 1);
-            else if (diffX < 0 && currentResultsView > 0) showResultsView(currentResultsView - 1);
-        }
-        startX = 0;
-    });
-}
+    for (let i = 0; i < totalResultsViews; i++) {
+      const el = $(`results-view-${i}`);
+      if (el) el.style.display = (i === currentResultsView ? "block" : "none");
+    }
+  }
 
-function generateAllResultsViewsHTML() {
-    let html = `
-    <div class="results-view" id="results-view-0">
-        <div class="view-title">📊 Match Summary</div>
-        <div class="match-summary" id="summary-content"></div>
-        <div class="tennis-btn-group" style="margin-top:1rem; flex-wrap: wrap;">
-            <button class="tennis-btn" onclick="saveCurrentMatch()">💾 Save Match</button>
-            <button class="tennis-btn" onclick="generatePdf()">📄 Save as PDF</button>
-            <button class="tennis-btn" onclick="startNewMatch()">✨ New Match</button>
-        </div>
-    </div>`;
+  function generateAllResultsViewsHTML() {
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
+        <button onclick="showResultsView(${Math.max(0, currentResultsView - 1)})">◀</button>
+        <div style="font-weight:700;">Results</div>
+        <button onclick="showResultsView(${Math.min(totalResultsViews - 1, currentResultsView + 1)})">▶</button>
+      </div>
 
-    ['player1', 'player2'].forEach((pKey, i) => {
-        html += `<div class="results-view" id="results-view-${i+1}">
-            <div class="view-title" id="${pKey}-title"></div>
-            <div class="player-card team-${i+1}" id="${pKey}-results-card"></div>
-        </div>`;
-    });
-    return html;
-}
+      <div id="results-view-0"></div>
+      <div id="results-view-1" style="display:none;"></div>
+      <div id="results-view-2" style="display:none;"></div>
 
-function calculateAllStats() {
-    const numGames = matchData.scores.player1.length;
-    const stats = {}; 
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button onclick="saveCurrentMatch()">💾 Save Match</button>
+        <button onclick="generatePdf()">📄 Export PDF</button>
+      </div>
+    `;
+  }
 
-    for (let i = -1; i < numGames; i++) {
-        const key = i === -1 ? 'match' : `game${i}`;
-        const periodStats = stats[key] = { player1: {}, player2: {} };
-        const pointsInPeriod = i === -1 ? matchData.pointHistory : matchData.pointHistory.filter(p => p.gameIndex === i);
-        
-        ['player1', 'player2'].forEach(pKey => {
-            const playerStats = periodStats[pKey] = {
-                retDeuceWon: 0, retDeuceTotal: 0, retAdWon: 0, retAdTotal: 0,
-                servDeuceWon: 0, servDeuceTotal: 0, servAdWon: 0, servAdTotal: 0,
-                thirdShotMisses: { S: 0, R: 0 },
-                unforcedErrors: 0,
-                pointsWon: 0,
-                pointsTotal: 0,
-                servWon: 0,
-                retWon: 0,
-                servWonPct: 0,
-                retWonPct: 0
-            };
-
-            const servePoints = pointsInPeriod.filter(p => p.type === 'return' && p.server === pKey);
-            const returnPoints = pointsInPeriod.filter(p => p.type === 'return' && p.returner === pKey);
-
-            playerStats.pointsWon = servePoints.filter(p => p.outcome === '0').length + returnPoints.filter(p => p.outcome === '1').length;
-            playerStats.pointsTotal = servePoints.length + returnPoints.length;
-
-            returnPoints.forEach(p => {
-                if (p.side === 'deuce') { playerStats.retDeuceTotal++; if (p.outcome === '1') playerStats.retDeuceWon++; }
-                if (p.side === 'ad') { playerStats.retAdTotal++; if (p.outcome === '1') playerStats.retAdWon++; }
-            });
-            
-            servePoints.forEach(p => {
-                if (p.side === 'deuce') { playerStats.servDeuceTotal++; if (p.outcome === '0') playerStats.servDeuceWon++; }
-                if (p.side === 'ad') { playerStats.servAdTotal++; if (p.outcome === '0') playerStats.servAdWon++; }
-            });
-
-            pointsInPeriod.filter(p => p.type === 'thirdShotMiss' && p.playerKey === pKey).forEach(p => playerStats.thirdShotMisses[p.position]++);
-            playerStats.unforcedErrors = pointsInPeriod.filter(p => p.type === 'unforcedError' && p.playerKey === pKey).length;
-            
-            playerStats.servWon = playerStats.servDeuceWon + playerStats.servAdWon;
-            playerStats.servTotal = playerStats.servDeuceTotal + playerStats.servAdTotal;
-            playerStats.retWon = playerStats.retDeuceWon + playerStats.retAdWon;
-            playerStats.retTotal = playerStats.retDeuceTotal + playerStats.retAdTotal;
-            playerStats.servWonPct = playerStats.servTotal > 0 ? (playerStats.servWon / playerStats.servTotal) * 100 : 0;
-            playerStats.retWonPct = playerStats.retTotal > 0 ? (playerStats.retWon / playerStats.retTotal) * 100 : 0;
-        });
+  function calculateAllStats() {
+    const gCount = matchData.scores.player1.length;
+    const perGame = [];
+    for (let i = 0; i < gCount; i++) {
+      perGame.push({
+        game: i + 1,
+        p1: matchData.scores.player1[i] ?? 0,
+        p2: matchData.scores.player2[i] ?? 0
+      });
     }
 
-    const matchStats = stats['match'];
-    const totalPoints = (matchStats.player1.pointsTotal || 0) + (matchStats.player2.pointsTotal || 0);
-    matchStats.player1.pointsWonPct = totalPoints > 0 ? (matchStats.player1.pointsWon / totalPoints) * 100 : 0;
-    matchStats.player2.pointsWonPct = totalPoints > 0 ? (matchStats.player2.pointsWon / totalPoints) * 100 : 0;
-    
-    return stats;
-}
+    const totals = perGame.reduce((acc, r) => {
+      acc.p1 += r.p1;
+      acc.p2 += r.p2;
+      return acc;
+    }, { p1: 0, p2: 0 });
 
-function populateAllResultsViews() {
-    const allStats = calculateAllStats();
-    const numGames = matchData.scores.player1.length;
-    const periods = ['match', ...Array.from({length: numGames}, (_, i) => `game${i}`)];
+    const g = currentGameIndex();
+    const ue = { player1: 0, player2: 0 };
+    const tsm = { player1: 0, player2: 0 };
 
-    const matchStats = allStats.match;
+    matchData.pointHistory.filter(p => p.type === "unforcedError").forEach(p => ue[p.playerKey]++);
+    matchData.pointHistory.filter(p => p.type === "thirdShotMiss").forEach(p => tsm[p.playerKey]++);
 
-    // --- Start of Fix ---
-    const totalPoints = matchStats.player1.pointsWon + matchStats.player2.pointsWon;
-    const p1PointsWonPct = totalPoints > 0 ? (matchStats.player1.pointsWon / totalPoints * 100).toFixed(0) : 0;
-    const p2PointsWonPct = totalPoints > 0 ? (matchStats.player2.pointsWon / totalPoints * 100).toFixed(0) : 0;
-    // --- End of Fix ---
+    // Return win rate per player (as returner)
+    const returns = matchData.pointHistory.filter(p => p.type === "return");
+    const rw = { player1: { w: 0, t: 0 }, player2: { w: 0, t: 0 } };
+    for (const r of returns) {
+      rw[r.returner].t += 1;
+      if (r.outcome === "R") rw[r.returner].w += 1;
+    }
 
-    document.getElementById('summary-content').innerHTML = `
-        <h3 class="results-subtitle">🏆 Final Score</h3>
-        <div class="final-score">🔵 ${matchData.scores.player1.join('-')} &nbsp; | &nbsp; 🔴 ${matchData.scores.player2.join('-')}</div>
-        <div class="match-details">${matchData.location} • ${matchData.date}</div>
-        <h3 class="results-subtitle">Players</h3>
-        <div class="stats-grid" style="grid-template-columns: 1fr 1fr; text-align: left; padding: 0 1rem;">
-            <div><b>🔵 Player 1:</b><br>${matchData.players.player1}</div>
-            <div><b>🔴 Player 2:</b><br>${matchData.players.player2}</div>
+    return { perGame, totals, ue, tsm, rw };
+  }
+
+  function populateAllResultsViews() {
+    const stats = calculateAllStats();
+    const p1 = matchData.players.player1;
+    const p2 = matchData.players.player2;
+
+    const summaryEl = $("results-view-0");
+    const p1El = $("results-view-1");
+    const p2El = $("results-view-2");
+
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        <div style="padding:10px; border:1px solid #ddd; border-radius:12px;">
+          <div style="font-size:1.05em; font-weight:800; margin-bottom:6px;">${p1} vs ${p2}</div>
+          <div style="opacity:.85; margin-bottom:10px;">${matchData.date} • ${matchData.location} • ${matchData.scoringType}</div>
+
+          <div style="margin-bottom:10px;">
+            <div style="font-weight:700; margin-bottom:6px;">Scores by Game</div>
+            ${stats.perGame.map(r => `<div>Game ${r.game}: <b>${r.p1}</b> - <b>${r.p2}</b></div>`).join("")}
+            <div style="margin-top:8px;">Total: <b>${stats.totals.p1}</b> - <b>${stats.totals.p2}</b></div>
+          </div>
+
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div><b>Unforced Errors</b><br>${p1}: ${stats.ue.player1}<br>${p2}: ${stats.ue.player2}</div>
+            <div><b>3rd Shot Misses</b><br>${p1}: ${stats.tsm.player1}<br>${p2}: ${stats.tsm.player2}</div>
+          </div>
         </div>
-        <h3 class="results-subtitle">Points Won</h3>
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player1')}</div><div class="stat-value">${matchStats.player1.pointsWon} (${p1PointsWonPct}%)</div></div>
-            <div class="stat-card"><div class="stat-label">${getAbbrev('player2')}</div><div class="stat-value">${matchStats.player2.pointsWon} (${p2PointsWonPct}%)</div></div>
+      `;
+    }
+
+    function playerView(playerKey) {
+      const name = matchData.players[playerKey];
+      const asReturner = stats.rw[playerKey];
+      const pct = asReturner.t ? Math.round((asReturner.w / asReturner.t) * 100) : 0;
+      return `
+        <div style="padding:10px; border:1px solid #ddd; border-radius:12px;">
+          <div style="font-size:1.05em; font-weight:800; margin-bottom:8px;">${name}</div>
+          <div style="margin-bottom:10px;">
+            <div><b>Return Wins</b>: ${asReturner.w} / ${asReturner.t} (${pct}%)</div>
+            <div><b>Unforced Errors</b>: ${stats.ue[playerKey]}</div>
+            <div><b>3rd Shot Misses</b>: ${stats.tsm[playerKey]}</div>
+          </div>
+          <div style="opacity:.85; font-size:.95em;">
+            Note: Return wins are logged when this player was the returner and won the rally.
+          </div>
         </div>
-        <h3 class="results-subtitle">Unforced Errors</h3>
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-label">Team 1</div><div class="stat-value">${matchStats.player1.unforcedErrors}</div></div>
-            <div class="stat-card"><div class="stat-label">Team 2</div><div class="stat-value">${matchStats.player2.unforcedErrors}</div></div>
-        </div>
-    `;
+      `;
+    }
 
-    ['player1', 'player2'].forEach((pKey, i) => {
-        document.getElementById(`${pKey}-title`).innerHTML = `${i===0 ? '🔵' : '🔴'} ${matchData.players[pKey]}`;
-        const pStatsMatch = allStats.match[pKey];
-        
-        // Correctly handle division by zero for percentage calculations
-        const matchServWonPct = pStatsMatch.servTotal > 0 ? (pStatsMatch.servWon / pStatsMatch.servTotal * 100).toFixed(0) : 0;
-        const matchRetWonPct = pStatsMatch.retTotal > 0 ? (pStatsMatch.retWon / pStatsMatch.retTotal * 100).toFixed(0) : 0;
-        
-        let servingTable = `<h3 class="results-subtitle">📤 Serving Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
-        for(let i=0; i < numGames; i++) {
-            const s = allStats[`game${i}`][pKey];
-            const deucePct = s.servDeuceTotal > 0 ? (s.servDeuceWon / s.servDeuceTotal) * 100 : 0;
-            const adPct = s.servAdTotal > 0 ? (s.servAdWon / s.servAdTotal) * 100 : 0;
-            servingTable += `<tr><td>Game ${i+1}</td><td>${deucePct.toFixed(0)}% (${s.servDeuceWon}/${s.servDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.servAdWon}/${s.servAdTotal})</td></tr>`;
-        }
-        servingTable += `<tr><td><b>Match</b></td><td><b>${matchServWonPct}%</b></td><td><b>${matchRetWonPct}%</b></td></tr>`;
-        servingTable += `</tbody></table>`;
-        
-        let returningTable = `<h3 class="results-subtitle">📥 Returning Performance</h3><table class="results-table"><thead><tr><th>Game</th><th>Deuce Side %</th><th>Ad Side %</th></tr></thead><tbody>`;
-        for(let i=0; i < numGames; i++) {
-            const s = allStats[`game${i}`][pKey];
-            const deucePct = s.retDeuceTotal > 0 ? (s.retDeuceWon / s.retDeuceTotal) * 100 : 0;
-            const adPct = s.retAdTotal > 0 ? (s.retAdWon / s.retAdTotal) * 100 : 0;
-            returningTable += `<tr><td>Game ${i+1}</td><td>${deucePct.toFixed(0)}% (${s.retDeuceWon}/${s.retDeuceTotal})</td><td>${adPct.toFixed(0)}% (${s.retAdWon}/${s.retAdTotal})</td></tr>`;
-        }
-        returningTable += `<tr><td><b>Match</b></td><td><b>${matchRetWonPct}%</b></td><td><b>${matchServWonPct}%</b></td></tr>`;
-        returningTable += `</tbody></table>`;
+    if (p1El) p1El.innerHTML = playerView("player1");
+    if (p2El) p2El.innerHTML = playerView("player2");
+  }
 
-        let ueTable = `<h3 class="results-subtitle">😩 Unforced Errors</h3><table class="results-table"><thead><tr><th>Game</th><th>Total</th></tr></thead><tbody>`;
-        for(let i=0; i < numGames; i++) {
-            const s = allStats[`game${i}`][pKey];
-            ueTable += `<tr><td>Game ${i+1}</td><td>${s.unforcedErrors}</td></tr>`;
-        }
-        ueTable += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].unforcedErrors}</b></td></tr>`;
-        ueTable += `</tbody></table>`;
-        
-        let tsmTable = `<h3 class="results-subtitle">🎯 Third/Fourth Shot Misses</h3><table class="results-table"><thead><tr><th>Game</th><th>Serving</th><th>Returning</th></tr></thead><tbody>`;
-        for(let i=0; i < numGames; i++) {
-            const s = allStats[`game${i}`][pKey];
-            tsmTable += `<tr><td>Game ${i+1}</td><td>${s.thirdShotMisses.S}</td><td>${s.thirdShotMisses.R}</td></tr>`;
-        }
-        tsmTable += `<tr><td><b>Match</b></td><td><b>${allStats['match'][pKey].thirdShotMisses.S}</b></td><td><b>${allStats['match'][pKey].thirdShotMisses.R}</b></td></tr>`;
-        tsmTable += `</tbody></table>`;
-        
-        document.getElementById(`${pKey}-results-card`).innerHTML = servingTable + returningTable + ueTable + tsmTable;
-    });
-}
-
-function generatePdf() {
-    if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
-        alert("PDF generation library is not loaded."); return;
+  // ---------- PDF export ----------
+  function generatePdf() {
+    if (!matchData || typeof window.jspdf === "undefined") {
+      alert("PDF library not loaded.");
+      return;
     }
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const margin = 10;
-    
-    const p1 = getAbbrev('player1');
-    const p2 = getAbbrev('player2');
-    const filename = `${matchData.date}-PBL-${p1}-${p2}.pdf`;
+    const doc = new jsPDF();
 
-    pdf.setFontSize(16).setTextColor(40, 40, 40).text("Tony's Pickleball Tracker", pdfWidth / 2, margin, { align: 'center' });
-    pdf.setFontSize(10).setTextColor(0, 0, 255).textWithLink('https://www.wescoup.com/tonys-pickleball-tools', pdfWidth / 2, margin + 5, { align: 'center', url: 'https://www.wescoup.com/tonys-pickleball-tools' });
-    
-    document.body.classList.add('pdf-export-mode');
+    const stats = calculateAllStats();
+    const p1 = matchData.players.player1;
+    const p2 = matchData.players.player2;
 
-    let promise = Promise.resolve();
-    const elements = document.querySelectorAll('.results-view');
-    
-    elements.forEach((element, index) => {
-        promise = promise.then(() => html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 800 }))
-        .then(canvas => {
-            const imgData = canvas.toDataURL('image/jpeg', 0.92);
-            const imgProps = pdf.getImageProperties(imgData);
-            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            if (index > 0) pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, index === 0 ? margin + 10 : margin, pdfWidth, imgHeight);
-        });
-    });
+    doc.setFontSize(14);
+    doc.text(`Pickleball Singles Match`, 14, 16);
+    doc.setFontSize(11);
+    doc.text(`${p1} vs ${p2}`, 14, 24);
+    doc.text(`${matchData.date} • ${matchData.location} • ${matchData.scoringType}`, 14, 30);
 
-    promise.then(() => {
-        document.body.classList.remove('pdf-export-mode');
-        pdf.save(filename);
-    });
-}
+    // Scores table
+    const scoreRows = stats.perGame.map(r => [`Game ${r.game}`, String(r.p1), String(r.p2)]);
+    if (doc.autoTable) {
+      doc.autoTable({
+        startY: 36,
+        head: [["Game", p1, p2]],
+        body: scoreRows,
+      });
+
+      const y = doc.lastAutoTable.finalY + 8;
+      doc.text(`Totals: ${stats.totals.p1} - ${stats.totals.p2}`, 14, y);
+
+      const y2 = y + 8;
+      doc.text(`Unforced Errors: ${p1} ${stats.ue.player1}, ${p2} ${stats.ue.player2}`, 14, y2);
+      doc.text(`3rd Shot Misses: ${p1} ${stats.tsm.player1}, ${p2} ${stats.tsm.player2}`, 14, y2 + 6);
+    } else {
+      // Fallback if autoTable isn't available
+      let y = 40;
+      doc.text("Scores by Game:", 14, y); y += 6;
+      for (const r of stats.perGame) {
+        doc.text(`Game ${r.game}: ${r.p1} - ${r.p2}`, 14, y); y += 6;
+      }
+      y += 4;
+      doc.text(`Totals: ${stats.totals.p1} - ${stats.totals.p2}`, 14, y); y += 6;
+      doc.text(`Unforced Errors: ${p1} ${stats.ue.player1}, ${p2} ${stats.ue.player2}`, 14, y); y += 6;
+      doc.text(`3rd Shot Misses: ${p1} ${stats.tsm.player1}, ${p2} ${stats.tsm.player2}`, 14, y);
+    }
+
+    const filename = `pickleball_singles_${matchData.date}_${p1}_vs_${p2}.pdf`.replace(/\s+/g, "_");
+    doc.save(filename);
+  }
+
+  // ---------- Swipe handlers (mobile results paging) ----------
+  function initializeSwipeHandlers() {
+    let startX = null;
+
+    document.addEventListener("touchstart", (e) => {
+      if (currentView !== "results") return;
+      if (!e.touches || e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    document.addEventListener("touchend", (e) => {
+      if (currentView !== "results") return;
+      if (startX == null) return;
+
+      const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : null;
+      if (endX == null) return;
+
+      const dx = endX - startX;
+      startX = null;
+
+      if (Math.abs(dx) < 40) return;
+      if (dx < 0) showResultsView(currentResultsView + 1);
+      else showResultsView(currentResultsView - 1);
+    }, { passive: true });
+  }
+
+  // ---------- Expose functions for inline onclick handlers ----------
+  window.initializeTracker = initializeTracker;
+  window.startNewMatch = startNewMatch;
+  window.updateScoringType = updateScoringType;
+  window.showSection = showSection;
+  window.collectMatchInfo = collectMatchInfo;
+  window.updateAllDisplays = updateAllDisplays;
+  window.updateReturnerDisplay = updateReturnerDisplay;
+  window.adjustGame = adjustGame;
+  window.updateScoreDisplay = updateScoreDisplay;
+  window.toggleServer = toggleServer;
+  window.updateServerButton = updateServerButton;
+  window.recordReturn = recordReturn;
+  window.recordUnforcedError = recordUnforcedError;
+  window.recordThirdShotMiss = recordThirdShotMiss;
+  window.undoLastPoint = undoLastPoint;
+  window.updateReturnStringsDisplay = updateReturnStringsDisplay;
+  window.updateUnforcedErrorDisplay = updateUnforcedErrorDisplay;
+  window.updateThirdShotDisplay = updateThirdShotDisplay;
+  window.saveCurrentMatch = saveCurrentMatch;
+  window.loadAllMatches = loadAllMatches;
+  window.activateMatch = activateMatch;
+  window.deleteMatch = deleteMatch;
+  window.renderSavedMatchesList = renderSavedMatchesList;
+  window.renderResults = renderResults;
+  window.showResultsView = showResultsView;
+  window.initializeSwipeHandlers = initializeSwipeHandlers;
+  window.generateAllResultsViewsHTML = generateAllResultsViewsHTML;
+  window.calculateAllStats = calculateAllStats;
+  window.populateAllResultsViews = populateAllResultsViews;
+  window.generatePdf = generatePdf;
+})();

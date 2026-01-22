@@ -187,10 +187,6 @@ def tonys_tennis_tracker():
 def tonys_doubles_tracker():
     return render_template('tennis/tonys-doubles-tracker.html')
 
-@app.route('/tonys-pickleball-tools')
-def tonys_pickleball_tools():
-    return render_template('pickleball/tonys-pickleball-tools.html')
-
 @app.route('/tonys-strategy-calculator-instructions')
 def tonys_strategy_calculator_instructions():
     return render_template('tennis/tonys-strategy-calculator-instructions.html')
@@ -206,6 +202,22 @@ def tonys_strategy_calculator_3x3():
 @app.route('/tonys-strategy-calculator-NxN')
 def tonys_strategy_calculator_NxN():
     return render_template('tennis/tonys-strategy-calculator-NxN.html')
+
+@app.route('/tonys-pickleball-tools')
+def tonys_pickleball_tools():
+    return render_template('pickleball/tonys-pickleball-tools.html')
+
+@app.route('/tonys-pickleball-instructions')
+def tonys_pickleball_instructions():
+    return render_template('pickleball/tonys-pickleball-instructions.html')
+
+@app.route('/tonys-pickleball-tracker')
+def tonys_pickleball_tracker():
+    return render_template('pickleball/tonys-pickleball-tracker.html')
+
+@app.route('/tonys-pickleball-doubles-tracker')
+def tonys_pickleball_doubles_tracker():
+    return render_template('pickleball/tonys-pickleball-doubles-tracker.html')
 
 # --- Game Routes ---
 @app.route('/tonys-time-traps')

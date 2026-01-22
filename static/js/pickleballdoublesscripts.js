@@ -14,10 +14,116 @@ const initialMatchData = {
     teams: { team1: ['player1', 'player2'], team2: ['player3', 'player4'] },
     location: 'Local Court',
     date: new Date().toISOString().split('T')[0],
+
+    // Scoring system toggle (default can be set by HTML option order)
+    scoringType: 'sideout', // 'sideout' | 'rally'
+
+    // Game scores (arrays per game)
     scores: { team1: [0], team2: [0] },
-    pointHistory: [],
-    returnerHistory: { team1: { deuce: 'player1', ad: 'player2' }, team2: { deuce: 'player3', ad: 'player4' } }
+
+    // Dynamic court positions for each team (deuce/right and ad/left)
+    positions: {
+        team1: { deuce: 'player1', ad: 'player2' },
+        team2: { deuce: 'player3', ad: 'player4' }
+    },
+
+    // Serving state
+    servingTeam: 'team1',
+    currentServer: 'player1',
+
+    // Side-out only
+    serverNumber: 1,          // 1 or 2
+    firstServeOfGame: true,   // First Server Exception
+
+    // Returners are always derived from the receiving team positions
+    returners: { deuce: 'player3', ad: 'player4' },
+
+    // Event label
+    lastWasSideOut: false,
+
+    // History (also used for stats)
+    pointHistory: []
 };
+
+// --- Helpers for dynamic serving/positions ---
+function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function currentGameIndex() {
+    return matchData.scores.team1.length - 1;
+}
+
+function getOtherTeam(teamKey) {
+    return teamKey === 'team1' ? 'team2' : 'team1';
+}
+
+function getTeamForPlayer(playerKey) {
+    return matchData.teams.team1.includes(playerKey) ? 'team1' : 'team2';
+}
+
+function getPlayerSide(teamKey, playerKey) {
+    const pos = matchData.positions[teamKey];
+    if (pos.deuce === playerKey) return 'deuce';
+    if (pos.ad === playerKey) return 'ad';
+    return null;
+}
+
+function getServerSide() {
+    return getPlayerSide(matchData.servingTeam, matchData.currentServer) || 'deuce';
+}
+
+function swapTeamPositions(teamKey) {
+    const t = matchData.positions[teamKey];
+    [t.deuce, t.ad] = [t.ad, t.deuce];
+}
+
+function syncReturnersFromServeState() {
+    const receivingTeam = getOtherTeam(matchData.servingTeam);
+    matchData.returners = { ...matchData.positions[receivingTeam] };
+}
+
+function getPartner(teamKey, playerKey) {
+    const team = matchData.teams[teamKey];
+    return team[0] === playerKey ? team[1] : team[0];
+}
+
+function takeStateSnapshot() {
+    const g = currentGameIndex();
+    return {
+        gameIndex: g,
+        scores: { team1: matchData.scores.team1[g], team2: matchData.scores.team2[g] },
+        positions: deepClone(matchData.positions),
+        servingTeam: matchData.servingTeam,
+        currentServer: matchData.currentServer,
+        serverNumber: matchData.serverNumber,
+        firstServeOfGame: !!matchData.firstServeOfGame,
+        scoringType: matchData.scoringType,
+        lastWasSideOut: !!matchData.lastWasSideOut
+    };
+}
+
+function restoreStateSnapshot(snap) {
+    if (!snap) return;
+    const g = snap.gameIndex ?? currentGameIndex();
+
+    while (matchData.scores.team1.length <= g) matchData.scores.team1.push(0);
+    while (matchData.scores.team2.length <= g) matchData.scores.team2.push(0);
+
+    matchData.scores.team1[g] = snap.scores.team1;
+    matchData.scores.team2[g] = snap.scores.team2;
+
+    matchData.positions = deepClone(snap.positions);
+    matchData.servingTeam = snap.servingTeam;
+    matchData.currentServer = snap.currentServer;
+    matchData.serverNumber = snap.serverNumber;
+    matchData.firstServeOfGame = !!snap.firstServeOfGame;
+    matchData.scoringType = snap.scoringType;
+    matchData.lastWasSideOut = !!snap.lastWasSideOut;
+
+    syncReturnersFromServeState();
+}
+
 
 function initializeTracker() {
     document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
@@ -27,17 +133,24 @@ function initializeTracker() {
 }
 
 function startNewMatch() {
-    matchData = JSON.parse(JSON.stringify(initialMatchData));
+    matchData = deepClone(initialMatchData);
     matchData.id = Date.now();
-    
+
+    // Read scoring type from Match Info dropdown if present
+    const scoringSelect = document.getElementById('scoringType');
+    if (scoringSelect && scoringSelect.value) {
+        matchData.scoringType = scoringSelect.value;
+    }
+
+    syncReturnersFromServeState();
+
     document.getElementById('player1').value = "P1";
     document.getElementById('player2').value = "P2";
     document.getElementById('player3').value = "P3";
     document.getElementById('player4').value = "P4";
     document.getElementById('location').value = "Local Court";
-    document.getElementById('matchDate').value = new Date().toISOString().split('T')[0];
 
-    showSection('match-info');
+    updateAllDisplays();
 }
 
 function showSection(sectionId) {
@@ -63,22 +176,37 @@ function showSection(sectionId) {
 }
 
 function collectMatchInfo() {
-    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
-        matchData.players[pKey] = document.getElementById(pKey).value.trim() || `P${pKey.slice(-1)}`;
-    });
-    matchData.location = document.getElementById('location').value.trim() || 'Local Court';
-    matchData.date = document.getElementById('matchDate').value;
-    
-    matchData.returnerHistory = {
-        team1: { deuce: 'player1', ad: 'player2' },
-        team2: { deuce: 'player3', ad: 'player4' }
-    };
-    matchData.currentServer = 'player1';
-    matchData.returners = { ...matchData.returnerHistory.team2 };
+    matchData.players.player1 = document.getElementById('player1').value || 'P1';
+    matchData.players.player2 = document.getElementById('player2').value || 'P2';
+    matchData.players.player3 = document.getElementById('player3').value || 'P3';
+    matchData.players.player4 = document.getElementById('player4').value || 'P4';
+    matchData.location = document.getElementById('location').value || 'Local Court';
+    matchData.date = document.getElementById('matchDate').value || new Date().toISOString().split('T')[0];
+
+    const st = document.getElementById('scoringType');
+    if (st && st.value) matchData.scoringType = st.value;
+
+    // Keep server team derived from current server (in case player names changed)
+    matchData.servingTeam = getTeamForPlayer(matchData.currentServer);
+
+    updateServerDropdown();
+    syncReturnersFromServeState();
+    updateAllDisplays();
 }
 
+function updateScoringType() {
+    const st = document.getElementById('scoringType');
+    if (!st) return;
+    matchData.scoringType = st.value;
+    matchData.lastWasSideOut = false;
+
+    // Rally scoring does not use serverNumber/firstServe, but we keep values for when toggling back
+    syncReturnersFromServeState();
+    updateAllDisplays();
+}
+
+
 function updateAllDisplays() {
-    if (currentView !== 'match-tracker') return;
     updateServerDropdown();
     updateScoreDisplay();
     updateReturnerDisplay();
@@ -89,43 +217,49 @@ function updateAllDisplays() {
 
 // --- SCORE & GAME ---
 function adjustGame(change) {
-    const newGameCount = matchData.scores.team1.length + change;
-    if (newGameCount > 0) {
-        if (change > 0) {
-            matchData.scores.team1.push(0);
-            matchData.scores.team2.push(0);
-        } else if (matchData.scores.team1.length > 1) {
-            matchData.scores.team1.pop();
-            matchData.scores.team2.pop();
-        }
+    if (change === 1) {
+        matchData.scores.team1.push(0);
+        matchData.scores.team2.push(0);
+        matchData.serverNumber = 1;
+        matchData.firstServeOfGame = true;
+        matchData.lastWasSideOut = false;
+    } else if (change === -1 && matchData.scores.team1.length > 1) {
+        matchData.scores.team1.pop();
+        matchData.scores.team2.pop();
+        matchData.lastWasSideOut = false;
     }
     updateAllDisplays();
 }
 
 function updateScoreDisplay() {
-    const gameIndex = matchData.scores.team1.length - 1;
-    document.getElementById('team1NameScore').textContent = `${getAbbrev('player1')}/${getAbbrev('player2')}`;
-    document.getElementById('team2NameScore').textContent = `${getAbbrev('player3')}/${getAbbrev('player4')}`;
-    document.getElementById('team1Score').textContent = matchData.scores.team1[gameIndex] || 0;
-    document.getElementById('team2Score').textContent = matchData.scores.team2[gameIndex] || 0;
-    document.getElementById('currentGame').textContent = matchData.scores.team1.length;
+    const g = currentGameIndex();
+    document.getElementById('team1Score').textContent = matchData.scores.team1[g];
+    document.getElementById('team2Score').textContent = matchData.scores.team2[g];
+    document.getElementById('currentGame').textContent = (g + 1);
 }
 
 // --- SERVER & RETURNER ---
 function updateServer() {
-    const previousServer = matchData.currentServer;
-    matchData.currentServer = document.getElementById('currentServer').value;
-    if (matchData.teams.team1.includes(previousServer) !== matchData.teams.team1.includes(matchData.currentServer)) {
-        const returningTeam = matchData.teams.team1.includes(matchData.currentServer) ? 'team2' : 'team1';
-        matchData.returners = { ...matchData.returnerHistory[returningTeam] };
-    }
+    const select = document.getElementById('currentServer');
+    if (!select) return;
+
+    matchData.currentServer = select.value;
+    matchData.servingTeam = getTeamForPlayer(matchData.currentServer);
+
+    // For side-out scoring, infer serverNumber by side within the team (best effort)
+    const side = getPlayerSide(matchData.servingTeam, matchData.currentServer);
+    matchData.serverNumber = (side === 'deuce') ? 1 : 2;
+
+    matchData.lastWasSideOut = false;
+    syncReturnersFromServeState();
     updateAllDisplays();
 }
 
 function changeReturners() {
-    [matchData.returners.deuce, matchData.returners.ad] = [matchData.returners.ad, matchData.returners.deuce];
-    const returningTeamKey = matchData.teams.team1.includes(matchData.currentServer) ? 'team2' : 'team1';
-    matchData.returnerHistory[returningTeamKey] = { ...matchData.returners };
+    const receivingTeam = getOtherTeam(matchData.servingTeam);
+    swapTeamPositions(receivingTeam);
+    matchData.lastWasSideOut = false;
+    syncReturnersFromServeState();
     updateAllDisplays();
 }
 
@@ -143,16 +277,31 @@ function getInitial(playerKey) {
     return '';
 }
 
+function updateServerLabel() {
+    const labels = document.querySelectorAll('.server-row label.stat-label');
+    if (!labels || labels.length === 0) return;
+
+    const serverLabel = labels[0];
+    const side = getServerSide();
+    const sideText = side === 'deuce' ? 'Deuce' : 'Ad';
+    const suffix = matchData.lastWasSideOut ? ' - Side Out' : '';
+    serverLabel.textContent = `Current Server (${sideText})${suffix}`;
+}
+
 function updateServerDropdown() {
     const select = document.getElementById('currentServer');
+    if (!select) return;
+
     select.innerHTML = '';
-    ['player1', 'player2', 'player3', 'player4'].forEach(pKey => {
+    ['player1', 'player2', 'player3', 'player4'].forEach(key => {
         const option = document.createElement('option');
-        option.value = pKey;
-        option.textContent = matchData.players[pKey];
+        option.value = key;
+        option.textContent = matchData.players[key];
         select.appendChild(option);
     });
+
     select.value = matchData.currentServer;
+    updateServerLabel();
 }
 
 function updateReturnerDisplay() {
@@ -161,28 +310,76 @@ function updateReturnerDisplay() {
 }
 
 // --- POINT TRACKING ---
-function recordReturn(court, won) {
+function recordReturn(court, returnerWon) {
+    // court: 'deuce' | 'ad'
+    // returnerWon: true => returner won rally
+    const g = currentGameIndex();
+    const prev = takeStateSnapshot();
+
+    const servingTeam = matchData.servingTeam;
+    const receivingTeam = getOtherTeam(servingTeam);
     const returner = matchData.returners[court];
-    const serverTeamKey = matchData.teams.team1.includes(matchData.currentServer) ? 'team1' : 'team2';
-    const returnerTeamKey = serverTeamKey === 'team1' ? 'team2' : 'team1';
+
+    // Clear event label unless we set it during this rally
+    matchData.lastWasSideOut = false;
+
+    if (matchData.scoringType === 'rally') {
+        // MLP-style rally scoring: fixed positions; serve goes to rally winner;
+        // server determined by parity of winner's score (even=deuce, odd=ad).
+        const winnerTeam = returnerWon ? receivingTeam : servingTeam;
+        matchData.scores[winnerTeam][g] += 1;
+
+        matchData.servingTeam = winnerTeam;
+
+        const score = matchData.scores[winnerTeam][g];
+        const serveSide = (score % 2 === 0) ? 'deuce' : 'ad';
+        matchData.currentServer = matchData.positions[winnerTeam][serveSide];
+
+        // Side-out-specific state is irrelevant in rally, but keep consistent
+        matchData.serverNumber = 1;
+        matchData.firstServeOfGame = false;
+    } else {
+        // Side-out scoring with First Server Exception
+        if (!returnerWon) {
+            // Server team won rally => score point, swap serving team's positions, same server continues
+            matchData.scores[servingTeam][g] += 1;
+            swapTeamPositions(servingTeam);
+            // Note: First Server Exception remains active through the opening service possession.
+        } else {
+            // Receiving team won rally => no point
+            if (matchData.firstServeOfGame) {
+                // First Server Exception: opening service is single-server -> immediate side-out
+                matchData.firstServeOfGame = false;
+                matchData.servingTeam = receivingTeam;
+                matchData.serverNumber = 1;
+                matchData.currentServer = matchData.positions[receivingTeam].deuce;
+                matchData.lastWasSideOut = true;
+            } else if (matchData.serverNumber === 1) {
+                // Move to second server on same team
+                matchData.serverNumber = 2;
+                matchData.currentServer = getPartner(servingTeam, matchData.currentServer);
+            } else {
+                // True side-out after second server loses
+                matchData.servingTeam = receivingTeam;
+                matchData.serverNumber = 1;
+                matchData.currentServer = matchData.positions[receivingTeam].deuce;
+                matchData.lastWasSideOut = true;
+            }
+        }
+    }
+
+    syncReturnersFromServeState();
 
     matchData.pointHistory.push({
-        gameIndex: matchData.scores.team1.length - 1,
-        server: matchData.currentServer,
+        type: 'return',
+        gameIndex: g,
+        server: prev.currentServer,
         returner: returner,
         side: court,
-        outcome: won ? '1' : '0',
-        type: 'return',
-        serverTeam: serverTeamKey,
-        returnerTeam: returnerTeamKey
+        outcome: returnerWon ? '1' : '0',
+        prevState: prev
     });
 
-    const gameIndex = matchData.scores.team1.length - 1;
-    if (won) {
-        matchData.scores[returnerTeamKey][gameIndex]++;
-    } else {
-        matchData.scores[serverTeamKey][gameIndex]++;
-    }
     updateAllDisplays();
 }
 
@@ -206,15 +403,10 @@ function recordThirdFourthShotMiss(playerKey) {
 }
 
 function undoLastPoint() {
-    if (matchData.pointHistory.length === 0) return;
-    const lastPoint = matchData.pointHistory.pop();
-    if (lastPoint.type === 'return') {
-        const gameIndex = matchData.scores.team1.length - 1;
-        if (lastPoint.outcome === '1') {
-            matchData.scores[lastPoint.returnerTeam][gameIndex] = Math.max(0, matchData.scores[lastPoint.returnerTeam][gameIndex] - 1);
-        } else {
-            matchData.scores[lastPoint.serverTeam][gameIndex] = Math.max(0, matchData.scores[lastPoint.serverTeam][gameIndex] - 1);
-        }
+    if (!matchData.pointHistory || matchData.pointHistory.length === 0) return;
+    const last = matchData.pointHistory.pop();
+    if (last && last.prevState) {
+        restoreStateSnapshot(last.prevState);
     }
     updateAllDisplays();
 }

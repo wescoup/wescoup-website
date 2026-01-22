@@ -29,3 +29,5 @@ for user in users: print(f"ID: {user.id}, Username: {user.username}, Email: {use
 git add .
 git commit -m "Commit message describing your latest changes"
 git push origin feature/auth
+
+# exit codespace
