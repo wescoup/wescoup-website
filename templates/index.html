@@ -30,13 +30,17 @@
             <h2 class="card-title">User Profile (Optional)</h2>
             <p class="card-description">View and manage your account.</p>
         </div>
+		<div id="install-container" class="card" style="display: none; border: 2px solid #007bff; margin-top: 20px; cursor: default;">
+			<h2 class="card-title">Wescoup App</h2>
+			<p class="card-description">
+				Install the standalone app for a better full-screen experience without the browser address bar.
+			</p>
+			<button id="install-button" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">
+				Install Now
+			</button>
+			<p id="install-status" style="display: none; font-size: 0.85em; margin-top: 10px; color: #007bff; font-style: italic;"></p>
+		</div>
     </div>
 </div>
-<div id="install-container" style="display: none; padding: 15px; background: #1e1e1e; color: white; border-radius: 8px;">
-    <p>Want a better experience?</p>
-    <button id="install-button" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-        Add to Home Screen
-    </button>
-    <p id="install-status" style="display: none; font-size: 0.8em; margin-top: 10px; color: #aaa;"></p>
-</div>
+
 {% endblock %}
