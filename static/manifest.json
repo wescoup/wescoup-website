@@ -2,7 +2,7 @@
   "name": "Wescoup",
   "short_name": "Wescoup",
   "start_url": "/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#121212",
   "theme_color": "#121212",
   "icons": [
@@ -17,4 +17,5 @@
       "type": "image/png"
     }
   ]
+
 }
