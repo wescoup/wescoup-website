@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="math-page-container">
+    <header class="page-header">
+        <h1>A Complete Understanding of the Beal Conjecture</h1>
+        <p style="font-style: italic; color: #555;">(and why a counterexample cannot exist)</p>
+        <p class="author-info">Felipe A. Wescoup, PE</p>
+        <p class="date-info">April 22, 2026</p>
+        <p class="date-info">
+            Publication:
+            <a href="https://ai.vixra.org/abs/2604.0097" target="_blank" rel="noopener noreferrer">
+                ai.viXra:2604.0097
+            </a>
+        </p>
+    </header>
+
+    <section class="abstract-section">
+        <h2>Abstract</h2>
+        <p>This paper presents a proof of the Beal Conjecture by means of a geometric and set-theoretic argument. Each term in the conjecture — A<sup>x</sup>, B<sup>y</sup>, and C<sup>z</sup> — is interpreted as a volume composed of three-dimensional seed cubes whose side lengths are determined by the prime factors of the base. From this foundation, the prime factor sets of A and B are shown to be either disjoint or overlapping. The disjoint case is eliminated by contradiction: if A and B share no common prime, the equation A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup> cannot be satisfied for any integer C and exponent z ≥ 3. The overlapping case directly implies that A, B, and C share a common prime factor, which is precisely what the conjecture asserts. Because these two cases are exhaustive, the conjecture is proven.</p>
+    </section>
+
+    <section class="content-section">
+        <h2>1.0 The Conjecture</h2>
+        <p>The Beal Conjecture, first proposed by Andrew Beal in 1993, states:</p>
+        <p style="text-align: left; background: #f8f9fa; border-left: 4px solid #007bff; padding: 1rem 1.25rem; border-radius: 0 8px 8px 0; margin: 1.25rem 0;">
+            If A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup>, where A, B, C, x, y, z are positive integers and x, y, z ≥ 3, then A, B, and C must share a common prime factor.
+        </p>
+        <p>A prize of $1,000,000 is currently offered by the American Mathematical Society for a proof or counterexample. This paper presents a proof that a counterexample cannot exist.</p>
+    </section>
+
+    <section class="content-section">
+        <h2>2.0 Background</h2>
+        <p>The author first encountered the Beal Conjecture in 2013. Initial work focused on a computational survey of known solutions which established that in every verified case the bases A, B, and C shared a common prime factor. The pattern was clear and consistent, but a proof remained out of reach.</p>
+        <p>In 2017 the author began developing a geometric interpretation of the conjecture, treating each term as a physical volume rather than an abstract number. This reframing — interpreting A<sup>x</sup>, B<sup>y</sup>, and C<sup>z</sup> as collections of three-dimensional seed cubes — produced the central insight of the paper. That work was set aside before a complete proof could be assembled.</p>
+        <p>In early 2026 the author returned to the problem, working through a series of discussions with an AI collaborator to reconstruct and extend the 2013 and 2017 work. A companion Python tool was developed in parallel to provide computational verification of the key claims.</p>
+    </section>
+
+    <section class="content-section">
+        <h2>3.0 Geometric Interpretation</h2>
+        <p>The central observation is that since x, y, z ≥ 3, every term in the conjecture is at minimum three-dimensional. Specifically, A<sup>x</sup> may always be expressed as:</p>
+        <p style="text-align: center; font-size: 1.15rem; margin: 1.25rem 0;">
+            \( A^x = A^3 \cdot A^{x-3} \)
+        </p>
+        <p>This means A<sup>x</sup> is always A<sup>x−3</sup> cubes of side length A, regardless of the value of x. The same decomposition applies to B<sup>y</sup> and C<sup>z</sup>. Each term is therefore a count of identical cubic units, where the side length of each cube is determined by the base.</p>
+        <p>As a concrete example: 2<sup>5</sup> = 2<sup>3</sup> · 2<sup>2</sup> = 32. This is not a single cube of side 2; it is four cubes of side 2, stacked.</p>
+        <p>This geometric framing motivates the key question: under what conditions can a collection of A-cubes and a collection of B-cubes be combined to form a perfect collection of C-cubes?</p>
+    </section>
+
+    <section class="content-section">
+        <h2>4.0 Prime Factor Sets</h2>
+        <p>Let the following sets be defined:</p>
+        <ul class="key-points" style="text-align: left;">
+            <li>\( q \) = the set of prime factors of A</li>
+            <li>\( s \) = the set of prime factors of B</li>
+            <li>\( u = q \cup s \) = the set of prime factors of A and B combined</li>
+        </ul>
+        <p>The prime factors of any integer C that could satisfy A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup> must be drawn entirely from <em>u</em>. This follows from the fundamental theorem of arithmetic: the prime factors of a sum are constrained by the prime factors of its addends.</p>
+        <p>Therefore <em>u</em> also describes the prime factors of C, and: \( q \subseteq u \), \( s \subseteq u \), and the prime factors of \( C \subseteq u \).</p>
+        <p>There are exactly two possible relationships between q and s: they are either <strong>disjoint</strong> (share no common prime), or they <strong>overlap</strong> (share at least one common prime). These cases are exhaustive and mutually exclusive.</p>
+    </section>
+
+    <section class="content-section">
+        <h2>5.0 Proof</h2>
+
+        <h3 style="text-align: left; color: #cc0000; margin: 1.5rem 0 0.75rem;">5.1 Case I — q and s are disjoint</h3>
+        <p>Suppose \( q \cap s = \emptyset \); that is, A and B share no common prime factor.</p>
+        <p>Since A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup>, the left side is divisible by every prime in q. Let p ∈ q be any prime factor of A. Then A<sup>x</sup> is divisible by p, so C<sup>z</sup> must also be divisible by p. But C<sup>z</sup> ≡ A<sup>x</sup> + B<sup>y</sup> (mod p), and A<sup>x</sup> ≡ 0 (mod p), so B<sup>y</sup> ≡ 0 (mod p). This requires p | B. But p ∈ q and q ∩ s = ∅, so p ∉ s, meaning p does not divide B — <strong>a contradiction</strong>.</p>
+        <p>The same argument applies symmetrically for any prime in s. Therefore the assumption that q and s are disjoint is untenable: no solution to A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup> exists when A and B share no common prime factor.</p>
+
+        <h3 style="text-align: left; color: #007bff; margin: 1.5rem 0 0.75rem;">5.2 Case II — q and s overlap</h3>
+        <p>Suppose \( q \cap s \neq \emptyset \); that is, A and B share at least one common prime factor. Call it p₀.</p>
+        <p>Since p₀ | A and p₀ | B, we have p₀ | A<sup>x</sup> and p₀ | B<sup>y</sup>, and therefore p₀ | (A<sup>x</sup> + B<sup>y</sup>) = C<sup>z</sup>. Since p₀ divides C<sup>z</sup>, it follows that p₀ divides C.</p>
+        <p>Therefore A, B, and C all share the common prime factor p₀.</p>
+
+        <h3 style="text-align: left; margin: 1.5rem 0 0.75rem;">5.3 Conclusion</h3>
+        <p>Cases I and II are exhaustive. Case I yields a contradiction and produces no solutions. Case II directly implies that A, B, and C share a common prime factor. Therefore, for all integer solutions to A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup> with x, y, z ≥ 3, the bases A, B, and C must share a common prime factor. &nbsp;□</p>
+    </section>
+
+    <section class="content-section">
+        <h2>6.0 Computational Verification</h2>
+        <p>A Python tool was developed as a companion to this paper to computationally verify the argument. The tool classifies any pair (A, B) by their prime factor sets q and s, searches for solutions to A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup> over a user-specified exponent range, and reports all GCD values for any solution found.</p>
+        <p>The computational results are consistent with the proof. In every case where q and s are disjoint, no solution is found across exponent ranges of x, y ∈ [3, 100]. In every case where q and s overlap, solutions exist and the conjecture holds.</p>
+        <p>A representative known solution illustrates the pattern clearly:</p>
+        <p style="text-align: center; font-size: 1.15rem; background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1.25rem 0;">
+            3<sup>3</sup> + 6<sup>3</sup> = 3<sup>5</sup>
+        </p>
+        <p>Here q = {3}, s = {2, 3}, and q ∩ s = {3}. The shared prime 3 divides all three bases, confirming the conjecture.</p>
+        <p>The complete source code is available on GitHub:
+            <a href="https://github.com/wescoup/Beal-Conjecture" target="_blank" rel="noopener noreferrer">
+                github.com/wescoup/Beal-Conjecture
+            </a>
+        </p>
+    </section>
+
+    <section class="content-section">
+        <h2>7.0 Conclusion</h2>
+        <p>The subtitle of this paper asks why a counterexample cannot exist — and the answer emerges from the proof itself. The disjoint case, the only scenario in which a counterexample could arise, is eliminated by contradiction before any candidate solution can form. The premise A<sup>x</sup> + B<sup>y</sup> = C<sup>z</sup> is self-selecting: it can only be satisfied when A and B share a common prime factor, and when they do, C inherits that factor necessarily.</p>
+        <p>There is no solution space left to search. The conjecture is not merely true in every known case — it is true by structural necessity.</p>
+    </section>
+
+    <p><a href="{{ url_for('tonys_math_musings') }}">&larr; Back to Tony's Math Musings</a></p>
+</div>
+
+<!-- MathJax for LaTeX rendering -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+{% endblock %}
