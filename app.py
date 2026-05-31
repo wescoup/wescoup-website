@@ -198,6 +198,10 @@ def redefining_gravity():
 def open_equation_lab():
     return render_template('math/open-equation-lab.html')
 
+@app.route('/beal-conjecture')
+def beal_conjecture():
+    return render_template('math/beal-conjecture.html')
+
 # --- Tennis & Pickleblall Routes ---
 @app.route('/tonys-tennis-tools')
 def tonys_tennis_tools():
