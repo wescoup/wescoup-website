@@ -12,18 +12,17 @@
     <title>Wescoup Website: Tony's Pickleball Tools</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">WESCOUP</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbar">
-                <ul class="navbar-nav ms-auto mb-2 mb-md-0">
-                    <li class="nav-item"><a class="nav-link" href="/tonys-tennis-tools">Tony's Tennis Tools</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/tonys-pickleball-tools">Tony's Pickleball Tools</a></li>
-                </ul>
-            </div>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="nav-logo">Wescoup</a>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('tonys_tennis_tools') }}">Tennis</a></li>
+                <li><a href="{{ url_for('tonys_pickleball_tools') }}">Pickleball</a></li>
+                <li><a href="{{ url_for('floating_mulligan') }}">Golf</a></li>
+                <!-- NEW NAV LINK FOR GAMES -->
+                <li><a href="{{ url_for('tonys_time_traps') }}">Games</a></li>
+            </ul>
         </div>
     </nav>
 
