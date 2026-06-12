@@ -251,6 +251,10 @@ def tonys_pickleball_tracker():
 def tonys_pickleball_doubles_tracker():
     return render_template('pickleball/tonys-pickleball-doubles-tracker.html')
 
+@app.route('/floating-mulligan')
+def floating_mulligan():
+    return render_template('golf/floating-mulligan.html')
+
 # --- Game Routes ---
 @app.route('/tonys-time-traps')
 def tonys_time_traps():
